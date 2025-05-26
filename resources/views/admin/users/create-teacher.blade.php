@@ -1,0 +1,180 @@
+@extends('layouts.admin')
+
+@section('title', 'Add New Teacher')
+
+@section('content')
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Add New Teacher</h1>
+        <a href="{{ route('admin.users') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to User Management
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Teacher Information</h6>
+                </div>
+                <div class="card-body">
+                    <form action="{{ route('admin.users.teachers.store') }}" method="POST">
+                        @csrf
+                        
+                        <!-- Basic Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control @error('name') is-invalid @enderror" 
+                                           id="name" name="name" value="{{ old('name') }}" required>
+                                    @error('name')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                                           id="email" name="email" value="{{ old('email') }}" required>
+                                    @error('email')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="contact_number" class="form-label">Contact Number</label>
+                                    <input type="text" class="form-control @error('contact_number') is-invalid @enderror" 
+                                           id="contact_number" name="contact_number" value="{{ old('contact_number') }}">
+                                    @error('contact_number')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control @error('password') is-invalid @enderror" 
+                                           id="password" name="password" required>
+                                    @error('password')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="password_confirmation" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" 
+                                           id="password_confirmation" name="password_confirmation" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Academic Information -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="strand" class="form-label">Strand/Subject Area</label>
+                                    <select class="form-control @error('strand') is-invalid @enderror" id="strand" name="strand">
+                                        <option value="">Select Strand</option>
+                                        <option value="STEM" {{ old('strand') == 'STEM' ? 'selected' : '' }}>STEM</option>
+                                        <option value="HUMSS" {{ old('strand') == 'HUMSS' ? 'selected' : '' }}>HUMSS</option>
+                                        <option value="ABM" {{ old('strand') == 'ABM' ? 'selected' : '' }}>ABM</option>
+                                        <option value="GAS" {{ old('strand') == 'GAS' ? 'selected' : '' }}>GAS</option>
+                                        <option value="TVL" {{ old('strand') == 'TVL' ? 'selected' : '' }}>TVL</option>
+                                        <option value="Arts and Design" {{ old('strand') == 'Arts and Design' ? 'selected' : '' }}>Arts and Design</option>
+                                        <option value="Sports" {{ old('strand') == 'Sports' ? 'selected' : '' }}>Sports</option>
+                                    </select>
+                                    @error('strand')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                                    <select class="form-control @error('status') is-invalid @enderror" id="status" name="status" required>
+                                        <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Active</option>
+                                        <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                    </select>
+                                    @error('status')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <label for="address" class="form-label">Address</label>
+                                    <textarea class="form-control @error('address') is-invalid @enderror" 
+                                              id="address" name="address" rows="3">{{ old('address') }}</textarea>
+                                    @error('address')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Create Teacher
+                                    </button>
+                                    <a href="{{ route('admin.users') }}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">Help & Guidelines</h6>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-primary">Required Fields</h6>
+                    <ul class="small">
+                        <li>Full Name</li>
+                        <li>Email Address</li>
+                        <li>Password (minimum 8 characters)</li>
+                        <li>Status</li>
+                    </ul>
+
+                    <h6 class="text-primary mt-3">Password Requirements</h6>
+                    <ul class="small">
+                        <li>Minimum 8 characters</li>
+                        <li>Must be confirmed</li>
+                        <li>Should be secure and unique</li>
+                    </ul>
+
+                    <h6 class="text-primary mt-3">Status Options</h6>
+                    <ul class="small">
+                        <li><strong>Active:</strong> Teacher can log in and access the system</li>
+                        <li><strong>Inactive:</strong> Teacher account is disabled</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
