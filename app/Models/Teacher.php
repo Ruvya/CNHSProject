@@ -52,13 +52,7 @@ class Teacher extends Authenticatable
         });
     }
 
-    /**
-     * Get the subject offerings assigned to this teacher
-     */
-    public function subjectOfferings()
-    {
-        return $this->hasMany(SubjectOffering::class);
-    }
+
 
     /**
      * Get grades for students in this teacher's subjects
@@ -68,5 +62,30 @@ class Teacher extends Authenticatable
         return Grade::whereHas('subject', function($query) {
             $query->where('teacher_id', $this->id);
         });
+    }
+
+    /**
+     * Get teacher assignments
+     */
+    public function assignments()
+    {
+        return $this->hasMany(TeacherAssignment::class);
+    }
+
+    /**
+     * Get current active assignments
+     */
+    public function currentAssignments()
+    {
+        return $this->hasMany(TeacherAssignment::class)
+            ->where('status', 'active');
+    }
+
+    /**
+     * Get sections this teacher is adviser for
+     */
+    public function advisedSections()
+    {
+        return $this->hasMany(Section::class, 'adviser_id');
     }
 }

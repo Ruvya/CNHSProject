@@ -28,7 +28,7 @@ class RegisterController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'grade_level' => 'required|string|max:255',
             'gender' => 'required|string|max:255',
-            'student_id' => 'required|integer|unique:students',
+            'student_id' => 'required|string|unique:students',
             'emergency_name' => 'nullable|string|max:255',
             'emergency_phone' => 'nullable|string|max:50',
             'emergency_relationship' => 'nullable|string|max:100',
@@ -90,4 +90,4 @@ class RegisterController extends Controller
 
         return redirect()->route('login')->with('success', 'Registration successful! Please login.');
     }
-} 
+}

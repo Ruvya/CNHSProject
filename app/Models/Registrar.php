@@ -9,6 +9,7 @@ class Registrar extends Authenticatable
 {
     use Notifiable;
 
+    // Use default table name 'registrars' to match auth configuration
     protected $guard = 'registrar';
 
     protected $fillable = [
@@ -41,11 +42,5 @@ class Registrar extends Authenticatable
         return $this->hasMany(Subject::class);
     }
 
-    /**
-     * Get the subject offerings created by this registrar.
-     */
-    public function subjectOfferings()
-    {
-        return $this->hasMany(SubjectOffering::class);
-    }
+
 }

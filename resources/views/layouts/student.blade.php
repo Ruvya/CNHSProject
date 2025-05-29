@@ -274,14 +274,7 @@
                     <i class="fas fa-star"></i> Grades
                 </a>
             </li>
-            <li>
-                <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
-                    @csrf
-                    <button type="submit" style="background: none; border: none; width: 100%; text-align: left; color: white; padding: 10px; cursor: pointer;">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                </form>
-            </li>
+          
         </ul>
     </div>
 

@@ -13,14 +13,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Get the first registrar to assign existing subjects to
-        $firstRegistrar = Registrar::first();
-        
-        if ($firstRegistrar) {
-            // Update all subjects that don't have a registrar_id assigned
-            Subject::whereNull('registrar_id')->update([
-                'registrar_id' => $firstRegistrar->id
-            ]);
+        // Only run if subjects table exists
+        if (Schema::hasTable('subjects') && Schema::hasColumn('subjects', 'registrar_id')) {
+            // Get the first registrar to assign existing subjects to
+            $firstRegistrar = Registrar::first();
+
+            if ($firstRegistrar) {
+                // Update all subjects that don't have a registrar_id assigned
+                Subject::whereNull('registrar_id')->update([
+                    'registrar_id' => $firstRegistrar->id
+                ]);
+            }
         }
     }
 
@@ -29,9 +32,12 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Set all registrar_id to null
-        Subject::whereNotNull('registrar_id')->update([
-            'registrar_id' => null
-        ]);
+        // Only run if subjects table exists
+        if (Schema::hasTable('subjects') && Schema::hasColumn('subjects', 'registrar_id')) {
+            // Set all registrar_id to null
+            Subject::whereNotNull('registrar_id')->update([
+                'registrar_id' => null
+            ]);
+        }
     }
 };

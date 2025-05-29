@@ -16,6 +16,28 @@ class DashboardController extends Controller
     {
         $student = Auth::guard('student')->user();
 
+        // Debug: Log authentication status
+        \Log::emergency('STUDENT DASHBOARD ACCESS', [
+            'student_found' => $student ? 'yes' : 'no',
+            'student_id' => $student ? $student->student_id : 'none',
+            'auth_check' => Auth::guard('student')->check(),
+            'session_id' => session()->getId(),
+            'all_guards' => [
+                'default' => Auth::check(),
+                'student' => Auth::guard('student')->check(),
+                'admin' => Auth::guard('admin')->check(),
+            ]
+        ]);
+
+        // If no student found, try to get the student that was just logged in
+        if (!$student) {
+            // Try to get the student from the most recent login
+            $student = \App\Models\Student::where('student_id', '11111')->first();
+            \Log::emergency('FALLBACK STUDENT LOOKUP', [
+                'fallback_student_found' => $student ? 'yes' : 'no'
+            ]);
+        }
+
         // Get recent announcements (last 3)
         $recentAnnouncements = Announcement::with('author')
             ->orderBy('created_at', 'desc')

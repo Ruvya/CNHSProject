@@ -9,43 +9,21 @@ class Subject extends Model
     protected $fillable = [
         'name',
         'code',
-        'subject_name',
-        'subject_code',
         'grade_level',
+        'units',
         'teacher_id',
         'registrar_id',
         'description',
         'track',
         'strand',
+        'cluster',
+        'specialization',
         'grading',
-        'is_master_subject'
+        'semester',
+        'is_master_subject',
+        'is_core_subject',
+        'prerequisite_subjects'
     ];
-
-    // Add mutators to map form fields to database columns
-    public function setNameAttribute($value)
-    {
-        // Populate both 'name' and 'subject_name' columns for compatibility
-        $this->attributes['name'] = $value;
-        $this->attributes['subject_name'] = $value;
-    }
-
-    public function setCodeAttribute($value)
-    {
-        // Populate both 'code' and 'subject_code' columns for compatibility
-        $this->attributes['code'] = $value;
-        $this->attributes['subject_code'] = $value;
-    }
-
-    // Add accessors to get data using the expected field names
-    public function getNameAttribute()
-    {
-        return $this->attributes['name'] ?? $this->attributes['subject_name'] ?? null;
-    }
-
-    public function getCodeAttribute()
-    {
-        return $this->attributes['code'] ?? $this->attributes['subject_code'] ?? null;
-    }
 
 
 
@@ -61,8 +39,8 @@ class Subject extends Model
 
     public function students()
     {
-        return $this->belongsToMany(Student::class, 'student_subject')
-            ->withPivot('grade')
+        return $this->belongsToMany(Student::class, 'student_subject', 'subject_id', 'student_id')
+            ->withPivot('grade', 'quarter', 'school_year', 'remarks')
             ->withTimestamps();
     }
 
@@ -74,21 +52,7 @@ class Subject extends Model
         return $this->hasMany(Grade::class);
     }
 
-    /**
-     * Get the subject offerings for this subject
-     */
-    public function offerings()
-    {
-        return $this->hasMany(SubjectOffering::class);
-    }
 
-    /**
-     * Get active offerings for this subject
-     */
-    public function activeOfferings()
-    {
-        return $this->hasMany(SubjectOffering::class)->where('status', 'active');
-    }
 
     /**
      * Scope for master subjects only

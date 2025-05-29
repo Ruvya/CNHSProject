@@ -12,6 +12,7 @@
             position: relative;
             overflow-x: hidden;
             margin-left: 250px !important;
+
         }
 
         .grades-header {
@@ -19,6 +20,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
+            margin-top: 3%;
+
         }
 
         .header-title h1 {
@@ -191,7 +194,11 @@
 
         .table-header {
             margin-bottom: 1.5rem;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .table-header h3 {
@@ -201,7 +208,73 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             font-weight: 600;
-            margin: 0 0 1rem 0;
+            margin: 0;
+        }
+
+        .table-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-outline-primary {
+            border: 1px solid #2563eb;
+            color: #2563eb;
+            background: transparent;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-outline-primary:hover {
+            background: #2563eb;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-outline-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-outline-primary .fa-sync-alt {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-outline-primary:hover .fa-sync-alt {
+            transform: rotate(180deg);
+        }
+
+        /* Toast notification styles */
+        .toast-notification {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .toast-notification .btn-close {
+            font-size: 0.75rem;
+        }
+
+        /* Grade update animations */
+        .grade-updated {
+            animation: gradeUpdate 0.6s ease-in-out;
+        }
+
+        @keyframes gradeUpdate {
+            0% { background-color: #dbeafe; }
+            50% { background-color: #bfdbfe; }
+            100% { background-color: transparent; }
         }
 
         .enrollment-notice {
@@ -638,6 +711,14 @@
 <div class="grades-table-container fade-in">
     <div class="table-header">
         <h3>Grade Report</h3>
+        <div class="table-actions">
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="refreshGrades()" id="refreshBtn">
+                <i class="fas fa-sync-alt"></i> Refresh Grades
+            </button>
+            <small class="text-muted ms-2" id="lastUpdated">
+                Last updated: {{ now()->format('M d, Y h:i A') }}
+            </small>
+        </div>
         @if($enrolledSubjects < $totalSubjects)
             <div class="enrollment-notice">
                 <i class="fas fa-info-circle"></i>
@@ -662,7 +743,7 @@
         <tbody>
             @if($grades->count() > 0)
                 @foreach($grades as $grade)
-            <tr class="{{ !$grade->is_enrolled ? 'not-enrolled' : '' }}">
+            <tr class="{{ !$grade->is_enrolled ? 'not-enrolled' : '' }}" data-subject-id="{{ $grade->subject->id }}">
                 <td>
                     <div class="subject-info">
                         <strong>{{ $grade->subject->name ?? '-' }}</strong>
@@ -677,20 +758,30 @@
                 <td class="teacher-cell">
                     {{ $grade->subject->teacher->name ?? 'No teacher assigned' }}
                 </td>
-                <td class="grade-cell {{ $grade->quarter1 ? '' : 'pending' }}">{{ $grade->quarter1 ?? '-' }}</td>
-                <td class="grade-cell {{ $grade->quarter2 ? '' : 'pending' }}">{{ $grade->quarter2 ?? '-' }}</td>
-                <td class="grade-cell {{ $grade->quarter3 ? '' : 'pending' }}">{{ $grade->quarter3 ?? '-' }}</td>
-                <td class="grade-cell {{ $grade->quarter4 ? '' : 'pending' }}">{{ $grade->quarter4 ?? '-' }}</td>
-                <td class="grade-cell {{ $grade->final_grade ? '' : 'pending' }}">{{ $grade->final_grade ?? '-' }}</td>
+                <td class="grade-cell {{ $grade->quarter1 ? '' : 'pending' }}">
+                    <span class="q1-grade">{{ $grade->quarter1 ?? '-' }}</span>
+                </td>
+                <td class="grade-cell {{ $grade->quarter2 ? '' : 'pending' }}">
+                    <span class="q2-grade">{{ $grade->quarter2 ?? '-' }}</span>
+                </td>
+                <td class="grade-cell {{ $grade->quarter3 ? '' : 'pending' }}">
+                    <span class="q3-grade">{{ $grade->quarter3 ?? '-' }}</span>
+                </td>
+                <td class="grade-cell {{ $grade->quarter4 ? '' : 'pending' }}">
+                    <span class="q4-grade">{{ $grade->quarter4 ?? '-' }}</span>
+                </td>
+                <td class="grade-cell {{ $grade->final_grade ? '' : 'pending' }}">
+                    <span class="final-grade">{{ $grade->final_grade ?? '-' }}</span>
+                </td>
                 <td>
                     @if(!$grade->is_enrolled)
-                        <span class="badge not-enrolled">Not Enrolled</span>
+                        <span class="badge not-enrolled status-badge">Not Enrolled</span>
                     @elseif($grade->final_grade)
-                        <span class="badge {{ $grade->final_grade >= 75 ? 'passed' : 'failed' }}">
+                        <span class="badge {{ $grade->final_grade >= 75 ? 'passed' : 'failed' }} status-badge">
                             {{ $grade->final_grade >= 75 ? 'Passed' : 'Failed' }}
                         </span>
                     @else
-                        <span class="badge pending">Pending</span>
+                        <span class="badge pending status-badge">Pending</span>
                     @endif
                 </td>
             </tr>
@@ -806,26 +897,121 @@
             });
         }
 
-        // Function to load grades based on selected filters
-        function loadGrades() {
-            const gradeLevel = document.getElementById('gradeLevel').value;
-            const schoolYear = document.getElementById('schoolYear').value;
+        // Function to refresh grades in real-time
+        function refreshGrades() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            const originalText = refreshBtn.innerHTML;
 
-            if (!gradeLevel || !schoolYear) {
-                alert('Please select both Grade Level and School Year');
-                return;
-            }
+            // Show loading state
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
 
-            // Here you would typically make an AJAX call to fetch grades for the selected year and grade level
-            console.log('Loading grades for:', {
-                gradeLevel: gradeLevel,
-                schoolYear: schoolYear
+            fetch('{{ route("student.grades.refresh") }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateGradeTable(data.grades);
+                        document.getElementById('lastUpdated').textContent = 'Last updated: ' + data.last_refresh;
+                        showToast('success', 'Grades refreshed successfully!');
+                    } else {
+                        showToast('error', 'Failed to refresh grades');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing grades:', error);
+                    showToast('error', 'Error refreshing grades');
+                })
+                .finally(() => {
+                    // Restore button state
+                    refreshBtn.disabled = false;
+                    refreshBtn.innerHTML = originalText;
+                });
+        }
+
+        // Function to update the grade table with new data
+        function updateGradeTable(grades) {
+            grades.forEach(grade => {
+                const subjectRow = document.querySelector(`tr[data-subject-id="${grade.subject_id}"]`);
+                if (subjectRow) {
+                    // Update quarter grades
+                    const q1Cell = subjectRow.querySelector('.q1-grade');
+                    const q2Cell = subjectRow.querySelector('.q2-grade');
+                    const q3Cell = subjectRow.querySelector('.q3-grade');
+                    const q4Cell = subjectRow.querySelector('.q4-grade');
+                    const finalCell = subjectRow.querySelector('.final-grade');
+                    const statusCell = subjectRow.querySelector('.status-badge');
+
+                    if (q1Cell) q1Cell.textContent = grade.quarter1 || '-';
+                    if (q2Cell) q2Cell.textContent = grade.quarter2 || '-';
+                    if (q3Cell) q3Cell.textContent = grade.quarter3 || '-';
+                    if (q4Cell) q4Cell.textContent = grade.quarter4 || '-';
+                    if (finalCell) finalCell.textContent = grade.final_grade || '-';
+
+                    if (statusCell) {
+                        statusCell.className = `badge ${grade.status_color}`;
+                        statusCell.textContent = grade.status;
+                    }
+                }
             });
         }
 
-        // Add event listeners for filter changes
-        document.getElementById('gradeLevel').addEventListener('change', loadGrades);
-        document.getElementById('schoolYear').addEventListener('change', loadGrades);
+        // Toast notification function
+        function showToast(type, message) {
+            // Remove existing toasts
+            document.querySelectorAll('.toast-notification').forEach(toast => toast.remove());
+
+            const toastClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const iconClass = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+            const toast = document.createElement('div');
+            toast.className = `toast-notification alert ${toastClass} alert-dismissible fade show`;
+            toast.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `
+                <i class="fas ${iconClass} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+            `;
+
+            document.body.appendChild(toast);
+
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 3000);
+        }
+
+        // Function to load grades based on selected filters
+        function loadGrades() {
+            const gradeLevel = document.getElementById('gradeLevel');
+            const schoolYear = document.getElementById('schoolYear');
+
+            if (gradeLevel && schoolYear) {
+                if (!gradeLevel.value || !schoolYear.value) {
+                    alert('Please select both Grade Level and School Year');
+                    return;
+                }
+
+                // Here you would typically make an AJAX call to fetch grades for the selected year and grade level
+                console.log('Loading grades for:', {
+                    gradeLevel: gradeLevel.value,
+                    schoolYear: schoolYear.value
+                });
+            }
+        }
+
+        // Add event listeners for filter changes if elements exist
+        document.addEventListener('DOMContentLoaded', function() {
+            const gradeLevel = document.getElementById('gradeLevel');
+            const schoolYear = document.getElementById('schoolYear');
+
+            if (gradeLevel) gradeLevel.addEventListener('change', loadGrades);
+            if (schoolYear) schoolYear.addEventListener('change', loadGrades);
+
+            // Auto-refresh grades every 30 seconds
+            setInterval(refreshGrades, 30000);
+        });
 
         const quarterGrades = @json($quarterGrades);
         const generalAverage = {{ $generalAverage ?? 0 }};

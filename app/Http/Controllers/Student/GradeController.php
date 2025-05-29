@@ -41,7 +41,7 @@ class GradeController extends Controller
                 ->where('subject_id', $subject->id)
                 ->first();
 
-            // Create a subject grade object
+            // Create a subject grade object with enhanced data
             $subjectGrade = (object) [
                 'subject' => $subject,
                 'quarter1' => $gradeRecord->quarter1 ?? null,
@@ -51,6 +51,9 @@ class GradeController extends Controller
                 'final_grade' => $gradeRecord->final_grade ?? null,
                 'remarks' => $gradeRecord->remarks ?? null,
                 'is_enrolled' => $student->subjects()->where('subject_id', $subject->id)->exists(),
+                'status' => $gradeRecord ? $gradeRecord->status : 'Incomplete',
+                'status_color' => $gradeRecord ? $gradeRecord->status_color : 'warning',
+                'last_updated' => $gradeRecord ? $gradeRecord->updated_at : null,
             ];
 
             $subjectGrades->push($subjectGrade);
@@ -121,5 +124,46 @@ class GradeController extends Controller
             'enrolledSubjects',
             'subjectsWithGrades'
         ));
+    }
+
+    /**
+     * Get updated grades via AJAX for real-time updates
+     */
+    public function getUpdatedGrades()
+    {
+        $student = Auth::guard('student')->user();
+
+        // Get all subjects the student is enrolled in
+        $enrolledSubjects = $student->subjects()->with('teacher')->get();
+
+        $updatedGrades = collect();
+
+        foreach ($enrolledSubjects as $subject) {
+            // Get the grade record for this subject
+            $gradeRecord = Grade::where('student_id', $student->id)
+                ->where('subject_id', $subject->id)
+                ->first();
+
+            if ($gradeRecord) {
+                $updatedGrades->push([
+                    'subject_id' => $subject->id,
+                    'subject_name' => $subject->name,
+                    'quarter1' => $gradeRecord->quarter1,
+                    'quarter2' => $gradeRecord->quarter2,
+                    'quarter3' => $gradeRecord->quarter3,
+                    'quarter4' => $gradeRecord->quarter4,
+                    'final_grade' => $gradeRecord->final_grade,
+                    'status' => $gradeRecord->status,
+                    'status_color' => $gradeRecord->status_color,
+                    'last_updated' => $gradeRecord->updated_at->format('M d, Y h:i A'),
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'grades' => $updatedGrades,
+            'last_refresh' => now()->format('M d, Y h:i A')
+        ]);
     }
 }

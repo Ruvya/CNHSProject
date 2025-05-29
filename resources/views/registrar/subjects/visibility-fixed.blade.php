@@ -37,7 +37,7 @@
 
                         <!-- Problems Identified & Fixed -->
                         <h2 class="mb-4"><i class="fas fa-bug-slash text-success me-2"></i>Problems Identified & Fixed</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <div class="card solution-card border-danger">
@@ -55,7 +55,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card solution-card border-success">
                                     <div class="card-header bg-success text-white">
@@ -76,7 +76,7 @@
 
                         <!-- Technical Implementation -->
                         <h2 class="mb-4"><i class="fas fa-code text-info me-2"></i>Technical Implementation</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <div class="card solution-card border-info">
@@ -85,17 +85,17 @@
                                     </div>
                                     <div class="card-body">
                                         <pre class="bg-light p-3 rounded"><code>// Handle both grade formats
-$gradeMatch = ($subjectGrade === $grade) || 
+$gradeMatch = ($subjectGrade === $grade) ||
              ($grade === 'Grade 11' && $subjectGrade === '11') ||
              ($grade === 'Grade 12' && $subjectGrade === '12');
 
 // Handle strand matching with fallback
-$strandMatch = ($subjectStrand === $strand) || 
+$strandMatch = ($subjectStrand === $strand) ||
               (empty($subjectStrand) && $strand === 'HUMSS');</code></pre>
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card solution-card border-secondary">
                                     <div class="card-header bg-secondary text-white">
@@ -116,7 +116,7 @@ $strandMatch = ($subjectStrand === $strand) ||
 
                         <!-- Features of the Fixed System -->
                         <h2 class="mb-4"><i class="fas fa-star text-warning me-2"></i>Features of the Fixed System</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-4">
                                 <div class="card solution-card border-primary">
@@ -134,7 +134,7 @@ $strandMatch = ($subjectStrand === $strand) ||
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <div class="card solution-card border-success">
                                     <div class="card-header bg-success text-white text-center">
@@ -151,7 +151,7 @@ $strandMatch = ($subjectStrand === $strand) ||
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <div class="card solution-card border-warning">
                                     <div class="card-header bg-warning text-dark text-center">
@@ -172,7 +172,7 @@ $strandMatch = ($subjectStrand === $strand) ||
 
                         <!-- Test the Fixed System -->
                         <h2 class="mb-4"><i class="fas fa-vial text-success me-2"></i>Test the Fixed System</h2>
-                        
+
                         <div class="card solution-card border-success mb-5">
                             <div class="card-header bg-success text-white">
                                 <h6 class="mb-0"><i class="fas fa-test-tube me-2"></i>Testing Instructions</h6>
@@ -198,7 +198,7 @@ $strandMatch = ($subjectStrand === $strand) ||
                                         </ol>
                                     </div>
                                 </div>
-                                
+
                                 <div class="mt-4">
                                     <h6><i class="fas fa-tools me-2"></i>Diagnostic Tools:</h6>
                                     <div class="btn-group" role="group">
@@ -208,7 +208,7 @@ $strandMatch = ($subjectStrand === $strand) ||
                                         <a href="/registrar-subjects-fixed" class="btn btn-success">
                                             <i class="fas fa-eye me-1"></i>View Fixed Version
                                         </a>
-                                        <a href="{{ route('registrar.subjects') }}" class="btn btn-outline-warning">
+                                        <a href="{{ route('registrar.subjects.index') }}" class="btn btn-outline-warning">
                                             <i class="fas fa-eye me-1"></i>View Original Version
                                         </a>
                                     </div>
@@ -218,7 +218,7 @@ $strandMatch = ($subjectStrand === $strand) ||
 
                         <!-- Quick Links -->
                         <h2 class="mb-4"><i class="fas fa-link text-secondary me-2"></i>Quick Navigation</h2>
-                        
+
                         <div class="row g-3 mb-5">
                             <div class="col-md-3">
                                 <a href="{{ route('registrar.login') }}" class="btn btn-primary btn-lg w-100">
@@ -231,7 +231,7 @@ $strandMatch = ($subjectStrand === $strand) ||
                                 </a>
                             </div>
                             <div class="col-md-3">
-                                <a href="{{ route('admin.subjects') }}" class="btn btn-info btn-lg w-100">
+                                <a href="{{ route('admin.subjects.index') }}" class="btn btn-info btn-lg w-100">
                                     <i class="fas fa-plus me-2"></i>Admin Subjects
                                 </a>
                             </div>
@@ -246,7 +246,7 @@ $strandMatch = ($subjectStrand === $strand) ||
                         <div class="text-center mt-5">
                             <h3 class="text-success mb-3">🎯 Registrar Subjects Visibility - COMPLETELY FIXED!</h3>
                             <p class="text-muted mb-4">Registrars can now see all Admin-created subjects with proper organization, filtering, and search capabilities. The system handles all data format variations and provides multiple viewing options.</p>
-                            
+
                             <div class="d-flex justify-content-center gap-3 flex-wrap">
                                 <a href="/registrar-subjects-fixed" class="btn btn-success btn-lg">
                                     <i class="fas fa-eye me-2"></i>View Fixed Subjects Page

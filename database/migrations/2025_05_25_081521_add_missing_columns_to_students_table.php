@@ -25,6 +25,14 @@ return new class extends Migration
             if (!Schema::hasColumn('students', 'lrn')) {
                 $table->string('lrn')->nullable()->after('section');
             }
+
+            // Add flag to indicate if this is a temporary credential account
+            if (!Schema::hasColumn('students', 'is_temporary_account')) {
+                $table->boolean('is_temporary_account')->default(false)->after('password');
+            }
+            if (!Schema::hasColumn('students', 'profile_completed')) {
+                $table->boolean('profile_completed')->default(false)->after('is_temporary_account');
+            }
             if (!Schema::hasColumn('students', 'profile_picture')) {
                 $table->string('profile_picture')->nullable()->after('lrn');
             }

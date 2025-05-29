@@ -62,7 +62,7 @@
                         Subject Management Module
                     </h1>
                     <p class="lead mb-4">
-                        A comprehensive solution for managing academic subjects with distinct roles for Administrators and Registrars. 
+                        A comprehensive solution for managing academic subjects with distinct roles for Administrators and Registrars.
                         Create master subjects, offer them for specific terms, assign teachers, and manage schedules seamlessly.
                     </p>
                     <div class="d-flex gap-3 flex-wrap">
@@ -101,18 +101,18 @@
                 <div class="col-md-4">
                     <div class="feature-card card h-100">
                         <div class="card-body text-center">
-                            <i class="fas fa-calendar-alt fa-3x text-success mb-3"></i>
-                            <h5 class="card-title">Subject Offerings</h5>
-                            <p class="card-text">Registrars offer master subjects for specific school years, semesters, and sections with teacher assignments.</p>
+                            <i class="fas fa-users fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Student Management</h5>
+                            <p class="card-text">Registrars manage student records, enrollment, and assign students to subjects and sections.</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="feature-card card h-100">
                         <div class="card-body text-center">
-                            <i class="fas fa-clock fa-3x text-warning mb-3"></i>
-                            <h5 class="card-title">Schedule Management</h5>
-                            <p class="card-text">Complete scheduling system with day, time, and room assignments for each subject offering.</p>
+                            <i class="fas fa-chart-line fa-3x text-warning mb-3"></i>
+                            <h5 class="card-title">Grade Management</h5>
+                            <p class="card-text">Track student grades and academic performance across all subjects and quarters.</p>
                         </div>
                     </div>
                 </div>
@@ -206,8 +206,8 @@
                             </h5>
                             <ul class="list-unstyled">
                                 <li><strong>subjects</strong> - Master subjects with enhanced fields</li>
-                                <li><strong>subject_offerings</strong> - Registrar-created offerings</li>
-                                <li><strong>subject_schedules</strong> - Detailed scheduling system</li>
+                                <li><strong>student_subject</strong> - Student-subject enrollment tracking</li>
+                                <li><strong>grades</strong> - Student grade management</li>
                                 <li><strong>Relationships</strong> - Proper foreign key constraints</li>
                             </ul>
                         </div>
@@ -223,7 +223,7 @@
                             <ul class="list-unstyled">
                                 <li><strong>Role-based access</strong> - Proper authorization</li>
                                 <li><strong>Data validation</strong> - Comprehensive form validation</li>
-                                <li><strong>Unique constraints</strong> - Prevent duplicate offerings</li>
+                                <li><strong>Unique constraints</strong> - Prevent duplicate subjects</li>
                                 <li><strong>Secure operations</strong> - Protected CRUD operations</li>
                             </ul>
                         </div>
@@ -241,11 +241,11 @@
                 <div class="row justify-content-center">
                     <div class="col-md-8">
                         <div class="d-flex flex-wrap justify-content-center gap-3">
-                            <a href="{{ route('admin.subjects') }}" class="btn btn-outline-primary demo-btn">
+                            <a href="{{ route('admin.subjects.index') }}" class="btn btn-outline-primary demo-btn">
                                 <i class="fas fa-book me-2"></i>Admin Subjects
                             </a>
-                            <a href="{{ route('registrar.subject-offerings.index') }}" class="btn btn-outline-success demo-btn">
-                                <i class="fas fa-calendar-alt me-2"></i>Subject Offerings
+                            <a href="{{ route('registrar.subjects.index') }}" class="btn btn-outline-success demo-btn">
+                                <i class="fas fa-book me-2"></i>Registrar Subjects
                             </a>
                             <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-info demo-btn">
                                 <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard

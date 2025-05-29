@@ -18,11 +18,33 @@ class Student extends Authenticatable
      */
     protected $table = 'students';
 
+    /**
+     * The primary key associated with the table.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * The "type" of the auto-incrementing ID.
+     *
+     * @var string
+     */
+    protected $keyType = 'int';
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = true;
+
     protected $fillable = [
         'student_id',
         'first_name',
         'middle_name',
         'last_name',
+        'name', // Add the name field to fillable
         'email',
         'password',
         'grade_level',
@@ -46,7 +68,9 @@ class Student extends Authenticatable
         'social_media',
         'emergency_name',
         'emergency_phone',
-        'emergency_relationship'
+        'emergency_relationship',
+        'is_temporary_account',
+        'profile_completed'
     ];
 
     protected $hidden = [
@@ -56,7 +80,22 @@ class Student extends Authenticatable
 
     protected $casts = [
         'password' => 'hashed',
+        'is_temporary_account' => 'boolean',
+        'profile_completed' => 'boolean',
     ];
+
+    /**
+     * Boot the model and add model events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Automatically populate the 'name' field when creating or updating
+        static::saving(function ($student) {
+            $student->name = $student->getFullNameAttribute();
+        });
+    }
 
     public function getFullNameAttribute()
     {
@@ -70,13 +109,46 @@ class Student extends Authenticatable
 
     public function grades()
     {
-        return $this->hasMany(Grade::class);
+        return $this->hasMany(Grade::class, 'student_id', 'id');
     }
 
     public function subjects()
     {
-        return $this->belongsToMany(Subject::class, 'student_subject')
-            ->withPivot('grade')
+        return $this->belongsToMany(Subject::class, 'student_subject', 'student_id', 'subject_id')
+            ->withPivot('grade', 'quarter', 'school_year', 'remarks')
             ->withTimestamps();
+    }
+
+    /**
+     * Get student assignments (section assignments)
+     */
+    public function assignments()
+    {
+        return $this->hasMany(StudentAssignment::class);
+    }
+
+    /**
+     * Get current active assignment
+     */
+    public function currentAssignment()
+    {
+        return $this->hasOne(StudentAssignment::class)
+            ->where('status', 'active')
+            ->latest();
+    }
+
+    /**
+     * Get current section
+     */
+    public function currentSection()
+    {
+        return $this->hasOneThrough(
+            Section::class,
+            StudentAssignment::class,
+            'student_id',
+            'id',
+            'id',
+            'section_id'
+        )->where('student_assignments.status', 'active');
     }
 }

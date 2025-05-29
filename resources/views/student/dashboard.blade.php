@@ -7,6 +7,7 @@
 <style>
     /* Modern Dashboard Styles - Clean White Background */
     .main-content {
+       
         padding: 2rem !important;
         background: #ffffff !important;
         min-height: calc(100vh - 80px) !important;
@@ -29,10 +30,12 @@
             radial-gradient(circle at 40% 40%, rgba(37, 99, 235, 0.01) 0%, transparent 50%);
         pointer-events: none;
         z-index: 1;
+        
     }
 
     /* Welcome Section */
     .welcome-section {
+        margin-top: 3%;
         background: #ffffff;
         border-radius: 25px;
         padding: 2.5rem;
@@ -491,84 +494,8 @@
         @endif
     </div>
 
-    <!-- Academic Performance Chart -->
-    <div class="grid-item">
-        <h2><i class="fas fa-chart-line"></i> Academic Performance</h2>
-        @if($grades->count() > 0)
-            <div class="chart-container">
-                <canvas id="gradesChart"></canvas>
-            </div>
-        @else
-            <div class="empty-state">
-                <i class="fas fa-chart-line"></i>
-                <h3>No Grades Available</h3>
-                <p>Your grades will appear here once they are posted by your teachers.</p>
-            </div>
-        @endif
-    </div>
 
-    <!-- Upcoming Activities -->
-    <div class="grid-item">
-        <h2><i class="fas fa-calendar-alt"></i> Upcoming Activities</h2>
-        @if(count($upcomingActivities) > 0)
-            <div class="activities-list">
-                @foreach($upcomingActivities as $activity)
-                <div class="activity-item">
-                    <div class="item-icon activity-icon">
-                        <i class="fas fa-{{ $activity['type'] === 'quiz' ? 'question-circle' : ($activity['type'] === 'project' ? 'tasks' : 'presentation') }}"></i>
-                    </div>
-                    <div class="item-content">
-                        <div class="item-title">{{ $activity['title'] }}</div>
-                        <div class="item-subtitle">{{ $activity['subject'] }}</div>
-                    </div>
-                    <div class="item-meta">
-                        {{ \Carbon\Carbon::parse($activity['date'])->format('M d') }}
-                    </div>
-                </div>
-                @endforeach
-            </div>
-        @else
-            <div class="empty-state">
-                <i class="fas fa-calendar-alt"></i>
-                <h3>No Upcoming Activities</h3>
-                <p>No scheduled activities at the moment. Stay tuned for updates!</p>
-            </div>
-        @endif
-    </div>
 
-    <!-- Recent Grades -->
-    <div class="grid-item">
-        <h2><i class="fas fa-star"></i> Recent Grades</h2>
-        @if($recentGrades->count() > 0)
-            <div class="grades-list">
-                @foreach($recentGrades as $grade)
-                <div class="grade-item">
-                    <div class="item-icon grade-icon">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="item-content">
-                        <div class="item-title">{{ $grade->subject->name }}</div>
-                        <div class="item-subtitle">Final Grade</div>
-                    </div>
-                    <div class="item-meta">
-                        <strong>{{ number_format($grade->final_grade, 1) }}</strong>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-            <div style="text-align: center; margin-top: 1rem;">
-                <a href="{{ route('student.grades') }}" style="color: #2563eb; text-decoration: none; font-weight: 600;">
-                    View All Grades
-                </a>
-            </div>
-        @else
-            <div class="empty-state">
-                <i class="fas fa-star"></i>
-                <h3>No Grades Posted</h3>
-                <p>Your recent grades will appear here once posted by your teachers.</p>
-            </div>
-        @endif
-    </div>
 
     <!-- Quick Actions -->
     <div class="grid-item">

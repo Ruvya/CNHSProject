@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="CNHS Registrar Portal">
     <meta name="theme-color" content="#0d47a1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" href="{{ asset('images/log.png') }}" type="image/png">
     <title>@yield('title') - CNHS</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -88,13 +89,19 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('registrar.subjects') }}" class="{{ request()->routeIs('registrar.subjects') ? 'active' : '' }}">
+                    <a href="{{ route('registrar.subjects.index') }}" class="{{ request()->routeIs('registrar.subjects*') ? 'active' : '' }}">
                         <i class="fas fa-book"></i> Subjects
                     </a>
                 </li>
+
                 <li>
-                    <a href="{{ route('registrar.subject-offerings.index') }}" class="{{ request()->routeIs('registrar.subject-offerings*') ? 'active' : '' }}">
-                        <i class="fas fa-calendar-alt"></i> Subject Offerings
+                    <a href="{{ route('registrar.student-assignments.index') }}" class="{{ request()->routeIs('registrar.student-assignments*') ? 'active' : '' }}">
+                        <i class="fas fa-users-cog"></i> Student Assignment
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('registrar.teacher-assignments.index') }}" class="{{ request()->routeIs('registrar.teacher-assignments*') ? 'active' : '' }}">
+                        <i class="fas fa-chalkboard-teacher"></i> Teacher Assignment
                     </a>
                 </li>
                 <li>

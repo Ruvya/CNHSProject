@@ -26,7 +26,7 @@
 
                         <!-- Problem Analysis -->
                         <h2 class="mb-4"><i class="fas fa-search text-primary me-2"></i>Problem Analysis</h2>
-                        
+
                         <div class="alert alert-info border-0 shadow-sm mb-5">
                             <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Common Subject Creation Issues</h5>
                             <hr>
@@ -56,7 +56,7 @@
 
                         <!-- Step-by-Step Solution -->
                         <h2 class="mb-4"><i class="fas fa-tools text-success me-2"></i>Step-by-Step Solution</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <!-- Step 1 -->
                             <div class="col-md-6">
@@ -155,7 +155,7 @@
 
                         <!-- Quick Fixes -->
                         <h2 class="mb-4"><i class="fas fa-lightning-bolt text-warning me-2"></i>Quick Fixes</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-4">
                                 <div class="card solution-card border-danger">
@@ -211,7 +211,7 @@
 
                         <!-- Manual Test Form -->
                         <h2 class="mb-4"><i class="fas fa-vial text-primary me-2"></i>Test Subject Creation</h2>
-                        
+
                         <div class="card solution-card border-primary mb-5">
                             <div class="card-header bg-primary text-white">
                                 <h6 class="mb-0"><i class="fas fa-test-tube me-2"></i>Manual Test Form</h6>
@@ -223,7 +223,7 @@
                                         <div class="col-md-6">
                                             <div class="mb-3">
                                                 <label for="test_name" class="form-label">Subject Name <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control @error('name') is-invalid @enderror" 
+                                                <input type="text" class="form-control @error('name') is-invalid @enderror"
                                                        id="test_name" name="name" value="{{ old('name', 'Test Subject ' . rand(1, 999)) }}" required>
                                                 @error('name')
                                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -233,7 +233,7 @@
                                         <div class="col-md-6">
                                             <div class="mb-3">
                                                 <label for="test_code" class="form-label">Subject Code <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control @error('code') is-invalid @enderror" 
+                                                <input type="text" class="form-control @error('code') is-invalid @enderror"
                                                        id="test_code" name="code" value="{{ old('code', 'TEST' . rand(100, 999)) }}" required>
                                                 @error('code')
                                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -275,7 +275,7 @@
                                         <label for="test_description" class="form-label">Description</label>
                                         <textarea class="form-control" id="test_description" name="description" rows="2" placeholder="Optional description">{{ old('description', 'Test subject for troubleshooting') }}</textarea>
                                     </div>
-                                    
+
                                     <div class="d-flex gap-3">
                                         <button type="submit" class="btn btn-primary">
                                             <i class="fas fa-save me-2"></i>Create Test Subject
@@ -285,7 +285,7 @@
                                         </button>
                                     </div>
                                 </form>
-                                
+
                                 @if($errors->any())
                                     <div class="alert alert-danger mt-4">
                                         <h6><i class="fas fa-exclamation-triangle me-2"></i>Errors Found:</h6>
@@ -296,7 +296,7 @@
                                         </ul>
                                     </div>
                                 @endif
-                                
+
                                 @if(session('success'))
                                     <div class="alert alert-success mt-4">
                                         <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
@@ -307,7 +307,7 @@
 
                         <!-- Troubleshooting Commands -->
                         <h2 class="mb-4"><i class="fas fa-terminal text-secondary me-2"></i>Troubleshooting Commands</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <div class="card solution-card border-secondary">
@@ -328,7 +328,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card solution-card border-info">
                                     <div class="card-header bg-info text-white">
@@ -352,7 +352,7 @@
 
                         <!-- Quick Links -->
                         <h2 class="mb-4"><i class="fas fa-link text-primary me-2"></i>Quick Navigation</h2>
-                        
+
                         <div class="row g-3 mb-5">
                             <div class="col-md-3">
                                 <a href="{{ route('admin.login') }}" class="btn btn-primary btn-lg w-100">
@@ -365,7 +365,7 @@
                                 </a>
                             </div>
                             <div class="col-md-3">
-                                <a href="{{ route('admin.subjects') }}" class="btn btn-info btn-lg w-100">
+                                <a href="{{ route('admin.subjects.index') }}" class="btn btn-info btn-lg w-100">
                                     <i class="fas fa-list me-2"></i>Subjects List
                                 </a>
                             </div>
@@ -393,7 +393,7 @@
             const subjects = ['Mathematics', 'English', 'Science', 'History', 'Physics', 'Chemistry', 'Biology', 'Literature'];
             const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
             const randomNumber = Math.floor(Math.random() * 1000);
-            
+
             document.getElementById('test_name').value = randomSubject + ' ' + randomNumber;
             document.getElementById('test_code').value = randomSubject.substring(0, 4).toUpperCase() + randomNumber;
             document.getElementById('test_grade_level').value = Math.random() > 0.5 ? 'Grade 11' : 'Grade 12';

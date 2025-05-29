@@ -8,11 +8,8 @@
     <h1 class="page-title">{{ $subject->name }}</h1>
     <p class="page-subtitle">Subject details and enrolled students</p>
     <div class="page-actions">
-        <a href="{{ route('admin.subjects') }}" class="btn btn-outline-secondary">
+        <a href="{{ route('admin.subjects.index') }}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-2"></i>Back to Subjects
-        </a>
-        <a href="{{ route('admin.subjects.edit', $subject) }}" class="btn btn-warning">
-            <i class="fas fa-edit me-2"></i>Edit Subject
         </a>
     </div>
 </div>
@@ -82,7 +79,7 @@
                         </table>
                     </div>
                 </div>
-                
+
                 @if($subject->description)
                 <div class="mt-3">
                     <h6>Description:</h6>
@@ -91,7 +88,7 @@
                 @endif
             </div>
         </div>
-        
+
         <!-- Enrolled Students -->
         <div class="card mt-4">
             <div class="card-header">
@@ -159,7 +156,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Sidebar -->
     <div class="col-md-4">
         <!-- Teacher Information -->
@@ -192,14 +189,12 @@
                         <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
                         <h6 class="text-muted">No Teacher Assigned</h6>
                         <p class="text-muted mb-3">This subject needs a teacher assignment.</p>
-                        <a href="{{ route('admin.subjects.edit', $subject) }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-user-plus me-1"></i>Assign Teacher
-                        </a>
+                        <p class="text-muted small">Teacher assignments can be managed by the Registrar.</p>
                     </div>
                 @endif
             </div>
         </div>
-        
+
         <!-- Quick Stats -->
         <div class="card mt-4">
             <div class="card-header">
@@ -221,7 +216,7 @@
                         <small class="text-muted">Credit Units</small>
                     </div>
                 </div>
-                
+
                 @if($enrolledStudents->count() > 0)
                 <hr>
                 <div class="row text-center">
@@ -251,37 +246,7 @@
                 @endif
             </div>
         </div>
-        
-        <!-- Actions -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-cogs me-2 text-secondary"></i>
-                    Actions
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{{ route('admin.subjects.edit', $subject) }}" class="btn btn-warning btn-sm">
-                        <i class="fas fa-edit me-2"></i>Edit Subject
-                    </a>
-                    @if($enrolledStudents->count() === 0)
-                        <form action="{{ route('admin.subjects.destroy', $subject) }}" method="POST" 
-                              onsubmit="return confirm('Are you sure you want to delete this subject?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm w-100">
-                                <i class="fas fa-trash me-2"></i>Delete Subject
-                            </button>
-                        </form>
-                    @else
-                        <button class="btn btn-danger btn-sm" disabled title="Cannot delete subject with enrolled students">
-                            <i class="fas fa-trash me-2"></i>Delete Subject
-                        </button>
-                    @endif
-                </div>
-            </div>
-        </div>
+
     </div>
 </div>
 @endsection

@@ -230,12 +230,32 @@ class SubjectController extends Controller
             }
 
             DB::commit();
+
+            // Check if this is an AJAX request
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Successfully updated grades for {$updatedCount} students.",
+                    'updated_count' => $updatedCount
+                ]);
+            }
+
             return redirect()
                 ->route('teacher.subjects.grades', $subject)
                 ->with('success', "Successfully updated grades for {$updatedCount} students.");
 
         } catch (\Exception $e) {
             DB::rollback();
+
+            // Check if this is an AJAX request
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An error occurred while updating grades. Please try again.',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
             return redirect()
                 ->route('teacher.subjects.grades', $subject)
                 ->with('error', 'An error occurred while updating grades. Please try again.');

@@ -16,6 +16,7 @@
 
     /* Background decorative elements */
     .main-content::before {
+        margin-top: 3%;
         content: '';
         position: absolute;
         top: 0;
@@ -28,6 +29,7 @@
             radial-gradient(circle at 40% 40%, rgba(37, 99, 235, 0.01) 0%, transparent 50%);
         pointer-events: none;
         z-index: 1;
+        
     }
 
     /* Header section */

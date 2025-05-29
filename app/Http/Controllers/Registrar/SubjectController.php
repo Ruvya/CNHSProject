@@ -47,7 +47,7 @@ class SubjectController extends Controller
             ->filter()
             ->values();
 
-        return view('registrar.subjects', compact(
+        return view('registrar.subjects.index', compact(
             'allSubjects',
             'totalSubjectsCount',
             'filteredSubjectsCount',
@@ -124,7 +124,12 @@ class SubjectController extends Controller
 
     public function create()
     {
-        return view('registrar.subjects.create');
+        // Get all active teachers for assignment
+        $teachers = \App\Models\Teacher::where('status', 'active')
+            ->orderBy('name')
+            ->get();
+
+        return view('registrar.subjects.create', compact('teachers'));
     }
 
     public function store(Request $request)
@@ -132,20 +137,34 @@ class SubjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:subjects',
-            'grade_level' => 'required|string|max:50',
-            'units' => 'required|integer|min:1|max:10',
+            'grade_level' => 'required|in:Grade 11,Grade 12',
+            'track' => 'required|string|max:100',
+            'strand' => 'required|string|max:100',
+            'cluster' => 'nullable|string|max:100',
+            'specialization' => 'nullable|string|max:100',
+            'grading' => 'required|in:First Grading,Second Grading,Third Grading,Fourth Grading,All Gradings',
             'teacher_id' => 'nullable|exists:teachers,id',
             'description' => 'nullable|string|max:1000',
-            'track' => 'nullable|string|max:100',
-            'strand' => 'nullable|string|max:100',
+            'is_core_subject' => 'nullable|boolean',
+            'is_master_subject' => 'nullable|boolean',
         ]);
+
+        // Convert checkbox values
+        $validated['is_core_subject'] = $request->has('is_core_subject');
+        $validated['is_master_subject'] = $request->has('is_master_subject');
 
         // Automatically assign the current registrar as the creator
         $validated['registrar_id'] = Auth::guard('registrar')->id();
 
+        // Ensure code is uppercase
+        $validated['code'] = strtoupper($validated['code']);
+
+        // Add default units value since we removed it from the form
+        $validated['units'] = 3; // Default to 3 units
+
         Subject::create($validated);
 
-        return redirect()->route('registrar.subjects.index')->with('success', 'Subject created successfully and added to your subjects list');
+        return redirect()->route('registrar.subjects.index')->with('success', 'Subject created successfully! You can now assign it to students or create subject offerings.');
     }
 
     public function show(Subject $subject)
@@ -155,31 +174,78 @@ class SubjectController extends Controller
 
     public function edit(Subject $subject)
     {
-        return view('registrar.subjects.edit', compact('subject'));
+        // Check if the current registrar owns this subject
+        if ($subject->registrar_id !== Auth::guard('registrar')->id()) {
+            return redirect()->route('registrar.subjects.index')
+                ->with('error', 'You can only edit subjects that you created.');
+        }
+
+        // Get all active teachers for assignment
+        $teachers = \App\Models\Teacher::where('status', 'active')
+            ->orderBy('name')
+            ->get();
+
+        return view('registrar.subjects.edit', compact('subject', 'teachers'));
     }
 
     public function update(Request $request, Subject $subject)
     {
+        // Check if the current registrar owns this subject
+        if ($subject->registrar_id !== Auth::guard('registrar')->id()) {
+            return redirect()->route('registrar.subjects.index')
+                ->with('error', 'You can only update subjects that you created.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:subjects,code,' . $subject->id,
-            'grade_level' => 'required|string|max:50',
-            'units' => 'required|integer|min:1|max:10',
+            'code' => "required|string|max:50|unique:subjects,code,{$subject->id}",
+            'grade_level' => 'required|in:Grade 11,Grade 12',
+            'track' => 'required|string|max:100',
+            'strand' => 'required|string|max:100',
+            'cluster' => 'nullable|string|max:100',
+            'specialization' => 'nullable|string|max:100',
+            'grading' => 'required|in:First Grading,Second Grading,Third Grading,Fourth Grading,All Gradings',
             'teacher_id' => 'nullable|exists:teachers,id',
             'description' => 'nullable|string|max:1000',
-            'track' => 'nullable|string|max:100',
-            'strand' => 'nullable|string|max:100',
+            'is_core_subject' => 'nullable|boolean',
+            'is_master_subject' => 'nullable|boolean',
         ]);
+
+        // Convert checkbox values
+        $validated['is_core_subject'] = $request->has('is_core_subject');
+        $validated['is_master_subject'] = $request->has('is_master_subject');
+
+        // Ensure code is uppercase
+        $validated['code'] = strtoupper($validated['code']);
+
+        // Add default units value since we removed it from the form
+        $validated['units'] = $subject->units ?? 3; // Keep existing units or default to 3
 
         $subject->update($validated);
 
-        return redirect()->route('registrar.subjects.index')->with('success', 'Subject updated successfully');
+        return redirect()->route('registrar.subjects.index')->with('success', 'Subject updated successfully! Changes have been applied.');
     }
 
     public function destroy(Subject $subject)
     {
+        // Check if the current registrar owns this subject
+        if ($subject->registrar_id !== Auth::guard('registrar')->id()) {
+            return redirect()->route('registrar.subjects.index')
+                ->with('error', 'You can only delete subjects that you created.');
+        }
+
+        // Check if subject is assigned to any students (optional safety check)
+        // Uncomment if you have student-subject relationships
+        // if ($subject->students()->count() > 0) {
+        //     return redirect()->route('registrar.subjects.index')
+        //         ->with('error', 'Cannot delete subject that is assigned to students.');
+        // }
+
+        $subjectName = $subject->name;
         $subject->delete();
-        return redirect()->route('registrar.subjects.index')->with('success', 'Subject deleted successfully');
+
+        return redirect()->route('registrar.subjects.index')
+            ->with('success', "Subject '{$subjectName}' has been deleted successfully.");
     }
 
     public function assignSubjects($studentId)

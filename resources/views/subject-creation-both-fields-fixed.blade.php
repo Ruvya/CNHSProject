@@ -37,7 +37,7 @@
 
                         <!-- Both Errors Fixed -->
                         <h2 class="mb-4"><i class="fas fa-bug-slash text-success me-2"></i>Both Database Errors Resolved</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <div class="card fix-card border-danger">
@@ -58,7 +58,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card fix-card border-warning">
                                     <div class="card-header bg-warning text-dark">
@@ -82,7 +82,7 @@
 
                         <!-- Complete Solution -->
                         <h2 class="mb-4"><i class="fas fa-tools text-info me-2"></i>Complete Solution Applied</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <div class="card fix-card border-info">
@@ -106,7 +106,7 @@ public function setCodeAttribute($value)
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card fix-card border-secondary">
                                     <div class="card-header bg-secondary text-white">
@@ -115,13 +115,13 @@ public function setCodeAttribute($value)
                                     <div class="card-body">
                                         <pre class="bg-light p-3 rounded"><code>public function getNameAttribute()
 {
-    return $this->attributes['name'] ?? 
+    return $this->attributes['name'] ??
            $this->attributes['subject_name'] ?? null;
 }
 
 public function getCodeAttribute()
 {
-    return $this->attributes['code'] ?? 
+    return $this->attributes['code'] ??
            $this->attributes['subject_code'] ?? null;
 }</code></pre>
                                     </div>
@@ -131,7 +131,7 @@ public function getCodeAttribute()
 
                         <!-- How the Complete Fix Works -->
                         <h2 class="mb-4"><i class="fas fa-cogs text-warning me-2"></i>How the Complete Fix Works</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-4">
                                 <div class="card fix-card border-primary">
@@ -152,7 +152,7 @@ public function getCodeAttribute()
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <div class="card fix-card border-success">
                                     <div class="card-header bg-success text-white text-center">
@@ -170,7 +170,7 @@ public function getCodeAttribute()
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-4">
                                 <div class="card fix-card border-warning">
                                     <div class="card-header bg-warning text-dark text-center">
@@ -192,7 +192,7 @@ public function getCodeAttribute()
 
                         <!-- Test the Complete Fix -->
                         <h2 class="mb-4"><i class="fas fa-vial text-success me-2"></i>Test the Complete Fix</h2>
-                        
+
                         <div class="card fix-card border-success mb-5">
                             <div class="card-header bg-success text-white">
                                 <h6 class="mb-0"><i class="fas fa-test-tube me-2"></i>Comprehensive Test Form</h6>
@@ -202,14 +202,14 @@ public function getCodeAttribute()
                                     <i class="fas fa-info-circle me-2"></i>
                                     <strong>Test Both Fixes:</strong> This form will test that both field mapping errors are resolved. The model will populate all required database columns automatically.
                                 </div>
-                                
+
                                 <form action="{{ route('admin.subjects.store') }}" method="POST">
                                     @csrf
                                     <div class="row">
                                         <div class="col-md-8">
                                             <div class="mb-3">
                                                 <label for="final_test_name" class="form-label">Subject Name <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control @error('name') is-invalid @enderror" 
+                                                <input type="text" class="form-control @error('name') is-invalid @enderror"
                                                        id="final_test_name" name="name" value="{{ old('name', 'Complete Fix Test ' . rand(1, 999)) }}" required>
                                                 <div class="form-text">Will populate both 'name' and 'subject_name' columns</div>
                                                 @error('name')
@@ -220,7 +220,7 @@ public function getCodeAttribute()
                                         <div class="col-md-4">
                                             <div class="mb-3">
                                                 <label for="final_test_code" class="form-label">Subject Code <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control @error('code') is-invalid @enderror" 
+                                                <input type="text" class="form-control @error('code') is-invalid @enderror"
                                                        id="final_test_code" name="code" value="{{ old('code', 'BOTH' . rand(100, 999)) }}" required>
                                                 <div class="form-text">Will populate both 'code' and 'subject_code' columns</div>
                                                 @error('code')
@@ -263,7 +263,7 @@ public function getCodeAttribute()
                                         <label for="final_test_description" class="form-label">Description</label>
                                         <textarea class="form-control" id="final_test_description" name="description" rows="2" placeholder="Optional description">{{ old('description', 'This test verifies that both field mapping errors are completely resolved.') }}</textarea>
                                     </div>
-                                    
+
                                     <div class="d-flex gap-3">
                                         <button type="submit" class="btn btn-success btn-lg">
                                             <i class="fas fa-save me-2"></i>Test Complete Fix (Both Errors Resolved)
@@ -273,7 +273,7 @@ public function getCodeAttribute()
                                         </button>
                                     </div>
                                 </form>
-                                
+
                                 @if($errors->any())
                                     <div class="alert alert-danger mt-4">
                                         <h6><i class="fas fa-exclamation-triangle me-2"></i>Errors (should be none now):</h6>
@@ -284,7 +284,7 @@ public function getCodeAttribute()
                                         </ul>
                                     </div>
                                 @endif
-                                
+
                                 @if(session('success'))
                                     <div class="alert alert-success mt-4">
                                         <i class="fas fa-check-circle me-2"></i><strong>COMPLETE SUCCESS!</strong> {{ session('success') }}
@@ -296,7 +296,7 @@ public function getCodeAttribute()
 
                         <!-- Expected Results -->
                         <h2 class="mb-4"><i class="fas fa-bullseye text-primary me-2"></i>Expected Results</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <div class="card fix-card border-success">
@@ -314,7 +314,7 @@ public function getCodeAttribute()
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card fix-card border-info">
                                     <div class="card-header bg-info text-white">
@@ -335,7 +335,7 @@ public function getCodeAttribute()
 
                         <!-- Quick Links -->
                         <h2 class="mb-4"><i class="fas fa-link text-secondary me-2"></i>Quick Navigation</h2>
-                        
+
                         <div class="row g-3 mb-5">
                             <div class="col-md-3">
                                 <a href="{{ route('admin.login') }}" class="btn btn-primary btn-lg w-100">
@@ -348,7 +348,7 @@ public function getCodeAttribute()
                                 </a>
                             </div>
                             <div class="col-md-3">
-                                <a href="{{ route('admin.subjects') }}" class="btn btn-info btn-lg w-100">
+                                <a href="{{ route('admin.subjects.index') }}" class="btn btn-info btn-lg w-100">
                                     <i class="fas fa-list me-2"></i>Subjects List
                                 </a>
                             </div>
@@ -363,12 +363,12 @@ public function getCodeAttribute()
                         <div class="text-center mt-5">
                             <h3 class="text-success mb-3">🎯 Both Subject Creation Field Errors - COMPLETELY FIXED!</h3>
                             <p class="text-muted mb-4">The Subject model now populates all required database columns automatically. No more field mapping errors of any kind!</p>
-                            
+
                             <div class="d-flex justify-content-center gap-3 flex-wrap">
                                 <a href="{{ route('admin.subjects.create') }}" class="btn btn-success btn-lg">
                                     <i class="fas fa-plus me-2"></i>Test Subject Creation
                                 </a>
-                                <a href="{{ route('admin.subjects') }}" class="btn btn-outline-success btn-lg">
+                                <a href="{{ route('admin.subjects.index') }}" class="btn btn-outline-success btn-lg">
                                     <i class="fas fa-list me-2"></i>View All Subjects
                                 </a>
                             </div>
@@ -385,7 +385,7 @@ public function getCodeAttribute()
             const subjects = ['Advanced Mathematics', 'English Literature', 'Physical Science', 'World History', 'Applied Physics', 'Organic Chemistry', 'Marine Biology', 'Creative Writing'];
             const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
             const randomNumber = Math.floor(Math.random() * 1000);
-            
+
             document.getElementById('final_test_name').value = randomSubject + ' ' + randomNumber;
             document.getElementById('final_test_code').value = 'BOTH' + randomNumber;
             document.getElementById('final_test_grade_level').value = Math.random() > 0.5 ? 'Grade 11' : 'Grade 12';

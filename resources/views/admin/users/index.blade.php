@@ -16,8 +16,9 @@
                 <li><a class="dropdown-item" href="{{ route('admin.users.teachers.create') }}">
                     <i class="fas fa-chalkboard-teacher me-2"></i>Add Teacher
                 </a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.users.students.create') }}">
-                    <i class="fas fa-user-graduate me-2"></i>Add Student
+                <li><a class="dropdown-item" href="{{ route('admin.credentials.generate') }}">
+                    <i class="fas fa-key me-2"></i>Generate Student Credentials
+                    <small class="d-block text-muted">Create login credentials for students</small>
                 </a></li>
             </ul>
         </div>
@@ -215,8 +216,8 @@
                             </a>
                         @endif
                     </form>
-                    <a href="{{ route('admin.users.students.create') }}" class="btn btn-success btn-sm">
-                        <i class="fas fa-plus me-1"></i>Add Student
+                    <a href="{{ route('admin.credentials.generate') }}" class="btn btn-success btn-sm" title="Generate student credentials">
+                        <i class="fas fa-key me-1"></i>Generate Credentials
                     </a>
                 </div>
             </div>
@@ -278,9 +279,7 @@
                                         <a href="{{ route('admin.users.students.show', $student) }}" class="btn btn-info btn-sm" title="View Profile">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('admin.users.students.edit', $student) }}" class="btn btn-warning btn-sm" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
+
                                         <form action="{{ route('admin.users.students.destroy', $student) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this student?')">
                                             @csrf
                                             @method('DELETE')
@@ -302,8 +301,8 @@
                         <h5 class="text-muted">No students found in {{ $selectedGradeLevel }}</h5>
                         <p class="text-muted mb-4">There are no students enrolled in this grade level yet.</p>
                         <div class="d-flex justify-content-center gap-2">
-                            <a href="{{ route('admin.users.students.create') }}" class="btn btn-success">
-                                <i class="fas fa-plus me-2"></i>Add Student to {{ $selectedGradeLevel }}
+                            <a href="{{ route('admin.credentials.generate') }}" class="btn btn-success">
+                                <i class="fas fa-key me-2"></i>Generate Credentials for {{ $selectedGradeLevel }}
                             </a>
                             <a href="{{ route('admin.users') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-list me-2"></i>View All Students
@@ -312,8 +311,8 @@
                     @else
                         <h5 class="text-muted">No students found</h5>
                         <p class="text-muted mb-4">There are no students in the system yet.</p>
-                        <a href="{{ route('admin.users.students.create') }}" class="btn btn-success">
-                            <i class="fas fa-plus me-2"></i>Add First Student
+                        <a href="{{ route('admin.credentials.generate') }}" class="btn btn-success">
+                            <i class="fas fa-key me-2"></i>Generate First Student Credentials
                         </a>
                     @endif
                 </div>

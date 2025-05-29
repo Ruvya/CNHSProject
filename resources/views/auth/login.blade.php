@@ -23,6 +23,7 @@
             border-radius: 18px;
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
             transition: box-shadow 0.3s;
+            position: relative;
         }
         .login-container:hover {
             box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.18);
@@ -138,11 +139,32 @@
                 font-size: 1.3rem;
             }
         }
+        .back-link {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            color: #6b7280;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: #4b5563;
+        }
+        .back-link i {
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="login-container">
+            <a href="{{ route('principal.index') }}" class="back-link">
+                <i class='bx bx-arrow-back'></i>
+                Back to Website
+            </a>
             <div class="login-header">
                 <h1>Welcome to CNHS</h1>
                 <p class="text-muted">Please login to continue</p>
@@ -181,7 +203,42 @@
                 </div>
             @endif
 
-            <form method="POST" action="/admin/login" id="loginForm" onsubmit="console.log('=== FORM SUBMITTING ===', {role: document.querySelector('input[name=role]:checked').value, action: this.action, method: this.method}); return true;">
+            <form method="POST" action="{{ route('login') }}" id="loginForm" onsubmit="
+                const formData = new FormData(this);
+                const role = document.querySelector('input[name=role]:checked').value;
+                console.log('=== FORM SUBMITTING ===', {
+                    role: role,
+                    action: this.action,
+                    method: this.method,
+                    student_id: formData.get('student_id'),
+                    email: formData.get('email'),
+                    password: formData.get('password') ? '***filled***' : 'empty',
+                    all_form_data: Object.fromEntries(formData)
+                });
+
+                if (role === 'student') {
+                    const studentIdField = document.getElementById('student-id-input');
+                    console.log('Student ID field value:', studentIdField.value);
+                    console.log('Student ID field visible:', studentIdField.offsetParent !== null);
+                    if (!studentIdField.value) {
+                        alert('Please enter your Student ID');
+                        return false;
+                    }
+                }
+
+                if (role === 'registrar') {
+                    const emailField = document.getElementById('registrar-email-input');
+                    console.log('Registrar email field value:', emailField.value);
+                    console.log('Registrar email field visible:', emailField.offsetParent !== null);
+                    console.log('Registrar email field disabled:', emailField.disabled);
+                    console.log('Registrar email field name:', emailField.name);
+                    if (!emailField.value) {
+                        alert('Please enter your email address');
+                        return false;
+                    }
+                }
+                return true;
+            ">
                 @csrf
 
                 <div class="role-selector mb-4">
@@ -204,6 +261,11 @@
                         <input type="radio" name="role" value="registrar" required>
                         <i class='bx bxs-user-detail'></i>
                         <div>Registrar</div>
+                    </label>
+                    <label class="role-option">
+                        <input type="radio" name="role" value="principal" required>
+                        <i class='bx bxs-user-badge'></i>
+                        <div>Principal</div>
                     </label>
                 </div>
 
@@ -233,10 +295,29 @@
                         <span class="input-group-text">
                             <i class='bx bxs-envelope'></i>
                         </span>
-                        <input type="email" class="form-control" name="email" id="email-input" placeholder="Email Address">
+                        <input type="email" class="form-control" name="email" id="email-input" placeholder="Teacher Email Address">
                     </div>
                     @error('email')
                         <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <!-- Registrar Email Field -->
+                <div class="mb-3" id="registrar-email-container" style="display: none;">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class='bx bxs-envelope'></i>
+                        </span>
+                        <input type="email" class="form-control @error('email') is-invalid @enderror"
+                               name="email"
+                               id="registrar-email-input"
+                               placeholder="Registrar Email Address"
+                               value="{{ old('email') }}">
+                    </div>
+                    @error('email')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
                     @enderror
                 </div>
 
@@ -253,19 +334,24 @@
                     @enderror
                 </div>
 
-                <div class="mb-3" id="registrar-code-container" style="display: none;">
+                <!-- Registrar Secret Code Field REMOVED - No longer needed -->
+
+                <!-- Principal Email Field -->
+                <div class="mb-3" id="principal-email-container" style="display: none;">
                     <div class="input-group">
                         <span class="input-group-text">
-                            <i class='bx bxs-key'></i>
+                            <i class='bx bxs-envelope'></i>
                         </span>
-                        <input type="text" class="form-control @error('registrar_secret') is-invalid @enderror"
-                               name="registrar_secret" id="registrar-code-input"
-                               placeholder="Registrar Secret Code" value="{{ old('registrar_secret') }}">
+                        <input type="email" class="form-control @error('email') is-invalid @enderror"
+                               name="email"
+                               id="principal-email-input"
+                               placeholder="Principal Email Address"
+                               value="{{ old('email') }}">
                     </div>
-                    @error('registrar_secret')
-                        <div class="invalid-feedback d-block">
+                    @error('email')
+                        <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
-                        </div>
+                        </span>
                     @enderror
                 </div>
 
@@ -323,25 +409,40 @@
                 // Toggle input fields based on role
                 const usernameContainer = document.getElementById('username-container');
                 const emailContainer = document.getElementById('email-container');
+                const registrarEmailContainer = document.getElementById('registrar-email-container');
                 const studentIdContainer = document.getElementById('student-id-container');
-                const registrarCodeContainer = document.getElementById('registrar-code-container');
                 const usernameInput = document.getElementById('username-input');
                 const emailInput = document.getElementById('email-input');
+                const registrarEmailInput = document.getElementById('registrar-email-input');
                 const studentIdInput = document.getElementById('student-id-input');
-                const registrarCodeInput = document.getElementById('registrar-code-input');
                 const passwordInput = document.querySelector('input[name="password"]');
 
                 // Hide all containers first
                 usernameContainer.style.display = 'none';
                 emailContainer.style.display = 'none';
+                registrarEmailContainer.style.display = 'none';
                 studentIdContainer.style.display = 'none';
-                registrarCodeContainer.style.display = 'none';
+                const principalEmailContainer = document.getElementById('principal-email-container');
+                principalEmailContainer.style.display = 'none';
 
-                // Remove required attribute from all inputs
+                // Remove required attribute and disable all inputs to prevent conflicts
                 usernameInput.removeAttribute('required');
+                usernameInput.disabled = true;
                 emailInput.removeAttribute('required');
+                emailInput.disabled = true;
+                registrarEmailInput.removeAttribute('required');
+                registrarEmailInput.disabled = true;
                 studentIdInput.removeAttribute('required');
-                registrarCodeInput.removeAttribute('required');
+                studentIdInput.disabled = true;
+                const principalEmailInput = document.getElementById('principal-email-input');
+                principalEmailInput.removeAttribute('required');
+                principalEmailInput.disabled = true;
+
+                // Remove any existing alerts
+                const existingAlert = document.querySelector('.registrar-alert');
+                if (existingAlert) {
+                    existingAlert.remove();
+                }
 
                 // Update form action based on role
                 const form = document.getElementById('loginForm');
@@ -350,6 +451,7 @@
                 if (this.value === 'admin') {
                     usernameContainer.style.display = 'block';
                     usernameInput.setAttribute('required', '');
+                    usernameInput.disabled = false; // Enable the field
                     // Don't clear the username if it's already filled
                     if (!usernameInput.value) {
                         usernameInput.value = '';
@@ -360,43 +462,40 @@
                 } else if (this.value === 'teacher') {
                     emailContainer.style.display = 'block';
                     emailInput.setAttribute('required', '');
+                    emailInput.disabled = false; // Enable the field
                     emailInput.value = '';
                     passwordInput.placeholder = 'Password';
                     form.action = "{{ route('login') }}";
                 } else if (this.value === 'student') {
                     studentIdContainer.style.display = 'block';
                     studentIdInput.setAttribute('required', '');
+                    studentIdInput.disabled = false; // Enable the field
                     studentIdInput.value = '';
                     passwordInput.placeholder = 'Password';
                     form.action = "{{ route('login') }}";
+                    console.log('Student form action set to:', form.action);
                 } else if (this.value === 'registrar') {
-                    emailContainer.style.display = 'block';
-                    registrarCodeContainer.style.display = 'block';
-                    emailInput.setAttribute('required', '');
-                    registrarCodeInput.setAttribute('required', '');
-                    emailInput.value = '';
-                    registrarCodeInput.value = '';
+                    registrarEmailContainer.style.display = 'block';
+                    registrarEmailInput.setAttribute('required', '');
+                    registrarEmailInput.disabled = false; // Enable the field
+                    // Don't clear the email field - let user keep their input
                     passwordInput.placeholder = 'Registrar Password';
                     form.action = "{{ route('login') }}";
-
-                    // Show a message about using dedicated registrar login
-                    const existingAlert = document.querySelector('.registrar-alert');
-                    if (existingAlert) {
-                        existingAlert.remove();
-                    }
-
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert alert-info registrar-alert mt-3';
-                    alertDiv.innerHTML = `
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Registrar Login:</strong> For better security, please use the dedicated registrar login system.
-                        <a href="{{ route('registrar.login') }}" class="btn btn-sm btn-primary ms-2">
-                            <i class="fas fa-sign-in-alt me-1"></i>Go to Registrar Login
-                        </a>
-                    `;
-
-                    const form = document.getElementById('loginForm');
-                    form.parentNode.insertBefore(alertDiv, form.nextSibling);
+                    console.log('Registrar login - form action set to:', form.action);
+                    console.log('Registrar email container displayed:', registrarEmailContainer.style.display);
+                    console.log('Registrar email input required:', registrarEmailInput.hasAttribute('required'));
+                    console.log('Registrar email input enabled:', !registrarEmailInput.disabled);
+                } else if (this.value === 'principal') {
+                    // Hide regular email container and show principal-specific email container
+                    emailContainer.style.display = 'none';
+                    const principalEmailContainer = document.getElementById('principal-email-container');
+                    principalEmailContainer.style.display = 'block';
+                    const principalEmailInput = document.getElementById('principal-email-input');
+                    principalEmailInput.setAttribute('required', '');
+                    principalEmailInput.disabled = false; // Enable the field
+                    // Clear any existing values
+                    principalEmailInput.value = '';
+                    form.action = "{{ route('principal.login') }}";
                 }
             });
         });
@@ -409,16 +508,38 @@
                 const form = document.getElementById('loginForm');
                 form.action = "/admin/login";
 
-                // Ensure admin fields are visible
+                // Ensure admin fields are visible and others are hidden
                 const usernameContainer = document.getElementById('username-container');
                 const emailContainer = document.getElementById('email-container');
+                const registrarEmailContainer = document.getElementById('registrar-email-container');
                 const studentIdContainer = document.getElementById('student-id-container');
-                const registrarCodeContainer = document.getElementById('registrar-code-container');
+                const principalEmailContainer = document.getElementById('principal-email-container');
 
                 usernameContainer.style.display = 'block';
                 emailContainer.style.display = 'none';
+                registrarEmailContainer.style.display = 'none';
                 studentIdContainer.style.display = 'none';
-                registrarCodeContainer.style.display = 'none';
+                principalEmailContainer.style.display = 'none';
+
+                // Set up initial field states for admin
+                const usernameInput = document.getElementById('username-input');
+                const emailInput = document.getElementById('email-input');
+                const registrarEmailInput = document.getElementById('registrar-email-input');
+                const studentIdInput = document.getElementById('student-id-input');
+                const principalEmailInput = document.getElementById('principal-email-input');
+
+                // Disable all fields initially except username (admin is default)
+                usernameInput.disabled = false;
+                emailInput.disabled = true;
+                registrarEmailInput.disabled = true;
+                studentIdInput.disabled = true;
+                principalEmailInput.disabled = true;
+
+                // Remove any existing alerts
+                const existingAlert = document.querySelector('.registrar-alert');
+                if (existingAlert) {
+                    existingAlert.remove();
+                }
 
                 console.log('Initial admin setup complete. Form action:', form.action);
             }

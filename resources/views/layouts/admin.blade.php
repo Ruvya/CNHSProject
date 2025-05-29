@@ -633,9 +633,9 @@
                     <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <form action="{{ route('admin.logout') }}" method="POST" class="d-inline">
+                        <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
                             @csrf
-                            <button type="submit" class="dropdown-item">
+                            <button type="submit" class="dropdown-item text-danger">
                                 <i class="fas fa-sign-out-alt me-2"></i>Logout
                             </button>
                         </form>
@@ -660,32 +660,25 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.users') }}" class="{{ request()->routeIs('admin.users*') ? 'active' : '' }}">
-                        <i class="fas fa-users"></i> User Management
+                    <a href="{{ route('admin.credentials.generate') }}" class="{{ request()->routeIs('admin.credentials*') ? 'active' : '' }}">
+                        <i class="fas fa-key"></i> Student Credentials
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.grades') }}" class="{{ request()->routeIs('admin.grades*') ? 'active' : '' }}">
-                        <i class="fas fa-chart-line"></i> Grades & Analytics
+                    <a href="{{ route('admin.users.students.index') }}" class="{{ request()->routeIs('admin.users.students*') ? 'active' : '' }}">
+                        <i class="fas fa-user-graduate"></i> Student Accounts
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.reports') }}" class="{{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
-                        <i class="fas fa-file-alt"></i> Reports
+                    <a href="{{ route('admin.users') }}" class="{{ request()->routeIs('admin.users') || request()->routeIs('admin.users.teachers*') ? 'active' : '' }}">
+                        <i class="fas fa-chalkboard-teacher"></i> Teacher Management
                     </a>
                 </li>
+
                 <li>
-                    <a href="{{ route('admin.subjects') }}" class="{{ request()->routeIs('admin.subjects*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.subjects.index') }}" class="{{ request()->routeIs('admin.subjects*') ? 'active' : '' }}">
                         <i class="fas fa-book"></i> Subjects
                     </a>
-                </li>
-                <li>
-                    <form method="POST" action="{{ route('admin.logout') }}" style="margin: 0;">
-                        @csrf
-                        <button type="submit" style="background: none; border: none; width: 100%; text-align: left; color: white; padding: 10px; cursor: pointer;">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
-                    </form>
                 </li>
             </ul>
         </div>

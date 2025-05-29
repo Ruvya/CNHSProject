@@ -8,8 +8,8 @@
     <h1 class="page-title">Dashboard</h1>
     <p class="page-subtitle">Welcome back! Here's what's happening at CNHS today.</p>
     <div class="page-actions">
-        <a href="{{ route('admin.users.students.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Add Student
+        <a href="{{ route('admin.credentials.generate') }}" class="btn btn-primary">
+            <i class="fas fa-key me-2"></i>Generate Student Credentials
         </a>
         <a href="{{ route('admin.users.teachers.create') }}" class="btn btn-outline-primary">
             <i class="fas fa-plus me-2"></i>Add Teacher
@@ -77,7 +77,7 @@
 
     <!-- Total Subjects Card -->
     <div class="col-lg-3 col-md-6">
-        <a href="{{ route('admin.subjects') }}" class="text-decoration-none">
+        <a href="{{ route('admin.subjects.index') }}" class="text-decoration-none">
             <div class="stat-card stat-card-warning">
                 <div class="stat-card-body">
                     <div class="stat-card-icon">
@@ -147,9 +147,9 @@
             <div class="card-body">
                 <div class="row g-2">
                     <div class="col-lg-3 col-md-6">
-                        <a href="{{ route('admin.users.students.create') }}" class="btn btn-outline-primary w-100">
-                            <i class="fas fa-user-plus me-2"></i>
-                            Add Student
+                        <a href="{{ route('admin.credentials.generate') }}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-key me-2"></i>
+                            Generate Credentials
                         </a>
                     </div>
                     <div class="col-lg-3 col-md-6">
@@ -159,15 +159,15 @@
                         </a>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <a href="{{ route('admin.subjects.create') }}" class="btn btn-outline-warning w-100">
-                            <i class="fas fa-book-plus me-2"></i>
-                            Add Subject
+                        <a href="{{ route('admin.subjects.index') }}" class="btn btn-outline-warning w-100">
+                            <i class="fas fa-book me-2"></i>
+                            View Subjects
                         </a>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <a href="{{ route('admin.reports') }}" class="btn btn-outline-info w-100">
-                            <i class="fas fa-chart-line me-2"></i>
-                            View Reports
+                        <a href="{{ route('admin.users') }}" class="btn btn-outline-info w-100">
+                            <i class="fas fa-users me-2"></i>
+                            Manage Users
                         </a>
                     </div>
                 </div>
@@ -268,25 +268,32 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-3">
-                    <a href="{{ route('admin.users.students.create') }}" class="btn btn-outline-primary">
-                        <i class="fas fa-user-plus me-2"></i>
-                        Add New Student
+                    <a href="{{ route('admin.credentials.generate') }}" class="btn btn-primary">
+                        <i class="fas fa-key me-2"></i>
+                        Generate Student Credentials
+                        <small class="d-block text-muted">Create login credentials for students</small>
+                    </a>
+                    <a href="{{ route('admin.users.students.index') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-users me-2"></i>
+                        View Student Accounts
+                        <small class="d-block text-muted">Manage existing student accounts</small>
+                    </a>
+                    <a href="{{ route('admin.credentials.index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-2"></i>
+                        Manage Credentials
+                        <small class="d-block text-muted">View and manage generated credentials</small>
                     </a>
                     <a href="{{ route('admin.users.teachers.create') }}" class="btn btn-outline-success">
                         <i class="fas fa-chalkboard-teacher me-2"></i>
                         Add New Teacher
                     </a>
-                    <a href="{{ route('admin.subjects.create') }}" class="btn btn-outline-warning">
-                        <i class="fas fa-book-plus me-2"></i>
-                        Add New Subject
+                    <a href="{{ route('admin.subjects.index') }}" class="btn btn-outline-warning">
+                        <i class="fas fa-book me-2"></i>
+                        View Subjects
                     </a>
                     <a href="{{ route('admin.users') }}" class="btn btn-outline-info">
                         <i class="fas fa-users me-2"></i>
                         Manage Users
-                    </a>
-                    <a href="{{ route('admin.reports') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-chart-line me-2"></i>
-                        View Reports
                     </a>
                 </div>
             </div>

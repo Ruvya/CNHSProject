@@ -28,7 +28,7 @@
 
                         <!-- Database Structure Check -->
                         <h2 class="mb-4"><i class="fas fa-database text-primary me-2"></i>Database Structure Analysis</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <div class="card diagnostic-card border-info">
@@ -52,7 +52,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card diagnostic-card border-warning">
                                     <div class="card-header bg-warning text-dark">
@@ -81,7 +81,7 @@
 
                         <!-- Model Configuration Check -->
                         <h2 class="mb-4"><i class="fas fa-cogs text-success me-2"></i>Model Configuration Analysis</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <div class="card diagnostic-card border-success">
@@ -106,7 +106,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card diagnostic-card border-secondary">
                                     <div class="card-header bg-secondary text-white">
@@ -139,7 +139,7 @@
 
                         <!-- Test Subject Creation -->
                         <h2 class="mb-4"><i class="fas fa-vial text-warning me-2"></i>Subject Creation Test</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-12">
                                 <div class="card diagnostic-card border-warning">
@@ -197,14 +197,14 @@
                                                 <i class="fas fa-play me-2"></i>Test Subject Creation
                                             </button>
                                         </form>
-                                        
+
                                         @if(session('test_result'))
                                             <div class="alert alert-info">
                                                 <h6><i class="fas fa-info-circle me-2"></i>Test Result:</h6>
                                                 <pre>{{ session('test_result') }}</pre>
                                             </div>
                                         @endif
-                                        
+
                                         @if(session('test_error'))
                                             <div class="alert alert-danger">
                                                 <h6><i class="fas fa-exclamation-triangle me-2"></i>Test Error:</h6>
@@ -218,7 +218,7 @@
 
                         <!-- Common Issues & Solutions -->
                         <h2 class="mb-4"><i class="fas fa-tools text-danger me-2"></i>Common Issues & Solutions</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <div class="card diagnostic-card border-danger">
@@ -237,7 +237,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card diagnostic-card border-success">
                                     <div class="card-header bg-success text-white">
@@ -259,7 +259,7 @@
 
                         <!-- Manual Test Form -->
                         <h2 class="mb-4"><i class="fas fa-hand-paper text-info me-2"></i>Manual Subject Creation Test</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-12">
                                 <div class="card diagnostic-card border-info">
@@ -271,14 +271,14 @@
                                             <i class="fas fa-info-circle me-2"></i>
                                             <strong>Instructions:</strong> Fill out this form to test subject creation. Any errors will be displayed below.
                                         </div>
-                                        
+
                                         <form action="{{ route('admin.subjects.store') }}" method="POST">
                                             @csrf
                                             <div class="row">
                                                 <div class="col-md-8">
                                                     <div class="mb-3">
                                                         <label for="manual_name" class="form-label">Subject Name <span class="text-danger">*</span></label>
-                                                        <input type="text" class="form-control @error('name') is-invalid @enderror" 
+                                                        <input type="text" class="form-control @error('name') is-invalid @enderror"
                                                                id="manual_name" name="name" value="{{ old('name', 'Diagnostic Test Subject') }}" required>
                                                         @error('name')
                                                             <div class="invalid-feedback">{{ $message }}</div>
@@ -288,7 +288,7 @@
                                                 <div class="col-md-4">
                                                     <div class="mb-3">
                                                         <label for="manual_code" class="form-label">Subject Code <span class="text-danger">*</span></label>
-                                                        <input type="text" class="form-control @error('code') is-invalid @enderror" 
+                                                        <input type="text" class="form-control @error('code') is-invalid @enderror"
                                                                id="manual_code" name="code" value="{{ old('code', 'DIAG' . rand(100, 999)) }}" required>
                                                         @error('code')
                                                             <div class="invalid-feedback">{{ $message }}</div>
@@ -340,17 +340,17 @@
                                                 <label for="manual_description" class="form-label">Description</label>
                                                 <textarea class="form-control" id="manual_description" name="description" rows="3" placeholder="Subject description (optional)">{{ old('description', 'This is a diagnostic test subject for troubleshooting.') }}</textarea>
                                             </div>
-                                            
+
                                             <div class="d-flex gap-3">
                                                 <button type="submit" class="btn btn-primary">
                                                     <i class="fas fa-save me-2"></i>Create Test Subject
                                                 </button>
-                                                <a href="{{ route('admin.subjects') }}" class="btn btn-outline-secondary">
+                                                <a href="{{ route('admin.subjects.index') }}" class="btn btn-outline-secondary">
                                                     <i class="fas fa-list me-2"></i>View All Subjects
                                                 </a>
                                             </div>
                                         </form>
-                                        
+
                                         @if($errors->any())
                                             <div class="alert alert-danger mt-4">
                                                 <h6><i class="fas fa-exclamation-triangle me-2"></i>Validation Errors:</h6>
@@ -361,13 +361,13 @@
                                                 </ul>
                                             </div>
                                         @endif
-                                        
+
                                         @if(session('success'))
                                             <div class="alert alert-success mt-4">
                                                 <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
                                             </div>
                                         @endif
-                                        
+
                                         @if(session('error'))
                                             <div class="alert alert-danger mt-4">
                                                 <i class="fas fa-times-circle me-2"></i>{{ session('error') }}
@@ -380,7 +380,7 @@
 
                         <!-- Quick Links -->
                         <h2 class="mb-4"><i class="fas fa-link text-secondary me-2"></i>Quick Navigation</h2>
-                        
+
                         <div class="row g-3 mb-5">
                             <div class="col-md-3">
                                 <a href="{{ route('admin.login') }}" class="btn btn-primary btn-lg w-100">
@@ -393,7 +393,7 @@
                                 </a>
                             </div>
                             <div class="col-md-3">
-                                <a href="{{ route('admin.subjects') }}" class="btn btn-info btn-lg w-100">
+                                <a href="{{ route('admin.subjects.index') }}" class="btn btn-info btn-lg w-100">
                                     <i class="fas fa-list me-2"></i>Subjects List
                                 </a>
                             </div>

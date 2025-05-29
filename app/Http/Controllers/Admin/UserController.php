@@ -48,6 +48,71 @@ class UserController extends Controller
         ));
     }
 
+    /**
+     * Display only students (for the new workflow where students are created via credentials)
+     */
+    public function indexStudents(Request $request)
+    {
+        // Get all available grade levels for the filter dropdown
+        $availableGradeLevels = Student::select('grade_level')
+            ->distinct()
+            ->whereNotNull('grade_level')
+            ->orderBy('grade_level')
+            ->pluck('grade_level');
+
+        // Build the students query
+        $studentsQuery = Student::query();
+
+        // Apply grade level filter if provided
+        $selectedGradeLevel = $request->get('grade_level');
+        if ($selectedGradeLevel && $selectedGradeLevel !== 'all') {
+            $studentsQuery->where('grade_level', $selectedGradeLevel);
+        }
+
+        // Apply search filter if provided
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $studentsQuery->where(function($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('student_id', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        // Apply account type filter
+        if ($request->filled('account_type')) {
+            if ($request->account_type === 'temporary') {
+                $studentsQuery->where('is_temporary_account', true);
+            } elseif ($request->account_type === 'completed') {
+                $studentsQuery->where('profile_completed', true);
+            }
+        }
+
+        $students = $studentsQuery->orderBy('created_at', 'desc')->paginate(20);
+
+        // Count students by grade level for statistics
+        $studentsByGrade = Student::select('grade_level', \DB::raw('count(*) as count'))
+            ->groupBy('grade_level')
+            ->orderBy('grade_level')
+            ->get();
+
+        // Additional statistics
+        $totalStudents = Student::count();
+        $temporaryAccounts = Student::where('is_temporary_account', true)->count();
+        $completedProfiles = Student::where('profile_completed', true)->count();
+
+        return view('admin.users.students-index', compact(
+            'students',
+            'availableGradeLevels',
+            'selectedGradeLevel',
+            'studentsByGrade',
+            'totalStudents',
+            'temporaryAccounts',
+            'completedProfiles'
+        ));
+    }
+
     // Teacher Management
     public function createTeacher()
     {
@@ -107,74 +172,9 @@ class UserController extends Controller
         return redirect()->route('admin.users')->with('success', 'Teacher deleted successfully.');
     }
 
-    // Student Management
-    public function createStudent()
-    {
-        return view('admin.users.create-student');
-    }
+    // Student Management (Students are now created via credential login only)
 
-    public function storeStudent(Request $request)
-    {
-        $validated = $request->validate([
-            'student_id' => 'required|string|max:255|unique:students',
-            'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:students',
-            'password' => 'required|string|min:8|confirmed',
-            'grade_level' => 'required|string|max:255',
-            'gender' => 'required|in:Male,Female',
-            'track' => 'nullable|string|max:255',
-            'strand' => 'nullable|string|max:255',
-            'section' => 'nullable|string|max:255',
-            'contact_number' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:500',
-            'parent_name' => 'nullable|string|max:255',
-            'parent_contact' => 'nullable|string|max:255',
-        ]);
 
-        $validated['password'] = Hash::make($validated['password']);
-
-        Student::create($validated);
-
-        return redirect()->route('admin.users')->with('success', 'Student created successfully.');
-    }
-
-    public function editStudent(Student $student)
-    {
-        return view('admin.users.edit-student', compact('student'));
-    }
-
-    public function updateStudent(Request $request, Student $student)
-    {
-        $validated = $request->validate([
-            'student_id' => ['required', 'string', 'max:255', Rule::unique('students')->ignore($student->id)],
-            'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('students')->ignore($student->id)],
-            'password' => 'nullable|string|min:8|confirmed',
-            'grade_level' => 'required|string|max:255',
-            'gender' => 'required|in:Male,Female',
-            'track' => 'nullable|string|max:255',
-            'strand' => 'nullable|string|max:255',
-            'section' => 'nullable|string|max:255',
-            'contact_number' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:500',
-            'parent_name' => 'nullable|string|max:255',
-            'parent_contact' => 'nullable|string|max:255',
-        ]);
-
-        if (!empty($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
-        } else {
-            unset($validated['password']);
-        }
-
-        $student->update($validated);
-
-        return redirect()->route('admin.users')->with('success', 'Student updated successfully.');
-    }
 
     public function showStudent(Student $student)
     {

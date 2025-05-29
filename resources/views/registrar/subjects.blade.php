@@ -7,13 +7,39 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h1 class="h3 mb-2 text-gray-800">Subject Management</h1>
-                    <p class="text-muted">Manage your subjects and view all available subjects in the system</p>
+                    <h1 class="h3 mb-2 text-gray-800">
+                        Subject Management
+                        <span class="badge badge-success ms-2">Exclusive Access</span>
+                    </h1>
+                    <p class="text-muted">Create, edit, and manage academic subjects with DepEd curriculum structure</p>
                 </div>
                 <div>
                     <a href="{{ route('registrar.subjects.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Create New Subject
                     </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Information Notice -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-success border-0" style="background: linear-gradient(135deg, #d4edda, #c3e6cb);">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="fas fa-user-check fa-2x text-success"></i>
+                    </div>
+                    <div>
+                        <h6 class="alert-heading mb-1">
+                            <i class="fas fa-cogs me-2"></i>Registrar Exclusive Management
+                        </h6>
+                        <p class="mb-0">
+                            You have exclusive access to create, edit, and delete subjects. Use structured forms with
+                            <strong>Grade Level (11-12)</strong>, <strong>Track</strong>, <strong>Strand</strong>,
+                            <strong>Cluster</strong>, and <strong>Specialization</strong> aligned with DepEd curriculum.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -87,7 +113,7 @@
                     <!-- Grade Level Filter -->
                     <div class="row mb-3">
                         <div class="col-md-4">
-                            <form method="GET" action="{{ route('registrar.subjects') }}" id="gradeFilterForm">
+                            <form method="GET" action="{{ route('registrar.subjects.index') }}" id="gradeFilterForm">
                                 <div class="form-group">
                                     <label for="grade_level" class="form-label font-weight-bold">
                                         <i class="fas fa-filter me-2"></i>Grade Level Filter
@@ -111,7 +137,7 @@
                                 <div class="alert alert-info mb-0 d-flex align-items-center">
                                     <i class="fas fa-info-circle me-2"></i>
                                     <span>Showing subjects for Grade {{ $gradeFilter }} only.
-                                        <a href="{{ route('registrar.subjects') }}" class="alert-link">Clear filter</a>
+                                        <a href="{{ route('registrar.subjects.index') }}" class="alert-link">Clear filter</a>
                                     </span>
                                 </div>
                             </div>
@@ -125,9 +151,13 @@
                                         <th>Subject Code</th>
                                         <th>Subject Name</th>
                                         <th>Grade Level</th>
+                                        <th>Track</th>
                                         <th>Strand</th>
+                                        <th>Cluster</th>
                                         <th>Units</th>
+                                        <th>Semester</th>
                                         <th>Teacher</th>
+                                        <th>Type</th>
                                         <th>Created By</th>
                                         <th>Actions</th>
                                     </tr>
@@ -138,13 +168,35 @@
                                             <td><strong>{{ $subject->code ?? $subject->subject_code }}</strong></td>
                                             <td>{{ $subject->name ?? $subject->subject_name }}</td>
                                             <td>
-                                                <span class="badge badge-info">Grade {{ $subject->grade_level }}</span>
+                                                <span class="badge badge-info">{{ str_replace('Grade ', '', $subject->grade_level) }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-success">{{ $subject->track ?? 'N/A' }}</span>
                                             </td>
                                             <td>
                                                 <span class="badge badge-secondary">{{ $subject->strand ?? 'N/A' }}</span>
                                             </td>
-                                            <td>{{ $subject->units }}</td>
+                                            <td>
+                                                <small class="text-muted">{{ $subject->cluster ?? '-' }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-light">{{ $subject->units }} {{ $subject->units == 1 ? 'unit' : 'units' }}</span>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ $subject->semester ?? 'N/A' }}</small>
+                                            </td>
                                             <td>{{ $subject->teacher->name ?? 'Not Assigned' }}</td>
+                                            <td>
+                                                @if($subject->is_core_subject)
+                                                    <span class="badge badge-danger">Core</span>
+                                                @endif
+                                                @if($subject->is_master_subject)
+                                                    <span class="badge badge-warning">Master</span>
+                                                @endif
+                                                @if(!$subject->is_core_subject && !$subject->is_master_subject)
+                                                    <span class="badge badge-light">Regular</span>
+                                                @endif
+                                            </td>
                                             <td>
                                                 @if($subject->registrar_id == auth()->guard('registrar')->id())
                                                     <span class="badge badge-primary">You</span>
@@ -254,9 +306,20 @@ $(document).ready(function() {
     // Initialize DataTables for subjects table
     $('#allSubjectsTable').DataTable({
         "pageLength": 15,
-        "order": [[ 2, "asc" ], [ 3, "asc" ], [ 1, "asc" ]],
+        "order": [[ 2, "asc" ], [ 3, "asc" ], [ 4, "asc" ], [ 1, "asc" ]],
         "columnDefs": [
-            { "orderable": false, "targets": [7] }
+            { "orderable": false, "targets": [11] }, // Actions column
+            { "width": "8%", "targets": [0] }, // Subject Code
+            { "width": "15%", "targets": [1] }, // Subject Name
+            { "width": "8%", "targets": [2] }, // Grade Level
+            { "width": "12%", "targets": [3] }, // Track
+            { "width": "10%", "targets": [4] }, // Strand
+            { "width": "10%", "targets": [5] }, // Cluster
+            { "width": "8%", "targets": [6] }, // Units
+            { "width": "10%", "targets": [7] }, // Semester
+            { "width": "12%", "targets": [8] }, // Teacher
+            { "width": "8%", "targets": [9] }, // Type
+            { "width": "10%", "targets": [10] }, // Created By
         ],
         "language": {
             "search": "Search subjects:",

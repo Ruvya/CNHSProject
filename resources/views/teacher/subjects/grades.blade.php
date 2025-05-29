@@ -106,9 +106,13 @@
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">Grade Management</h6>
                     <div>
-                        <button type="button" class="btn btn-success btn-sm" onclick="saveAllGrades()">
+                        <button type="button" class="btn btn-success btn-sm" id="saveAllBtn">
                             <i class="fas fa-save"></i> Save All Grades
                         </button>
+                        <button type="button" class="btn btn-info btn-sm ms-2" onclick="refreshAllGrades()" id="refreshAllBtn">
+                            <i class="fas fa-sync-alt"></i> Refresh All
+                        </button>
+
                     </div>
                 </div>
                 <div class="card-body">
@@ -171,39 +175,47 @@
                                                 </td>
                                                 <td>
                                                     <input type="number"
-                                                           class="form-control form-control-sm grade-input"
+                                                           class="form-control form-control-sm grade-input auto-save"
                                                            name="grades[{{ $student->id }}][quarter1]"
                                                            value="{{ $grade ? $grade->quarter1 : '' }}"
                                                            min="0" max="100" step="0.01"
                                                            data-student="{{ $student->id }}"
-                                                           data-quarter="1">
+                                                           data-quarter="quarter1"
+                                                           data-subject="{{ $subject->id }}"
+                                                           placeholder="0-100">
                                                 </td>
                                                 <td>
                                                     <input type="number"
-                                                           class="form-control form-control-sm grade-input"
+                                                           class="form-control form-control-sm grade-input auto-save"
                                                            name="grades[{{ $student->id }}][quarter2]"
                                                            value="{{ $grade ? $grade->quarter2 : '' }}"
                                                            min="0" max="100" step="0.01"
                                                            data-student="{{ $student->id }}"
-                                                           data-quarter="2">
+                                                           data-quarter="quarter2"
+                                                           data-subject="{{ $subject->id }}"
+                                                           placeholder="0-100">
                                                 </td>
                                                 <td>
                                                     <input type="number"
-                                                           class="form-control form-control-sm grade-input"
+                                                           class="form-control form-control-sm grade-input auto-save"
                                                            name="grades[{{ $student->id }}][quarter3]"
                                                            value="{{ $grade ? $grade->quarter3 : '' }}"
                                                            min="0" max="100" step="0.01"
                                                            data-student="{{ $student->id }}"
-                                                           data-quarter="3">
+                                                           data-quarter="quarter3"
+                                                           data-subject="{{ $subject->id }}"
+                                                           placeholder="0-100">
                                                 </td>
                                                 <td>
                                                     <input type="number"
-                                                           class="form-control form-control-sm grade-input"
+                                                           class="form-control form-control-sm grade-input auto-save"
                                                            name="grades[{{ $student->id }}][quarter4]"
                                                            value="{{ $grade ? $grade->quarter4 : '' }}"
                                                            min="0" max="100" step="0.01"
                                                            data-student="{{ $student->id }}"
-                                                           data-quarter="4">
+                                                           data-quarter="quarter4"
+                                                           data-subject="{{ $subject->id }}"
+                                                           placeholder="0-100">
                                                 </td>
                                                 <td class="text-center">
                                                     <span class="final-grade-display" data-student="{{ $student->id }}">
@@ -308,18 +320,235 @@
 .alert {
     border-radius: 0.35rem;
 }
+
+/* Auto-save grade input styles */
+.grade-input.saving {
+    border-color: #ffc107;
+    background-color: #fff3cd;
+    position: relative;
+}
+
+.grade-input.saved {
+    border-color: #28a745;
+    background-color: #d4edda;
+    animation: savedPulse 0.5s ease-in-out;
+}
+
+.grade-input.error {
+    border-color: #dc3545;
+    background-color: #f8d7da;
+    animation: errorShake 0.5s ease-in-out;
+}
+
+@keyframes savedPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes errorShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Loading indicator for saving grades */
+.grade-input.saving::after {
+    content: '';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    border: 2px solid #ffc107;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Enhanced status badges */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Toast notification styles */
+.toast-notification {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 0.5rem;
+}
+
+/* Improved table responsiveness */
+.table-responsive {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+/* Grade input focus enhancement */
+.grade-input:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    background-color: #fff;
+}
+
+/* Student row hover effect */
+#gradesTable tbody tr:hover {
+    background-color: #f8f9fc;
+    transition: background-color 0.2s ease;
+}
+
+/* Final grade display enhancement */
+.final-grade-display {
+    font-weight: 600;
+    font-size: 1.1em;
+    color: #2c3e50;
+}
+
+/* Improved button styles */
+.btn-sm {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.btn-sm:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 </style>
 @endsection
 
 @section('scripts')
 <script>
 $(document).ready(function() {
-    // Auto-calculate final grade when quarter grades change
+    let saveTimeout;
+
+    // Auto-save functionality with debouncing
+    $('.auto-save').on('input', function() {
+        const $input = $(this);
+        const studentId = $input.data('student');
+        const quarter = $input.data('quarter');
+        const subjectId = $input.data('subject');
+        const grade = $input.val();
+
+        // console.log('Input detected:', {studentId, quarter, subjectId, grade}); // Debug
+
+        // Clear previous timeout
+        clearTimeout(saveTimeout);
+
+        // Validate input first
+        validateGrade(this);
+
+        // Calculate final grade immediately for visual feedback
+        calculateFinalGrade(studentId);
+
+        // Auto-save after 1 second of no typing
+        if (grade !== '' && grade !== null) {
+            saveTimeout = setTimeout(function() {
+                // console.log('About to save grade:', {studentId, subjectId, quarter, grade}); // Debug
+                saveQuarterGrade(studentId, subjectId, quarter, grade, $input);
+            }, 1000);
+        }
+    });
+
+    // Manual grade input validation and calculation
     $('.grade-input').on('input', function() {
         const studentId = $(this).data('student');
         calculateFinalGrade(studentId);
         validateGrade(this);
     });
+
+    // Save individual quarter grade via AJAX
+    function saveQuarterGrade(studentId, subjectId, quarter, grade, $input) {
+        console.log('saveQuarterGrade called with:', {studentId, subjectId, quarter, grade}); // Debug
+
+        // Show saving indicator
+        $input.addClass('saving');
+
+        const requestData = {
+            _token: '{{ csrf_token() }}',
+            student_id: studentId,
+            subject_id: subjectId,
+            quarter: quarter,
+            grade: grade
+        };
+
+        console.log('Sending AJAX request:', requestData); // Debug
+
+        $.ajax({
+            url: '{{ route("teacher.save-quarter-grade") }}',
+            method: 'POST',
+            data: requestData,
+            success: function(response) {
+                console.log('AJAX Success Response:', response); // Debug
+
+                if (response.success) {
+                    $input.removeClass('saving').addClass('saved');
+
+                    // Update final grade and status
+                    $(`.final-grade-display[data-student="${studentId}"]`).text(
+                        response.data.final_grade ? response.data.final_grade : '-'
+                    );
+
+                    $(`.status-badge[data-student="${studentId}"]`)
+                        .removeClass('badge-success badge-danger badge-warning')
+                        .addClass(`badge-${response.data.status_color}`)
+                        .text(response.data.status);
+
+                    // Show success feedback briefly
+                    setTimeout(function() {
+                        $input.removeClass('saved');
+                    }, 2000);
+
+                    // Show toast notification
+                    showToast('success', 'Grade saved successfully!');
+                } else {
+                    console.log('Success response but success=false:', response); // Debug
+                    $input.removeClass('saving').addClass('error');
+                    showToast('error', response.message || 'Failed to save grade');
+                }
+            },
+            error: function(xhr) {
+                console.log('AJAX Error Response:', xhr); // Debug
+                console.log('Status:', xhr.status); // Debug
+                console.log('Response Text:', xhr.responseText); // Debug
+
+                $input.removeClass('saving').addClass('error');
+                let errorMessage = 'Failed to save grade';
+
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    errorMessage = Object.values(xhr.responseJSON.errors).flat().join(', ');
+                } else if (xhr.status === 500) {
+                    errorMessage = 'Server error occurred. Check console for details.';
+                } else if (xhr.status === 404) {
+                    errorMessage = 'Route not found. Check if the route exists.';
+                } else if (xhr.status === 422) {
+                    errorMessage = 'Validation error. Check the data being sent.';
+                }
+
+                showToast('error', errorMessage);
+                console.error('Full error details:', xhr); // Debug
+
+                // Remove error class after 3 seconds
+                setTimeout(function() {
+                    $input.removeClass('error');
+                }, 3000);
+            }
+        });
+    }
 
     // Validate grade input
     function validateGrade(input) {
@@ -329,27 +558,30 @@ $(document).ready(function() {
         if ($(input).val() !== '') {
             if (isNaN(value) || value < 0 || value > 100) {
                 $(input).addClass('is-invalid');
+                return false;
             } else {
                 $(input).addClass('is-valid');
+                return true;
             }
         }
+        return true;
     }
 
     // Calculate final grade for a student
     function calculateFinalGrade(studentId) {
         const quarters = [];
-        for (let i = 1; i <= 4; i++) {
-            const value = parseFloat($(`input[data-student="${studentId}"][data-quarter="${i}"]`).val());
+        ['quarter1', 'quarter2', 'quarter3', 'quarter4'].forEach(quarter => {
+            const value = parseFloat($(`input[data-student="${studentId}"][data-quarter="${quarter}"]`).val());
             if (!isNaN(value)) {
                 quarters.push(value);
             }
-        }
+        });
 
         let finalGrade = '-';
-        let status = 'Pending';
+        let status = 'Incomplete';
         let statusClass = 'warning';
 
-        if (quarters.length >= 2) {
+        if (quarters.length > 0) {
             const average = quarters.reduce((a, b) => a + b, 0) / quarters.length;
             finalGrade = average.toFixed(2);
             status = average >= 75 ? 'Passed' : 'Failed';
@@ -363,29 +595,106 @@ $(document).ready(function() {
             .text(status);
     }
 
-    // Save all grades
-    window.saveAllGrades = function() {
-        // Validate all inputs first
-        let hasErrors = false;
-        $('.grade-input').each(function() {
-            validateGrade(this);
-            if ($(this).hasClass('is-invalid')) {
-                hasErrors = true;
-            }
-        });
+    // Toast notification function
+    function showToast(type, message) {
+        console.log('showToast called:', type, message); // Debug
 
-        if (hasErrors) {
-            alert('Please fix the invalid grades before saving.');
-            return;
-        }
+        // Remove existing toasts
+        $('.toast-notification').remove();
+
+        const toastClass = type === 'success' ? 'alert-success' : (type === 'warning' ? 'alert-warning' : 'alert-danger');
+        const iconClass = type === 'success' ? 'fa-check-circle' : (type === 'warning' ? 'fa-exclamation-triangle' : 'fa-exclamation-circle');
+
+        const toast = $(`
+            <div class="toast-notification alert ${toastClass} alert-dismissible fade show" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                <i class="fas ${iconClass} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" onclick="$(this).parent().remove()"></button>
+            </div>
+        `);
+
+        $('body').append(toast);
+        console.log('Toast added to body'); // Debug
+
+        // Auto-remove after 5 seconds (increased for debugging)
+        setTimeout(function() {
+            if (toast.length) {
+                toast.fadeOut(function() {
+                    $(this).remove();
+                });
+            }
+        }, 5000);
+    }
+
+    // Simple test for Save All Grades button
+    $('#saveAllBtn').on('click', function() {
+        alert('Button clicked! This is working.');
 
         // Show loading state
-        const saveBtn = $('button[onclick="saveAllGrades()"]');
+        const saveBtn = $(this);
         const originalText = saveBtn.html();
         saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
 
-        // Submit the form
-        $('#gradesForm').submit();
+        // Collect all grade data
+        const gradesData = {};
+
+        // Collect grades from all inputs
+        $('.grade-input').each(function() {
+            const studentId = $(this).data('student');
+            const quarter = $(this).data('quarter');
+            const value = $(this).val();
+
+            if (studentId && quarter && value) {
+                if (!gradesData[studentId]) {
+                    gradesData[studentId] = {};
+                }
+                gradesData[studentId][quarter] = value;
+            }
+        });
+
+        console.log('Grades to save:', gradesData);
+
+        // Check if we have any data to save
+        if (Object.keys(gradesData).length === 0) {
+            alert('No grades to save. Please enter some grades first.');
+            saveBtn.prop('disabled', false).html(originalText);
+            return;
+        }
+
+        // Submit via AJAX
+        $.ajax({
+            url: '{{ route("teacher.subjects.grades.update", $subject) }}',
+            method: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                grades: gradesData
+            },
+            success: function(response) {
+                console.log('Success:', response);
+                alert('Grades saved successfully!');
+                window.location.reload();
+            },
+            error: function(xhr) {
+                console.log('Error:', xhr);
+                alert('Error saving grades: ' + (xhr.responseJSON?.message || 'Unknown error'));
+            },
+            complete: function() {
+                saveBtn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
+
+    // Refresh all grades
+    window.refreshAllGrades = function() {
+        const refreshBtn = $('#refreshAllBtn');
+        const originalText = refreshBtn.html();
+
+        refreshBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Refreshing...');
+
+        // Reload the page to get fresh data
+        setTimeout(function() {
+            window.location.reload();
+        }, 500);
     };
 
     // Initialize DataTable
@@ -403,6 +712,11 @@ $(document).ready(function() {
             "infoFiltered": "(filtered from _MAX_ total students)"
         }
     });
+
+
+
+    // Initialize tooltips for better UX
+    $('[data-bs-toggle="tooltip"]').tooltip();
 });
 </script>
 @endsection

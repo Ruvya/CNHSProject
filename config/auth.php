@@ -66,6 +66,11 @@ return [
             'driver' => 'session',
             'provider' => 'registrars',
         ],
+
+        'principal' => [
+            'driver' => 'session',
+            'provider' => 'principals',
+        ],
     ],
 
     /*
@@ -109,6 +114,11 @@ return [
         'registrars' => [
             'driver' => 'eloquent',
             'model' => App\Models\Registrar::class,
+        ],
+
+        'principals' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Principal::class,
         ],
     ],
 
@@ -158,6 +168,12 @@ return [
         ],
         'registrars' => [
             'provider' => 'registrars',
+            'table' => 'password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'principals' => [
+            'provider' => 'principals',
             'table' => 'password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,

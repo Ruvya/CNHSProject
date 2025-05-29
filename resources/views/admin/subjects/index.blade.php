@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Subjects Management')
+@section('title', 'Subjects Overview')
 
 @section('content')
 <div class="container-fluid">
@@ -9,14 +9,28 @@
         <div>
             <h1 class="page-title mb-1">
                 <i class="fas fa-book me-2 text-primary"></i>
-                Subjects Management
+                Subjects Overview
+                <span class="badge bg-info ms-2">View Only</span>
             </h1>
-            <p class="text-muted mb-0">Manage academic subjects and course offerings</p>
+            <p class="text-muted mb-0">View academic subjects and their assigned teachers</p>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('admin.subjects.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Add New Subject
-            </a>
+    </div>
+
+    <!-- Role Information Notice -->
+    <div class="alert alert-info border-0 mb-4" style="background: linear-gradient(135deg, #e3f2fd, #f3e5f5);">
+        <div class="d-flex align-items-center">
+            <div class="me-3">
+                <i class="fas fa-info-circle fa-2x text-info"></i>
+            </div>
+            <div>
+                <h6 class="alert-heading mb-1">
+                    <i class="fas fa-eye me-2"></i>Admin View-Only Access
+                </h6>
+                <p class="mb-0">
+                    Subject creation, editing, and deletion is exclusively managed by the <strong>Registrar</strong>.
+                    As an Admin, you can view all subjects and their details for oversight purposes.
+                </p>
+            </div>
         </div>
     </div>
 
@@ -127,11 +141,11 @@
                         <span class="badge bg-info ms-1">{{ $selectedGradeLevel }}</span>
                     @endif
                 </h5>
-                <p class="text-muted mb-0 small">Manage and organize academic subjects</p>
+                <p class="text-muted mb-0 small">View subjects and their assigned teachers</p>
             </div>
             <div class="d-flex gap-2 align-items-center">
                 <!-- Grade Level Filter -->
-                <form method="GET" action="{{ route('admin.subjects') }}" class="d-flex align-items-center" id="gradeFilterForm">
+                <form method="GET" action="{{ route('admin.subjects.index') }}" class="d-flex align-items-center" id="gradeFilterForm">
                     <select name="grade_level" id="grade_level" class="form-select form-select-sm" style="width: auto;">
                         <option value="all" {{ (!$selectedGradeLevel || $selectedGradeLevel === 'all') ? 'selected' : '' }}>
                             All Grades
@@ -143,14 +157,11 @@
                         @endforeach
                     </select>
                     @if($selectedGradeLevel && $selectedGradeLevel !== 'all')
-                        <a href="{{ route('admin.subjects') }}" class="btn btn-outline-secondary btn-sm ms-2" id="clearFilter">
+                        <a href="{{ route('admin.subjects.index') }}" class="btn btn-outline-secondary btn-sm ms-2" id="clearFilter">
                             <i class="fas fa-times"></i>
                         </a>
                     @endif
                 </form>
-                <a href="{{ route('admin.subjects.create') }}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus me-1"></i>Add Subject
-                </a>
             </div>
         </div>
     </div>
@@ -166,7 +177,7 @@
                             <th class="text-center">Grading</th>
                             <th>Assigned Teacher</th>
                             <th class="text-center">Track/Strand</th>
-                            <th class="text-center">Actions</th>
+                            <th class="text-center">Details</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -238,33 +249,12 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <div class="btn-group" role="group">
-                                    <a href="{{ route('admin.subjects.show', $subject) }}"
-                                       class="btn btn-outline-info btn-sm"
-                                       title="View Details"
-                                       data-bs-toggle="tooltip">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ route('admin.subjects.edit', $subject) }}"
-                                       class="btn btn-outline-warning btn-sm"
-                                       title="Edit Subject"
-                                       data-bs-toggle="tooltip">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form action="{{ route('admin.subjects.destroy', $subject) }}"
-                                          method="POST"
-                                          class="d-inline"
-                                          onsubmit="return confirm('Are you sure you want to delete this subject?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="btn btn-outline-danger btn-sm"
-                                                title="Delete Subject"
-                                                data-bs-toggle="tooltip">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
+                                <a href="{{ route('admin.subjects.show', $subject) }}"
+                                   class="btn btn-outline-info btn-sm"
+                                   title="View Details"
+                                   data-bs-toggle="tooltip">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </a>
                             </td>
                         </tr>
                         @endforeach
@@ -277,20 +267,13 @@
                 @if($selectedGradeLevel && $selectedGradeLevel !== 'all')
                     <h5 class="text-muted">No subjects found for {{ $selectedGradeLevel }}</h5>
                     <p class="text-muted mb-4">There are no subjects assigned to this grade level yet.</p>
-                    <div class="d-flex justify-content-center gap-2">
-                        <a href="{{ route('admin.subjects.create') }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>Add Subject for {{ $selectedGradeLevel }}
-                        </a>
-                        <a href="{{ route('admin.subjects') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-list me-2"></i>View All Subjects
-                        </a>
-                    </div>
+                    <a href="{{ route('admin.subjects.index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-2"></i>View All Subjects
+                    </a>
                 @else
                     <h5 class="text-muted">No subjects found</h5>
                     <p class="text-muted mb-4">There are no subjects in the system yet.</p>
-                    <a href="{{ route('admin.subjects.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>Add First Subject
-                    </a>
+                    <p class="text-muted">Subjects can be created by the Registrar.</p>
                 @endif
             </div>
         @endif

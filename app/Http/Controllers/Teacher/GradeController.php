@@ -76,10 +76,10 @@ class GradeController extends Controller
             $request->quarter4
         ]);
 
-        $finalGrade = !empty($quarters) ? array_sum($quarters) / count($quarters) : null;
+        $finalGrade = !empty($quarters) ? round(array_sum($quarters) / count($quarters), 2) : null;
 
         // Update or create grade record
-        Grade::updateOrCreate(
+        $grade = Grade::updateOrCreate(
             [
                 'student_id' => $request->student_id,
                 'subject_id' => $request->subject_id,
@@ -97,7 +97,74 @@ class GradeController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Grade saved successfully',
-            'final_grade' => $finalGrade
+            'data' => [
+                'final_grade' => $finalGrade,
+                'status' => $grade->status,
+                'status_color' => $grade->status_color,
+                'student_name' => $student->first_name . ' ' . $student->last_name,
+                'subject_name' => $subject->name
+            ]
+        ]);
+    }
+
+    /**
+     * Save individual quarter grade via AJAX
+     */
+    public function saveQuarterGrade(Request $request)
+    {
+        $teacher = Auth::guard('teacher')->user();
+
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'subject_id' => 'required|exists:subjects,id',
+            'quarter' => 'required|in:quarter1,quarter2,quarter3,quarter4',
+            'grade' => 'nullable|numeric|min:0|max:100',
+        ]);
+
+        $student = Student::findOrFail($request->student_id);
+        $subject = Subject::findOrFail($request->subject_id);
+
+        // Verify teacher has access to this subject
+        if ($subject->teacher_id !== $teacher->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to grade this subject.'
+            ], 403);
+        }
+
+        // Get or create grade record
+        $grade = Grade::firstOrCreate(
+            [
+                'student_id' => $request->student_id,
+                'subject_id' => $request->subject_id,
+            ],
+            [
+                'quarter1' => null,
+                'quarter2' => null,
+                'quarter3' => null,
+                'quarter4' => null,
+                'final_grade' => null,
+                'remarks' => null
+            ]
+        );
+
+        // Update the specific quarter
+        $grade->{$request->quarter} = $request->grade;
+
+        // Recalculate final grade
+        $grade->final_grade = $grade->calculateFinalGrade();
+        $grade->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Quarter grade saved successfully',
+            'data' => [
+                'quarter' => $request->quarter,
+                'grade' => $request->grade,
+                'final_grade' => $grade->final_grade,
+                'status' => $grade->status,
+                'status_color' => $grade->status_color
+            ]
         ]);
     }
 

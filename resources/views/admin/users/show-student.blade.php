@@ -8,12 +8,15 @@
     <h1 class="page-title">{{ $student->full_name }}</h1>
     <p class="page-subtitle">Student ID: {{ $student->student_id }} • {{ $student->grade_level }}</p>
     <div class="page-actions">
-        <a href="{{ route('admin.users') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back to User Management
+        <a href="{{ route('admin.users.students.index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Student Accounts
         </a>
-        <a href="{{ route('admin.users.students.edit', $student) }}" class="btn btn-warning">
-            <i class="fas fa-edit me-2"></i>Edit Profile
-        </a>
+        @if($student->is_temporary_account)
+            <span class="badge bg-warning fs-6">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                Profile Incomplete - Student needs to complete profile
+            </span>
+        @endif
     </div>
 </div>
 
@@ -396,9 +399,12 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a href="{{ route('admin.users.students.edit', $student) }}" class="btn btn-warning btn-sm">
-                        <i class="fas fa-edit me-2"></i>Edit Profile
-                    </a>
+                    @if($student->is_temporary_account)
+                        <div class="alert alert-warning alert-sm">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Note:</strong> This student has not completed their profile yet. They need to log in and complete their information.
+                        </div>
+                    @endif
                     <button class="btn btn-info btn-sm" onclick="window.print()">
                         <i class="fas fa-print me-2"></i>Print Profile
                     </button>

@@ -27,7 +27,7 @@
 
                         <!-- Database Analysis -->
                         <h2 class="mb-4"><i class="fas fa-database text-primary me-2"></i>Database Analysis</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <div class="card diagnostic-card border-info">
@@ -40,7 +40,7 @@
                                             try {
                                                 $allSubjects = \App\Models\Subject::all();
                                                 echo "<strong>Total Subjects: " . $allSubjects->count() . "</strong><br><br>";
-                                                
+
                                                 if ($allSubjects->count() > 0) {
                                                     echo "<div class='table-responsive'>";
                                                     echo "<table class='table table-sm data-table'>";
@@ -73,7 +73,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card diagnostic-card border-warning">
                                     <div class="card-header bg-warning text-dark">
@@ -87,18 +87,18 @@
                                                     ->selectRaw('COUNT(*) as count')
                                                     ->groupBy('grade_level')
                                                     ->get();
-                                                
+
                                                 echo "<strong>Subjects by Grade Level:</strong><br><br>";
                                                 foreach ($gradeLevels as $grade) {
                                                     echo "• " . ($grade->grade_level ?? 'NULL') . ": {$grade->count} subjects<br>";
                                                 }
-                                                
+
                                                 echo "<br><strong>Strand Analysis:</strong><br><br>";
                                                 $strands = \App\Models\Subject::select('strand')
                                                     ->selectRaw('COUNT(*) as count')
                                                     ->groupBy('strand')
                                                     ->get();
-                                                
+
                                                 foreach ($strands as $strand) {
                                                     echo "• " . ($strand->strand ?? 'NULL') . ": {$strand->count} subjects<br>";
                                                 }
@@ -114,7 +114,7 @@
 
                         <!-- Registrar View Logic Analysis -->
                         <h2 class="mb-4"><i class="fas fa-filter text-success me-2"></i>Registrar View Logic Analysis</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <div class="card diagnostic-card border-success">
@@ -129,16 +129,16 @@
                                                 $grade11_numeric = \App\Models\Subject::where('grade_level', '11')->count();
                                                 $grade11_text = \App\Models\Subject::where('grade_level', 'Grade 11')->count();
                                                 $grade11_like = \App\Models\Subject::where('grade_level', 'LIKE', '%11%')->count();
-                                                
+
                                                 echo "<strong>Grade 11 Filtering Results:</strong><br><br>";
                                                 echo "• grade_level = '11': {$grade11_numeric} subjects<br>";
                                                 echo "• grade_level = 'Grade 11': {$grade11_text} subjects<br>";
                                                 echo "• grade_level LIKE '%11%': {$grade11_like} subjects<br><br>";
-                                                
+
                                                 echo "<strong>HUMSS Strand Test:</strong><br><br>";
                                                 $humss_grade11 = \App\Models\Subject::where('grade_level', '11')->where('strand', 'HUMSS')->count();
                                                 $humss_grade11_text = \App\Models\Subject::where('grade_level', 'Grade 11')->where('strand', 'HUMSS')->count();
-                                                
+
                                                 echo "• Grade 11 + HUMSS (numeric): {$humss_grade11} subjects<br>";
                                                 echo "• Grade 11 + HUMSS (text): {$humss_grade11_text} subjects<br>";
                                             } catch (\Exception $e) {
@@ -149,7 +149,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card diagnostic-card border-secondary">
                                     <div class="card-header bg-secondary text-white">
@@ -163,16 +163,16 @@
                                                 $grade12_numeric = \App\Models\Subject::where('grade_level', '12')->count();
                                                 $grade12_text = \App\Models\Subject::where('grade_level', 'Grade 12')->count();
                                                 $grade12_like = \App\Models\Subject::where('grade_level', 'LIKE', '%12%')->count();
-                                                
+
                                                 echo "<strong>Grade 12 Filtering Results:</strong><br><br>";
                                                 echo "• grade_level = '12': {$grade12_numeric} subjects<br>";
                                                 echo "• grade_level = 'Grade 12': {$grade12_text} subjects<br>";
                                                 echo "• grade_level LIKE '%12%': {$grade12_like} subjects<br><br>";
-                                                
+
                                                 echo "<strong>HUMSS Strand Test:</strong><br><br>";
                                                 $humss_grade12 = \App\Models\Subject::where('grade_level', '12')->where('strand', 'HUMSS')->count();
                                                 $humss_grade12_text = \App\Models\Subject::where('grade_level', 'Grade 12')->where('strand', 'HUMSS')->count();
-                                                
+
                                                 echo "• Grade 12 + HUMSS (numeric): {$humss_grade12} subjects<br>";
                                                 echo "• Grade 12 + HUMSS (text): {$humss_grade12_text} subjects<br>";
                                             } catch (\Exception $e) {
@@ -187,7 +187,7 @@
 
                         <!-- Problem Identification -->
                         <h2 class="mb-4"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Problem Identification</h2>
-                        
+
                         <div class="row g-4 mb-5">
                             <div class="col-md-6">
                                 <div class="card diagnostic-card border-danger">
@@ -204,7 +204,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card diagnostic-card border-success">
                                     <div class="card-header bg-success text-white">
@@ -224,7 +224,7 @@
 
                         <!-- Quick Links -->
                         <h2 class="mb-4"><i class="fas fa-link text-secondary me-2"></i>Quick Navigation</h2>
-                        
+
                         <div class="row g-3 mb-5">
                             <div class="col-md-3">
                                 <a href="{{ route('registrar.login') }}" class="btn btn-primary btn-lg w-100">
@@ -232,12 +232,12 @@
                                 </a>
                             </div>
                             <div class="col-md-3">
-                                <a href="{{ route('registrar.subjects') }}" class="btn btn-success btn-lg w-100">
+                                <a href="{{ route('registrar.subjects.index') }}" class="btn btn-success btn-lg w-100">
                                     <i class="fas fa-book me-2"></i>Registrar Subjects
                                 </a>
                             </div>
                             <div class="col-md-3">
-                                <a href="{{ route('admin.subjects') }}" class="btn btn-info btn-lg w-100">
+                                <a href="{{ route('admin.subjects.index') }}" class="btn btn-info btn-lg w-100">
                                     <i class="fas fa-list me-2"></i>Admin Subjects
                                 </a>
                             </div>

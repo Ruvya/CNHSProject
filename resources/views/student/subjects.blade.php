@@ -33,15 +33,7 @@
                 </div>
             </div>
 
-            <div class="stat-card stat-success">
-                <div class="stat-icon">
-                    <i class="fas fa-calculator"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">{{ $totalUnits }}</div>
-                    <div class="stat-label">Total Units</div>
-                </div>
-            </div>
+        
 
             <div class="stat-card stat-info">
                 <div class="stat-icon">
@@ -49,7 +41,7 @@
                 </div>
                 <div class="stat-content">
                     <div class="stat-number">{{ $subjectsWithTeachers }}</div>
-                    <div class="stat-label">With Teachers</div>
+                    <div class="stat-label">With Teacher</div>
                 </div>
             </div>
 
