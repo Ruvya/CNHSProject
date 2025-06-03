@@ -140,21 +140,35 @@
                     <p class="text-muted mb-0 small">Manage your subjects and view all subjects in the system</p>
                 </div>
                 <div class="d-flex gap-2 align-items-center">
-                    <!-- Grade Level Filter -->
-                    <form method="GET" action="{{ route('registrar.subjects.index') }}" class="d-flex align-items-center">
-                        <select name="grade_level" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
-                            <option value="all" {{ (!$gradeFilter || $gradeFilter === 'all') ? 'selected' : '' }}>
-                                All Grades
-                            </option>
-                            @if($availableGrades ?? false)
-                                @foreach($availableGrades as $grade)
-                                    <option value="{{ $grade }}" {{ $gradeFilter === $grade ? 'selected' : '' }}>
-                                        {{ $grade }}
-                                    </option>
+                    <!-- Dynamic Filtering Controls -->
+                    <div class="d-flex gap-2 align-items-center">
+                        <!-- Grade Level Filter -->
+                        <select id="grade_level" class="form-select form-select-sm" style="width: auto;">
+                            <option value="all">All Grades</option>
+                            <option value="11">Grade 11</option>
+                            <option value="12">Grade 12</option>
+                        </select>
+
+                        <!-- Track Filter -->
+                        <select id="track" class="form-select form-select-sm" style="width: auto;">
+                            <option value="all">All Tracks</option>
+                            @if($availableTracks ?? false)
+                                @foreach($availableTracks as $track)
+                                    <option value="{{ $track }}">{{ $track }}</option>
                                 @endforeach
                             @endif
                         </select>
-                    </form>
+
+                        <!-- Strand Filter -->
+                        <select id="strand" class="form-select form-select-sm" style="width: auto;">
+                            <option value="all">All Strands</option>
+                            @if($availableStrands ?? false)
+                                @foreach($availableStrands as $strand)
+                                    <option value="{{ $strand }}">{{ $strand }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
 
                     <a href="{{ route('registrar.subjects.create') }}" class="btn btn-primary btn-sm">
                         <i class="fas fa-plus me-1"></i>Add Subject
@@ -164,6 +178,58 @@
         </div>
 
         <div class="card-body">
+            <!-- Dynamic Subject Display Section -->
+            <div id="dynamicSubjectsSection" style="display: none;">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <h5><i class="fas fa-filter me-2"></i>Filtered Subjects</h5>
+                            <p class="mb-0">Showing subjects for: <span id="filterSummary"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="card border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0"><i class="fas fa-list me-2"></i>Available Subjects (<span id="subjectCount">0</span>)</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="subjectsList" class="row">
+                                    <!-- Dynamic subjects will be loaded here -->
+                                </div>
+
+                                <!-- File Upload Section -->
+                                <div id="fileUploadSection" style="display: none;" class="mt-4">
+                                    <hr>
+                                    <h6><i class="fas fa-upload me-2"></i>Upload Learning Materials</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="selectedSubject">Select Subject:</label>
+                                                <select id="selectedSubject" class="form-control">
+                                                    <option value="">Choose a subject...</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="materialFile">Upload File:</label>
+                                                <input type="file" id="materialFile" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="uploadMaterialBtn" class="btn btn-success">
+                                        <i class="fas fa-upload me-2"></i>Upload Material
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             @if($allSubjects && $allSubjects->count() > 0)
                 <div class="table-responsive">
                     <table class="table table-hover align-middle" id="subjectsTable">
@@ -252,31 +318,45 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">
+                                        <!-- View Button - Always Available -->
                                         <a href="{{ route('registrar.subjects.show', $subject) }}"
                                            class="btn btn-outline-info btn-sm"
                                            title="View Details">
                                             <i class="fas fa-eye"></i>
                                         </a>
+
+                                        <!-- Edit Button - Available for all registrars -->
+                                        <a href="{{ route('registrar.subjects.edit', $subject) }}"
+                                           class="btn btn-outline-primary btn-sm"
+                                           title="Edit Subject">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+
+                                        <!-- Delete Button - Available for all registrars -->
+                                        <form action="{{ route('registrar.subjects.destroy', $subject) }}"
+                                              method="POST"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Are you sure you want to delete this subject: {{ $subject->name }}?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="btn btn-outline-danger btn-sm"
+                                                    title="Delete Subject">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <!-- Show ownership info below buttons -->
+                                    <div class="mt-1">
                                         @if($subject->registrar_id == auth()->guard('registrar')->id())
-                                            <a href="{{ route('registrar.subjects.edit', $subject) }}"
-                                               class="btn btn-outline-primary btn-sm"
-                                               title="Edit Subject">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form action="{{ route('registrar.subjects.destroy', $subject) }}"
-                                                  method="POST"
-                                                  class="d-inline"
-                                                  onsubmit="return confirm('Are you sure you want to delete this subject?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                        class="btn btn-outline-danger btn-sm"
-                                                        title="Delete Subject">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                            <small class="text-success">
+                                                <i class="fas fa-check-circle"></i> Your Subject
+                                            </small>
                                         @else
-                                            <span class="text-muted small">View Only</span>
+                                            <small class="text-muted">
+                                                <i class="fas fa-lock"></i> View Only
+                                            </small>
                                         @endif
                                     </div>
                                 </td>
@@ -443,12 +523,116 @@
         padding: 0.25rem 0.5rem;
     }
 }
+
+/* Dynamic subjects section styling */
+#dynamicSubjectsSection {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.card.border-primary {
+    border-width: 2px !important;
+}
+
+.card.h-100 {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card.h-100:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+#fileUploadSection {
+    background: #f8f9fc;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #e3e6f0;
+}
+
+#subjectsList .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+}
+
+#subjectsList .card-header h6 {
+    color: white !important;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+    border-color: #b6d4da;
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* Subject card animations */
+#subjectsList .card {
+    animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* File upload styling */
+#materialFile {
+    border: 2px dashed #dee2e6;
+    padding: 10px;
+    border-radius: 8px;
+    transition: border-color 0.3s ease;
+}
+
+#materialFile:hover {
+    border-color: #007bff;
+}
+
+#uploadMaterialBtn {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+#uploadMaterialBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
 </style>
 @endpush
 
 @push('scripts')
 <script>
 $(document).ready(function() {
+    console.log('Document ready - jQuery loaded');
+    console.log('Grade select element:', $('#grade_level').length);
+    console.log('Track select element:', $('#track').length);
+    console.log('Strand select element:', $('#strand').length);
+
     // Initialize DataTables
     $('#subjectsTable').DataTable({
         "pageLength": 15,
@@ -474,6 +658,270 @@ $(document).ready(function() {
         },
         "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
         "responsive": true
+    });
+
+    // Dynamic filtering functionality
+    const gradeSelect = $('#grade_level');
+    const trackSelect = $('#track');
+    const strandSelect = $('#strand');
+    const dynamicSection = $('#dynamicSubjectsSection');
+    const subjectsList = $('#subjectsList');
+    const subjectCount = $('#subjectCount');
+    const filterSummary = $('#filterSummary');
+    const fileUploadSection = $('#fileUploadSection');
+    const selectedSubjectSelect = $('#selectedSubject');
+
+    // Grade level change handler
+    gradeSelect.on('change', function() {
+        const selectedGrade = $(this).val();
+        console.log('Grade selected:', selectedGrade);
+
+        // Reset dependent dropdowns
+        trackSelect.html('<option value="all">All Tracks</option>');
+        strandSelect.html('<option value="all">All Strands</option>');
+
+        if (selectedGrade && selectedGrade !== 'all') {
+            console.log('Loading tracks for grade:', selectedGrade);
+            // Load tracks for selected grade
+            loadTracks(selectedGrade);
+        }
+
+        // Hide dynamic section when grade changes
+        dynamicSection.hide();
+        fileUploadSection.hide();
+    });
+
+    // Track change handler
+    trackSelect.on('change', function() {
+        const selectedGrade = gradeSelect.val();
+        const selectedTrack = $(this).val();
+
+        // Reset strand dropdown
+        strandSelect.html('<option value="all">All Strands</option>');
+
+        if (selectedGrade && selectedGrade !== 'all' && selectedTrack && selectedTrack !== 'all') {
+            // Load strands for selected grade and track
+            loadStrands(selectedGrade, selectedTrack);
+        }
+
+        // Hide dynamic section when track changes
+        dynamicSection.hide();
+        fileUploadSection.hide();
+    });
+
+    // Strand change handler
+    strandSelect.on('change', function() {
+        const selectedGrade = gradeSelect.val();
+        const selectedTrack = trackSelect.val();
+        const selectedStrand = $(this).val();
+
+        if (selectedGrade && selectedGrade !== 'all' &&
+            selectedTrack && selectedTrack !== 'all' &&
+            selectedStrand && selectedStrand !== 'all') {
+            // Load subjects for selected combination
+            loadSubjects(selectedGrade, selectedTrack, selectedStrand);
+        } else {
+            dynamicSection.hide();
+            fileUploadSection.hide();
+        }
+    });
+
+    // Load tracks based on grade level
+    function loadTracks(gradeLevel) {
+        console.log('loadTracks called with:', gradeLevel);
+        console.log('AJAX URL:', '{{ route("registrar.api.tracks-by-grade") }}');
+
+        $.ajax({
+            url: '{{ route("registrar.api.tracks-by-grade") }}',
+            method: 'GET',
+            data: { grade_level: gradeLevel },
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(tracks) {
+                console.log('Tracks received:', tracks);
+                trackSelect.html('<option value="all">All Tracks</option>');
+                tracks.forEach(function(track) {
+                    trackSelect.append(`<option value="${track}">${track}</option>`);
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error('Failed to load tracks');
+                console.error('Status:', status);
+                console.error('Error:', error);
+                console.error('Response:', xhr.responseText);
+            }
+        });
+    }
+
+    // Load strands based on grade level and track
+    function loadStrands(gradeLevel, track) {
+        $.ajax({
+            url: '{{ route("registrar.api.strands-by-grade-track") }}',
+            method: 'GET',
+            data: {
+                grade_level: gradeLevel,
+                track: track
+            },
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(strands) {
+                strandSelect.html('<option value="all">All Strands</option>');
+                strands.forEach(function(strand) {
+                    strandSelect.append(`<option value="${strand}">${strand}</option>`);
+                });
+            },
+            error: function() {
+                console.error('Failed to load strands');
+            }
+        });
+    }
+
+    // Load subjects based on filters
+    function loadSubjects(gradeLevel, track, strand) {
+        showLoadingOverlay();
+
+        $.ajax({
+            url: '{{ route("registrar.api.subjects-by-filters") }}',
+            method: 'GET',
+            data: {
+                grade_level: gradeLevel,
+                track: track,
+                strand: strand
+            },
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                hideLoadingOverlay();
+                displaySubjects(response.subjects, gradeLevel, track, strand);
+                subjectCount.text(response.count);
+
+                // Update filter summary
+                filterSummary.text(`Grade ${gradeLevel} - ${track} - ${strand}`);
+
+                // Show dynamic section
+                dynamicSection.show();
+
+                // Show file upload section if subjects exist
+                if (response.count > 0) {
+                    populateSubjectSelect(response.subjects);
+                    fileUploadSection.show();
+                }
+            },
+            error: function() {
+                hideLoadingOverlay();
+                console.error('Failed to load subjects');
+            }
+        });
+    }
+
+    // Display subjects in cards
+    function displaySubjects(subjects, gradeLevel, track, strand) {
+        subjectsList.empty();
+
+        if (subjects.length === 0) {
+            subjectsList.html(`
+                <div class="col-12">
+                    <div class="alert alert-warning text-center">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <h5>No Subjects Found</h5>
+                        <p>No subjects found for Grade ${gradeLevel} - ${track} - ${strand}</p>
+                        <a href="{{ route('registrar.subjects.create') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Create New Subject
+                        </a>
+                    </div>
+                </div>
+            `);
+            return;
+        }
+
+        subjects.forEach(function(subject) {
+            const subjectCard = `
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100 border-primary">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">
+                                <strong>${subject.code || subject.subject_code}</strong>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title">${subject.name || subject.subject_name}</h6>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-user me-1"></i>
+                                    ${subject.teacher ? subject.teacher.name : 'Not Assigned'}
+                                </small>
+                            </p>
+                            <div class="mb-2">
+                                ${subject.is_core_subject ? '<span class="badge bg-danger">Core</span>' : ''}
+                                ${subject.is_master_subject ? '<span class="badge bg-warning">Master</span>' : ''}
+                                ${!subject.is_core_subject && !subject.is_master_subject ? '<span class="badge bg-light text-dark">Regular</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="btn-group w-100" role="group">
+                                <a href="/registrar/subjects/${subject.id}" class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                ${subject.registrar_id == {{ auth()->guard('registrar')->id() }} ? `
+                                    <a href="/registrar/subjects/${subject.id}/edit" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            subjectsList.append(subjectCard);
+        });
+    }
+
+    // Populate subject select dropdown for file upload
+    function populateSubjectSelect(subjects) {
+        selectedSubjectSelect.html('<option value="">Choose a subject...</option>');
+        subjects.forEach(function(subject) {
+            selectedSubjectSelect.append(`
+                <option value="${subject.id}">
+                    ${subject.code || subject.subject_code} - ${subject.name || subject.subject_name}
+                </option>
+            `);
+        });
+    }
+
+    // Show/Hide loading overlay functions
+    function showLoadingOverlay() {
+        if ($('.loading-overlay').length === 0) {
+            $('body').append('<div class="loading-overlay"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+        }
+    }
+
+    function hideLoadingOverlay() {
+        $('.loading-overlay').remove();
+    }
+
+    // File upload handler (placeholder)
+    $('#uploadMaterialBtn').on('click', function() {
+        const selectedSubject = selectedSubjectSelect.val();
+        const fileInput = $('#materialFile')[0];
+
+        if (!selectedSubject) {
+            alert('Please select a subject first.');
+            return;
+        }
+
+        if (!fileInput.files.length) {
+            alert('Please select a file to upload.');
+            return;
+        }
+
+        // TODO: Implement actual file upload functionality
+        alert('File upload functionality will be implemented in the next phase.');
     });
 
     // Initialize Bootstrap tooltips

@@ -52,28 +52,34 @@
                             @enderror
                         </div>
 
+                        <!-- Grade Level Selection -->
+                        <div class="mb-4">
+                            <label for="grade_level" class="form-label">
+                                <i class="fas fa-layer-group me-1"></i>Select Grade Level <span class="text-danger">*</span>
+                            </label>
+                            <select name="grade_level" id="grade_level" class="form-select" required>
+                                <option value="">Choose a grade level...</option>
+                                @foreach($gradeLevels as $gradeLevel)
+                                    <option value="{{ $gradeLevel }}" {{ old('grade_level') == $gradeLevel ? 'selected' : '' }}>
+                                        {{ $gradeLevel }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="form-text">Select the grade level first to filter available subjects.</div>
+                        </div>
+
                         <!-- Subject Selection -->
                         <div class="mb-4">
                             <label for="subject_id" class="form-label">
                                 <i class="fas fa-book me-1"></i>Select Subject <span class="text-danger">*</span>
                             </label>
-                            <select name="subject_id" id="subject_id" class="form-select @error('subject_id') is-invalid @enderror" required>
-                                <option value="">Choose a subject...</option>
-                                @foreach($subjects as $subject)
-                                    <option value="{{ $subject->id }}"
-                                            {{ old('subject_id') == $subject->id ? 'selected' : '' }}
-                                            data-name="{{ $subject->name }}"
-                                            data-code="{{ $subject->code }}"
-                                            data-grade="{{ $subject->grade_level }}"
-                                            data-track="{{ $subject->track }}"
-                                            data-strand="{{ $subject->strand }}">
-                                        {{ $subject->code }} - {{ $subject->name }} ({{ $subject->grade_level }})
-                                    </option>
-                                @endforeach
+                            <select name="subject_id" id="subject_id" class="form-select @error('subject_id') is-invalid @enderror" required disabled>
+                                <option value="">Please select a grade level first...</option>
                             </select>
                             @error('subject_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                            <div class="form-text">Subjects will be loaded based on the selected grade level.</div>
                             <div id="qualificationAlert" class="alert alert-warning mt-2" style="display: none;">
                                 <i class="fas fa-exclamation-triangle me-1"></i>
                                 <span id="qualificationMessage"></span>
@@ -175,9 +181,22 @@
                             <a href="{{ route('registrar.teacher-assignments.index') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times me-2"></i>Cancel
                             </a>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" id="submitBtn" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i>Assign Teacher
                             </button>
+                        </div>
+
+                        <!-- Loading Overlay -->
+                        <div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(0,0,0,0.5); z-index: 9999;">
+                            <div class="d-flex justify-content-center align-items-center h-100">
+                                <div class="text-center text-white">
+                                    <div class="spinner-border mb-3" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <h5>Assigning Teacher...</h5>
+                                    <p>Please wait while we process the assignment.</p>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -245,6 +264,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const teacherSelect = document.getElementById('teacher_id');
+    const gradeLevelSelect = document.getElementById('grade_level');
     const subjectSelect = document.getElementById('subject_id');
     const teacherInfoCard = document.getElementById('teacherInfoCard');
     const subjectInfoCard = document.getElementById('subjectInfoCard');
@@ -254,6 +274,57 @@ document.addEventListener('DOMContentLoaded', function() {
     const qualificationMessage = document.getElementById('qualificationMessage');
 
     let scheduleIndex = 1;
+
+    // Handle grade level selection
+    gradeLevelSelect.addEventListener('change', function() {
+        const gradeLevel = this.value;
+
+        // Reset subject selection
+        subjectSelect.innerHTML = '<option value="">Loading subjects...</option>';
+        subjectSelect.disabled = true;
+        subjectInfoCard.style.display = 'none';
+        qualificationAlert.style.display = 'none';
+
+        if (gradeLevel) {
+            // Fetch subjects for the selected grade level
+            fetch(`{{ route('registrar.api.subjects-by-grade-level') }}?grade_level=${encodeURIComponent(gradeLevel)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Clear and populate subject dropdown
+                        subjectSelect.innerHTML = '<option value="">Choose a subject...</option>';
+
+                        data.subjects.forEach(subject => {
+                            const option = document.createElement('option');
+                            option.value = subject.id;
+                            option.textContent = `${subject.code} - ${subject.name} (${subject.track}${subject.strand ? ' - ' + subject.strand : ''})`;
+                            option.dataset.name = subject.name;
+                            option.dataset.code = subject.code;
+                            option.dataset.grade = subject.grade_level;
+                            option.dataset.track = subject.track;
+                            option.dataset.strand = subject.strand || '';
+                            subjectSelect.appendChild(option);
+                        });
+
+                        subjectSelect.disabled = false;
+
+                        if (data.subjects.length === 0) {
+                            subjectSelect.innerHTML = '<option value="">No subjects found for this grade level</option>';
+                        }
+                    } else {
+                        subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
+                        console.error('Error loading subjects:', data.message);
+                    }
+                })
+                .catch(error => {
+                    subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
+                    console.error('Error fetching subjects:', error);
+                });
+        } else {
+            subjectSelect.innerHTML = '<option value="">Please select a grade level first...</option>';
+            subjectSelect.disabled = true;
+        }
+    });
 
     // Handle teacher selection
     teacherSelect.addEventListener('change', function() {
@@ -387,7 +458,60 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Handle form submission with loading state
+    const form = document.querySelector('form');
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    form.addEventListener('submit', function(e) {
+        // Validate required fields
+        const teacherId = teacherSelect.value;
+        const subjectId = subjectSelect.value;
+        const gradeLevel = gradeLevelSelect.value;
+
+        if (!gradeLevel) {
+            e.preventDefault();
+            alert('Please select a grade level first.');
+            gradeLevelSelect.focus();
+            return;
+        }
+
+        if (!teacherId) {
+            e.preventDefault();
+            alert('Please select a teacher.');
+            teacherSelect.focus();
+            return;
+        }
+
+        if (!subjectId) {
+            e.preventDefault();
+            alert('Please select a subject.');
+            subjectSelect.focus();
+            return;
+        }
+
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Assigning...';
+        loadingOverlay.classList.remove('d-none');
+
+        // Store assignment details in sessionStorage for potential display
+        const teacherName = teacherSelect.options[teacherSelect.selectedIndex].dataset.name;
+        const subjectName = subjectSelect.options[subjectSelect.selectedIndex].dataset.name;
+        const subjectCode = subjectSelect.options[subjectSelect.selectedIndex].dataset.code;
+
+        sessionStorage.setItem('pending_assignment', JSON.stringify({
+            teacher_name: teacherName,
+            subject_name: subjectName,
+            subject_code: subjectCode,
+            grade_level: gradeLevel
+        }));
+    });
+
     // Trigger change events if values are pre-selected
+    if (gradeLevelSelect.value) {
+        gradeLevelSelect.dispatchEvent(new Event('change'));
+    }
     if (teacherSelect.value) {
         teacherSelect.dispatchEvent(new Event('change'));
     }

@@ -69,10 +69,36 @@
                                         </span>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td><strong>Date of Birth:</strong></td>
+                                    <td>{{ $student->date_of_birth ? $student->date_of_birth->format('F j, Y') : 'Not provided' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Place of Birth:</strong></td>
+                                    <td>{{ $student->place_of_birth ?? 'Not provided' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Nationality:</strong></td>
+                                    <td>{{ $student->nationality ?? 'Not provided' }}</td>
+                                </tr>
                             </table>
                         </div>
                         <div class="col-md-6">
                             <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Religion:</strong></td>
+                                    <td>{{ $student->religion ?? 'Not provided' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Civil Status:</strong></td>
+                                    <td>
+                                        @if($student->civil_status)
+                                            <span class="badge bg-info">{{ $student->civil_status }}</span>
+                                        @else
+                                            <span class="text-muted">Not provided</span>
+                                        @endif
+                                    </td>
+                                </tr>
                                 <tr>
                                     <td><strong>Email:</strong></td>
                                     <td>
@@ -352,7 +378,7 @@
                             <small class="text-muted">Passed</small>
                         </div>
                     </div>
-                    
+
                     @if($averageGrade)
                     <hr>
                     <div class="row text-center">
@@ -381,7 +407,7 @@
                         <form action="{{ route('registrar.students.toggle-enrollment', $student) }}" method="POST" class="d-inline">
                             @csrf
                             @if($totalSubjects > 0)
-                                <button type="submit" class="btn btn-warning btn-sm w-100" 
+                                <button type="submit" class="btn btn-warning btn-sm w-100"
                                         onclick="return confirm('Are you sure you want to deactivate this student\'s enrollment?')">
                                     <i class="fas fa-pause me-2"></i>Deactivate Enrollment
                                 </button>
@@ -411,7 +437,7 @@
                         <button class="btn btn-info btn-sm" onclick="window.print()">
                             <i class="fas fa-print me-2"></i>Print Profile
                         </button>
-                        <form action="{{ route('registrar.students.destroy', $student) }}" method="POST" 
+                        <form action="{{ route('registrar.students.destroy', $student) }}" method="POST"
                               onsubmit="return confirm('Are you sure you want to delete this student? This action cannot be undone.')">
                             @csrf
                             @method('DELETE')
@@ -443,7 +469,7 @@
     .btn, .card:last-child {
         display: none !important;
     }
-    
+
     .card {
         box-shadow: none !important;
         border: 1px solid #ddd !important;

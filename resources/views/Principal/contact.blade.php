@@ -84,8 +84,7 @@
                             <div class="card-body p-0">
                                 <!-- Replace with actual Google Maps embed code -->
                                 <div class="ratio ratio-16x9">
-                                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3857.8231764539307!2d122.95340731484253!3d14.1436899900000!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b1e4f4e4b0a9%3A0x6c3f9d9d9d9d9d9d!2sCamarines%20Norte%20High%20School!5e0!3m2!1sen!2sph!4v1621234567890!5m2!1sen!2sph" 
-                                        style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                                   <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3912.3790275064916!2d124.76404897504977!3d11.306982388875943!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33080e870432b9d7%3A0xddb0cfff1054bb70!2sCalingcaguing%20National%20High%20School!5e0!3m2!1sen!2sph!4v1748875720490!5m2!1sen!2sph" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                                 </div>
                             </div>
                         </div>
@@ -122,6 +121,26 @@
         left: 0;
         width: 100% !important;
         height: 100% !important;
+    }
+
+    .hero-section-small {
+        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{{ asset("images/im.jpg") }}');
+        background-size: cover;
+        background-position: center;
+        padding: 80px 0;
+        margin-top: -20px;
+        color: white;
+    }
+        .hero-title {
+        color: #fff;
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+
+    .hero-subtitle {
+        color: #fff;
+        font-size: 1.2rem;
+        opacity: 0.9;
     }
 </style>
 @endsection 

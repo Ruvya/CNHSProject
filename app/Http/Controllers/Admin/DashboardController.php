@@ -6,12 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\Subject;
 use App\Models\Teacher;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        // Add debugging
+        \Log::info('Admin Dashboard accessed', [
+            'user' => Auth::guard('admin')->user(),
+            'authenticated' => Auth::guard('admin')->check()
+        ]);
+
         try {
             // Basic counts with error handling
             $totalStudents = Student::count() ?? 0;

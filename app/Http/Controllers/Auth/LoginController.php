@@ -51,25 +51,83 @@ class LoginController extends Controller
                 return back()->withErrors(['password' => 'Password is required'])->withInput();
             }
 
-            // Find student
-            $student = \App\Models\Student::where('student_id', $request->input('student_id'))->first();
-            \Log::emergency('STUDENT LOOKUP', [
+            $studentId = $request->input('student_id');
+            $password = $request->input('password');
+
+            // First, try to find existing student
+            $student = \App\Models\Student::where('student_id', $studentId)->first();
+            \Log::emergency('EXISTING STUDENT LOOKUP', [
                 'found' => $student ? 'yes' : 'no',
-                'student_id_searched' => $request->input('student_id')
+                'student_id_searched' => $studentId
             ]);
 
+            // If no existing student found, check if it's a temporary credential
             if (!$student) {
-                return back()->withErrors(['student_id' => 'Student not found'])->withInput();
+                $tempCredential = \App\Models\TemporaryStudentCredential::where('student_id', $studentId)
+                    ->where('is_used', false)
+                    ->first();
+
+                \Log::emergency('TEMPORARY CREDENTIAL LOOKUP', [
+                    'found' => $tempCredential ? 'yes' : 'no',
+                    'student_id_searched' => $studentId
+                ]);
+
+                if ($tempCredential) {
+                    // Verify password against temporary credential
+                    if ($tempCredential->password === $password) {
+                        \Log::emergency('TEMP CREDENTIAL PASSWORD MATCH - CREATING STUDENT ACCOUNT');
+
+                        // Create new student account from temporary credential
+                        $student = \App\Models\Student::create([
+                            'student_id' => $studentId,
+                            'password' => \Hash::make($password),
+                            'first_name' => 'New',
+                            'last_name' => 'Student',
+                            'name' => 'New Student',
+                            'email' => $studentId . '@temp.cnhs.edu.ph', // Temporary email
+                            'grade_level' => 'Not Set', // Required field
+                            'gender' => 'Not Set', // Required field
+                            'is_temporary_account' => true,
+                            'profile_completed' => false,
+                            'allow_profile_edit' => true,
+                        ]);
+
+                        // Mark temporary credential as used
+                        $tempCredential->update([
+                            'is_used' => true,
+                            'used_by_student_id' => $student->id,
+                            'used_at' => now()
+                        ]);
+
+                        \Log::emergency('STUDENT ACCOUNT CREATED FROM TEMP CREDENTIAL', [
+                            'student_id' => $student->student_id,
+                            'student_db_id' => $student->id
+                        ]);
+                    } else {
+                        \Log::emergency('TEMP CREDENTIAL PASSWORD MISMATCH');
+                        return back()->withErrors(['password' => 'Invalid password'])->withInput();
+                    }
+                } else {
+                    \Log::emergency('NO STUDENT OR TEMP CREDENTIAL FOUND');
+                    return back()->withErrors(['student_id' => 'Student not found. Please check your Student ID or contact the registrar.'])->withInput();
+                }
             }
 
-            // Check password
-            $passwordMatch = \Hash::check($request->input('password'), $student->password);
-            \Log::emergency('PASSWORD CHECK', [
-                'match' => $passwordMatch ? 'yes' : 'no'
-            ]);
+            // At this point, we should have a student (either existing or newly created)
+            if (!$student) {
+                return back()->withErrors(['student_id' => 'Unable to process login. Please try again.'])->withInput();
+            }
 
-            if (!$passwordMatch) {
-                return back()->withErrors(['password' => 'Invalid password'])->withInput();
+            // For existing students, check password
+            if (!$student->is_temporary_account || $student->profile_completed) {
+                $passwordMatch = \Hash::check($password, $student->password);
+                \Log::emergency('EXISTING STUDENT PASSWORD CHECK', [
+                    'match' => $passwordMatch ? 'yes' : 'no'
+                ]);
+
+                if (!$passwordMatch) {
+                    return back()->withErrors(['password' => 'Invalid password'])->withInput();
+                }
             }
 
             // Login student with proper session handling
@@ -83,11 +141,17 @@ class LoginController extends Controller
                 'student_db_id' => $student->id,
                 'auth_check' => \Auth::guard('student')->check(),
                 'session_id' => $request->session()->getId(),
-                'attempting_redirect' => true
+                'attempting_redirect' => true,
+                'is_new_account' => $student->is_temporary_account && !$student->profile_completed
             ]);
 
-            // Use the simplest possible redirect
-            return redirect()->to('/student/dashboard');
+            // Redirect to appropriate page
+            if ($student->is_temporary_account && !$student->profile_completed) {
+                return redirect()->route('student.profile.complete')
+                    ->with('message', 'Welcome! Please complete your profile information.');
+            } else {
+                return redirect()->to('/student/dashboard');
+            }
         }
 
         // Log login attempts for debugging
@@ -137,8 +201,34 @@ class LoginController extends Controller
 
         $credentials = $request->validate($rules);
 
-        // Note: Admin login now uses dedicated /admin/login route and Admin\AuthController
-        if ($role === 'teacher') {
+        // Handle admin login (fallback for main login form)
+        if ($role === 'admin') {
+            \Log::info('Admin login attempt via main form', ['username' => $credentials['username']]);
+
+            // Check if admin exists
+            $admin = \App\Models\Admin::where('username', $credentials['username'])->first();
+
+            if (!$admin) {
+                \Log::info('Admin not found', ['username' => $credentials['username']]);
+                return back()->withErrors([
+                    'username' => 'No admin account found with this username.',
+                ])->onlyInput('username');
+            }
+
+            // Try to authenticate
+            if (Auth::guard('admin')->attempt(['username' => $credentials['username'], 'password' => $credentials['password']])) {
+                $request->session()->regenerate();
+                \Log::info('Admin login successful via main form', ['username' => $credentials['username'], 'admin_id' => $admin->id]);
+
+                return redirect()->intended(route('admin.dashboard'));
+            }
+
+            \Log::info('Admin login failed - password mismatch', ['username' => $credentials['username']]);
+
+            return back()->withErrors([
+                'username' => 'The provided credentials do not match our records.',
+            ])->onlyInput('username');
+        } elseif ($role === 'teacher') {
             if (Auth::guard('teacher')->attempt(['email' => $credentials['email'], 'password' => $credentials['password']])) {
                 $request->session()->regenerate();
                 return redirect()->intended(route('teacher.dashboard'));

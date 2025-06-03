@@ -14,13 +14,23 @@ class DashboardController extends Controller
     {
         $teacher = Auth::guard('teacher')->user();
 
-        // Get classes (subjects) assigned to the teacher
-        $assignedSubjects = Subject::where('teacher_id', $teacher->id)->get();
-        $totalClasses = $assignedSubjects->count();
+        // Get classes (subjects) assigned to the teacher through teacher assignments
+        $assignedSubjects = $teacher->assignedSubjects()->get();
 
-        // Get total students across all assigned classes
-        $totalStudents = Student::whereHas('subjects', function($query) use ($teacher) {
-            $query->where('teacher_id', $teacher->id);
+        // Also get subjects assigned directly (old way) for backward compatibility
+        $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
+
+        // Combine both assignment methods
+        $allSubjects = $assignedSubjects->merge($directSubjects)->unique('id');
+        $totalClasses = $allSubjects->count();
+
+        // Get total students across all assigned classes (both assignment methods)
+        $assignedSubjectIds = $assignedSubjects->pluck('id')->toArray();
+        $directSubjectIds = $directSubjects->pluck('id')->toArray();
+        $allSubjectIds = array_unique(array_merge($assignedSubjectIds, $directSubjectIds));
+
+        $totalStudents = Student::whereHas('subjects', function($query) use ($allSubjectIds) {
+            $query->whereIn('subjects.id', $allSubjectIds);
         })->count();
 
         // Get total subjects assigned to teacher (same as classes in this context)
@@ -30,8 +40,8 @@ class DashboardController extends Controller
         // Count grades where all quarters are null (no grades entered yet)
         $pendingTasks = 0;
         try {
-            $pendingTasks = Grade::whereHas('subject', function($query) use ($teacher) {
-                $query->where('teacher_id', $teacher->id);
+            $pendingTasks = Grade::whereHas('subject', function($query) use ($allSubjectIds) {
+                $query->whereIn('subjects.id', $allSubjectIds);
             })
             ->whereNull('quarter1')
             ->whereNull('quarter2')

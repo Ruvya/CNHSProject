@@ -67,15 +67,15 @@
 
 @section('styles')
 <style>
-    .hero-section-small {
-        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{{ asset("images/school-bg.jpg") }}');
+       .hero-section-small {
+        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{{ asset("images/im.jpg") }}');
         background-size: cover;
         background-position: center;
         padding: 80px 0;
         margin-top: -20px;
+        color: white;
     }
-
-    .hero-title {
+        .hero-title {
         color: #fff;
         font-size: 2.5rem;
         font-weight: 700;

@@ -25,7 +25,7 @@
                         </div>
                         <ul class="list-unstyled mb-4">
                             <li><strong>Grade Level:</strong> {{ $subject->grade_level }}</li>
-                            <li><strong>Units:</strong> {{ $subject->units }}</li>
+                            <li><strong>Track:</strong> {{ $subject->track ?? 'N/A' }}</li>
                             <li><strong>Students:</strong> {{ $subject->students_count ?? 0 }}</li>
                         </ul>
                         <div class="mt-auto">

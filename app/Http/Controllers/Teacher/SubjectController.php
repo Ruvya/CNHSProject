@@ -15,9 +15,19 @@ class SubjectController extends Controller
     public function index()
     {
         $teacher = Auth::guard('teacher')->user();
-        $subjects = Subject::where('teacher_id', $teacher->id)
+
+        // Get subjects assigned through teacher assignments (new way)
+        $assignedSubjects = $teacher->assignedSubjects()
             ->withCount('students')
             ->get();
+
+        // Get subjects assigned directly (old way) for backward compatibility
+        $directSubjects = Subject::where('teacher_id', $teacher->id)
+            ->withCount('students')
+            ->get();
+
+        // Combine both assignment methods and remove duplicates
+        $subjects = $assignedSubjects->merge($directSubjects)->unique('id');
 
         return view('teacher.subjects', compact('subjects'));
     }
@@ -29,8 +39,11 @@ class SubjectController extends Controller
     {
         $teacher = Auth::guard('teacher')->user();
 
-        // Verify the subject belongs to this teacher
-        if ($subject->teacher_id !== $teacher->id) {
+        // Verify the subject belongs to this teacher (check both assignment methods)
+        $hasDirectAccess = $subject->teacher_id === $teacher->id;
+        $hasAssignmentAccess = $teacher->assignedSubjects()->where('subjects.id', $subject->id)->exists();
+
+        if (!$hasDirectAccess && !$hasAssignmentAccess) {
             abort(403, 'You do not have access to this subject.');
         }
 
@@ -53,8 +66,11 @@ class SubjectController extends Controller
     {
         $teacher = Auth::guard('teacher')->user();
 
-        // Verify the subject belongs to this teacher
-        if ($subject->teacher_id !== $teacher->id) {
+        // Verify the subject belongs to this teacher (check both assignment methods)
+        $hasDirectAccess = $subject->teacher_id === $teacher->id;
+        $hasAssignmentAccess = $teacher->assignedSubjects()->where('subjects.id', $subject->id)->exists();
+
+        if (!$hasDirectAccess && !$hasAssignmentAccess) {
             abort(403, 'You do not have access to this subject.');
         }
 
@@ -91,8 +107,11 @@ class SubjectController extends Controller
     {
         $teacher = Auth::guard('teacher')->user();
 
-        // Verify the subject belongs to this teacher
-        if ($subject->teacher_id !== $teacher->id) {
+        // Verify the subject belongs to this teacher (check both assignment methods)
+        $hasDirectAccess = $subject->teacher_id === $teacher->id;
+        $hasAssignmentAccess = $teacher->assignedSubjects()->where('subjects.id', $subject->id)->exists();
+
+        if (!$hasDirectAccess && !$hasAssignmentAccess) {
             abort(403, 'You do not have access to this subject.');
         }
 
@@ -127,8 +146,11 @@ class SubjectController extends Controller
     {
         $teacher = Auth::guard('teacher')->user();
 
-        // Verify the subject belongs to this teacher
-        if ($subject->teacher_id !== $teacher->id) {
+        // Verify the subject belongs to this teacher (check both assignment methods)
+        $hasDirectAccess = $subject->teacher_id === $teacher->id;
+        $hasAssignmentAccess = $teacher->assignedSubjects()->where('subjects.id', $subject->id)->exists();
+
+        if (!$hasDirectAccess && !$hasAssignmentAccess) {
             abort(403, 'You do not have access to this subject.');
         }
 
@@ -180,8 +202,11 @@ class SubjectController extends Controller
     {
         $teacher = Auth::guard('teacher')->user();
 
-        // Verify the subject belongs to this teacher
-        if ($subject->teacher_id !== $teacher->id) {
+        // Verify the subject belongs to this teacher (check both assignment methods)
+        $hasDirectAccess = $subject->teacher_id === $teacher->id;
+        $hasAssignmentAccess = $teacher->assignedSubjects()->where('subjects.id', $subject->id)->exists();
+
+        if (!$hasDirectAccess && !$hasAssignmentAccess) {
             abort(403, 'You do not have access to this subject.');
         }
 

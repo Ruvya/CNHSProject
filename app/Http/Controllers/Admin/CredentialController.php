@@ -143,15 +143,35 @@ class CredentialController extends Controller
      */
     private function generateUniqueStudentId(): string
     {
-        do {
-            // Generate format: CNHS + current year + random 4 digits
-            $year = date('Y');
-            $random = str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
-            $studentId = "CNHS{$year}{$random}";
-        } while (
-            Student::where('student_id', $studentId)->exists() ||
-            TemporaryStudentCredential::where('student_id', $studentId)->exists()
-        );
+        $year = date('Y');
+
+        // Find the highest existing number for the current year
+        $existingIds = collect();
+
+        // Check existing students
+        $studentIds = Student::where('student_id', 'LIKE', $year . '-%')
+            ->pluck('student_id');
+        $existingIds = $existingIds->merge($studentIds);
+
+        // Check existing temporary credentials
+        $tempIds = TemporaryStudentCredential::where('student_id', 'LIKE', $year . '-%')
+            ->pluck('student_id');
+        $existingIds = $existingIds->merge($tempIds);
+
+        // Extract numbers and find the highest
+        $highestNumber = 0;
+        foreach ($existingIds as $id) {
+            if (preg_match('/^' . $year . '-(\d+)$/', $id, $matches)) {
+                $number = (int)$matches[1];
+                if ($number > $highestNumber) {
+                    $highestNumber = $number;
+                }
+            }
+        }
+
+        // Generate next sequential number
+        $nextNumber = $highestNumber + 1;
+        $studentId = $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
         return $studentId;
     }

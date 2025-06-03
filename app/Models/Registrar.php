@@ -13,8 +13,7 @@ class Registrar extends Authenticatable
     protected $guard = 'registrar';
 
     protected $fillable = [
-        'first_name',
-        'last_name',
+        'name',
         'email',
         'password',
         'profile_picture',
@@ -31,7 +30,7 @@ class Registrar extends Authenticatable
      */
     public function getFullNameAttribute()
     {
-        return "{$this->first_name} {$this->last_name}";
+        return $this->name;
     }
 
     /**

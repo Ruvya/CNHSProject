@@ -45,9 +45,9 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="student_id" class="form-label">Student ID <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('student_id') is-invalid @enderror" 
-                                       id="student_id" name="student_id" value="{{ old('student_id') }}" 
-                                       placeholder="e.g., CNHS-2024-001" required>
+                                <input type="text" class="form-control @error('student_id') is-invalid @enderror"
+                                       id="student_id" name="student_id" value="{{ old('student_id') }}"
+                                       placeholder="e.g., 2025-0001" required>
                                 @error('student_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

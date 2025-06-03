@@ -9,7 +9,7 @@
         <div class="header-content">
             <div class="header-text">
                 <h1 class="page-title">My Subjects</h1>
-                <p class="page-subtitle">Subjects assigned to you by the Registrar</p>
+                <p class="page-subtitle">Subjects automatically assigned based on your track and strand</p>
             </div>
             <div class="header-badge">
                 <div class="assignment-badge">
@@ -19,6 +19,16 @@
             </div>
         </div>
     </div>
+
+    <!-- Assignment Status -->
+    @if(isset($assignmentStatus))
+        <div class="alert alert-{{ $assignmentStatus['color'] }} mb-4">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle me-2"></i>
+                <div>{{ $assignmentStatus['message'] }}</div>
+            </div>
+        </div>
+    @endif
 
     <!-- Clean Statistics Dashboard -->
     <div class="stats-dashboard">
@@ -33,7 +43,7 @@
                 </div>
             </div>
 
-        
+
 
             <div class="stat-card stat-info">
                 <div class="stat-icon">
@@ -74,8 +84,13 @@
                 </div>
                 <h3 class="empty-title">No Subjects Assigned Yet</h3>
                 <p class="empty-description">
-                    The Registrar hasn't assigned any subjects to you yet.
-                    Please contact the Registrar's office for subject enrollment.
+                    @if(!$student->isReadyForSubjectAssignment())
+                        Your track, strand, or grade level information is incomplete.
+                        Please contact the Registrar's office to update your information.
+                    @else
+                        Subjects will be automatically assigned based on your track and strand.
+                        Please contact the Registrar's office if you don't see your subjects.
+                    @endif
                 </p>
                 <a href="{{ route('student.dashboard') }}" class="btn-empty-action">
                     <i class="fas fa-home"></i>
@@ -83,73 +98,319 @@
                 </a>
             </div>
         @else
-            <div class="subjects-grid">
-                @foreach($assignedSubjects as $subject)
-                    <div class="subject-card" onclick="window.location.href='{{ route('student.subjects.show', $subject->id) }}'">
-                        <div class="subject-header">
-                            <div class="subject-icon-wrapper">
-                                <i class="fas fa-book subject-icon"></i>
+            <!-- Core Subjects Section -->
+            @if(isset($coreSubjects) && $coreSubjects->count() > 0)
+                <div class="subject-category mb-4">
+                    <h3 class="category-title">
+                        <i class="fas fa-star text-warning"></i>
+                        Core Subjects ({{ $coreSubjects->count() }})
+                        <small class="text-muted">- Required for all students</small>
+                    </h3>
+                    <div class="subjects-grid">
+                        @foreach($coreSubjects as $subject)
+                            <div class="subject-card core-subject" onclick="window.location.href='{{ route('student.subjects.show', $subject->id) }}'">
+                                <div class="subject-header">
+                                    <div class="subject-icon-wrapper">
+                                        <i class="fas fa-star subject-icon"></i>
+                                    </div>
+                                    <div class="subject-badge">
+                                        <span class="badge badge-core">Core</span>
+                                    </div>
+                                </div>
+                                <div class="subject-content">
+                                    <h4 class="subject-title">{{ $subject->name }}</h4>
+                                    <p class="subject-code">{{ $subject->code }}</p>
+                                    <div class="subject-details">
+                                        @if($subject->teacher)
+                                            <div class="teacher-info">
+                                                <i class="fas fa-user-tie"></i>
+                                                <span>{{ $subject->teacher->name }}</span>
+                                            </div>
+                                        @else
+                                            <div class="teacher-info no-teacher">
+                                                <i class="fas fa-user-times"></i>
+                                                <span>No teacher assigned</span>
+                                            </div>
+                                        @endif
+                                        <div class="subject-meta">
+                                            <span class="meta-item">
+                                                <i class="fas fa-layer-group"></i>
+                                                {{ $subject->grade_level }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="subject-status">
-                                @if($subject->teacher)
-                                    <span class="status-badge status-active">Active</span>
-                                @else
-                                    <span class="status-badge status-pending">Pending</span>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- Applied Subjects Section -->
+            @if(isset($appliedSubjects) && $appliedSubjects->count() > 0)
+                <div class="subject-category mb-4">
+                    <h3 class="category-title">
+                        <i class="fas fa-tools text-info"></i>
+                        Applied Subjects ({{ $appliedSubjects->count() }})
+                        <small class="text-muted">- Track-specific subjects for {{ $student->track }}</small>
+                    </h3>
+                    <div class="subjects-grid">
+                        @foreach($appliedSubjects as $subject)
+                            <div class="subject-card applied-subject" onclick="window.location.href='{{ route('student.subjects.show', $subject->id) }}'">
+                                <div class="subject-header">
+                                    <div class="subject-icon-wrapper">
+                                        <i class="fas fa-tools subject-icon"></i>
+                                    </div>
+                                    <div class="subject-badge">
+                                        <span class="badge badge-applied">Applied</span>
+                                    </div>
+                                </div>
+                                <div class="subject-content">
+                                    <h4 class="subject-title">{{ $subject->name }}</h4>
+                                    <p class="subject-code">{{ $subject->code }}</p>
+                                    <div class="subject-details">
+                                        @if($subject->teacher)
+                                            <div class="teacher-info">
+                                                <i class="fas fa-user-tie"></i>
+                                                <span>{{ $subject->teacher->name }}</span>
+                                            </div>
+                                        @else
+                                            <div class="teacher-info no-teacher">
+                                                <i class="fas fa-user-times"></i>
+                                                <span>No teacher assigned</span>
+                                            </div>
+                                        @endif
+                                        <div class="subject-meta">
+                                            <span class="meta-item">
+                                                <i class="fas fa-layer-group"></i>
+                                                {{ $subject->grade_level }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- Specialized Subjects Section -->
+            @if(isset($specializedSubjects) && $specializedSubjects->count() > 0)
+                <div class="subject-category mb-4">
+                    <h3 class="category-title">
+                        <i class="fas fa-microscope text-purple"></i>
+                        Specialized Subjects ({{ $specializedSubjects->count() }})
+                        <small class="text-muted">- Strand-specific subjects for {{ $student->strand }}</small>
+                    </h3>
+                    <div class="subjects-grid">
+                        @foreach($specializedSubjects as $subject)
+                            <div class="subject-card specialized-subject" onclick="window.location.href='{{ route('student.subjects.show', $subject->id) }}'">
+                                <div class="subject-header">
+                                    <div class="subject-icon-wrapper">
+                                        <i class="fas fa-microscope subject-icon"></i>
+                                    </div>
+                                    <div class="subject-badge">
+                                        <span class="badge badge-specialized">Specialized</span>
+                                    </div>
+                                </div>
+                                <div class="subject-content">
+                                    <h4 class="subject-title">{{ $subject->name }}</h4>
+                                    <p class="subject-code">{{ $subject->code }}</p>
+                                    <div class="subject-details">
+                                        @if($subject->teacher)
+                                            <div class="teacher-info">
+                                                <i class="fas fa-user-tie"></i>
+                                                <span>{{ $subject->teacher->name }}</span>
+                                            </div>
+                                        @else
+                                            <div class="teacher-info no-teacher">
+                                                <i class="fas fa-user-times"></i>
+                                                <span>No teacher assigned</span>
+                                            </div>
+                                        @endif
+                                        <div class="subject-meta">
+                                            <span class="meta-item">
+                                                <i class="fas fa-layer-group"></i>
+                                                {{ $subject->grade_level }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- Track Subjects Section (Legacy) -->
+            @if(isset($trackSubjects) && $trackSubjects->count() > 0)
+                <div class="subject-category mb-4">
+                    <h3 class="category-title">
+                        <i class="fas fa-road text-info"></i>
+                        Track Subjects ({{ $trackSubjects->count() }})
+                        <small class="text-muted">- Specific to {{ $student->track }}</small>
+                    </h3>
+                    <div class="subjects-grid">
+                        @foreach($trackSubjects as $subject)
+                            <div class="subject-card track-subject" onclick="window.location.href='{{ route('student.subjects.show', $subject->id) }}'">
+                                <div class="subject-header">
+                                    <div class="subject-icon-wrapper">
+                                        <i class="fas fa-road subject-icon"></i>
+                                    </div>
+                                    <div class="subject-badge">
+                                        <span class="badge badge-track">Track</span>
+                                    </div>
+                                </div>
+                                <div class="subject-content">
+                                    <h4 class="subject-title">{{ $subject->name }}</h4>
+                                    <p class="subject-code">{{ $subject->code }}</p>
+                                    <div class="subject-details">
+                                        @if($subject->teacher)
+                                            <div class="teacher-info">
+                                                <i class="fas fa-user-tie"></i>
+                                                <span>{{ $subject->teacher->name }}</span>
+                                            </div>
+                                        @else
+                                            <div class="teacher-info no-teacher">
+                                                <i class="fas fa-user-times"></i>
+                                                <span>No teacher assigned</span>
+                                            </div>
+                                        @endif
+                                        <div class="subject-meta">
+                                            <span class="meta-item">
+                                                <i class="fas fa-layer-group"></i>
+                                                {{ $subject->grade_level }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- Strand Subjects Section -->
+            @if(isset($strandSubjects) && $strandSubjects->count() > 0)
+                <div class="subject-category mb-4">
+                    <h3 class="category-title">
+                        <i class="fas fa-graduation-cap text-success"></i>
+                        Strand Subjects ({{ $strandSubjects->count() }})
+                        <small class="text-muted">- Specific to {{ $student->strand }}</small>
+                    </h3>
+                    <div class="subjects-grid">
+                        @foreach($strandSubjects as $subject)
+                            <div class="subject-card strand-subject" onclick="window.location.href='{{ route('student.subjects.show', $subject->id) }}'">
+                                <div class="subject-header">
+                                    <div class="subject-icon-wrapper">
+                                        <i class="fas fa-graduation-cap subject-icon"></i>
+                                    </div>
+                                    <div class="subject-badge">
+                                        <span class="badge badge-strand">Strand</span>
+                                    </div>
+                                </div>
+                                <div class="subject-content">
+                                    <h4 class="subject-title">{{ $subject->name }}</h4>
+                                    <p class="subject-code">{{ $subject->code }}</p>
+                                    <div class="subject-details">
+                                        @if($subject->teacher)
+                                            <div class="teacher-info">
+                                                <i class="fas fa-user-tie"></i>
+                                                <span>{{ $subject->teacher->name }}</span>
+                                            </div>
+                                        @else
+                                            <div class="teacher-info no-teacher">
+                                                <i class="fas fa-user-times"></i>
+                                                <span>No teacher assigned</span>
+                                            </div>
+                                        @endif
+                                        <div class="subject-meta">
+                                            <span class="meta-item">
+                                                <i class="fas fa-layer-group"></i>
+                                                {{ $subject->grade_level }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- All Subjects (Fallback) -->
+            @if((!isset($coreSubjects) || $coreSubjects->count() == 0) &&
+                (!isset($trackSubjects) || $trackSubjects->count() == 0) &&
+                (!isset($strandSubjects) || $strandSubjects->count() == 0) &&
+                $assignedSubjects->count() > 0)
+                <div class="subjects-grid">
+                    @foreach($assignedSubjects as $subject)
+                        <div class="subject-card" onclick="window.location.href='{{ route('student.subjects.show', $subject->id) }}'">
+                            <div class="subject-header">
+                                <div class="subject-icon-wrapper">
+                                    <i class="fas fa-book subject-icon"></i>
+                                </div>
+                                <div class="subject-status">
+                                    @if($subject->teacher)
+                                        <span class="status-badge status-active">Active</span>
+                                    @else
+                                        <span class="status-badge status-pending">Pending</span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="subject-content">
+                                <h3 class="subject-name">{{ $subject->name ?? $subject->subject_name }}</h3>
+                                <p class="subject-code">{{ $subject->code ?? $subject->subject_code }}</p>
+
+                                @if($subject->description)
+                                    <p class="subject-description">
+                                        {{ Str::limit($subject->description, 100) }}
+                                    </p>
                                 @endif
                             </div>
-                        </div>
 
-                        <div class="subject-content">
-                            <h3 class="subject-name">{{ $subject->name ?? $subject->subject_name }}</h3>
-                            <p class="subject-code">{{ $subject->code ?? $subject->subject_code }}</p>
-
-                            @if($subject->description)
-                                <p class="subject-description">
-                                    {{ Str::limit($subject->description, 100) }}
-                                </p>
-                            @endif
-                        </div>
-
-                        <div class="subject-meta">
-                            <div class="meta-item">
-                                <i class="fas fa-calculator"></i>
-                                <span>{{ $subject->units ?? 'N/A' }} Units</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-tag"></i>
-                                <span>{{ $subject->strand ?? 'General' }}</span>
-                            </div>
-                        </div>
-
-                        <div class="subject-teacher">
-                            @if($subject->teacher)
-                                <div class="teacher-info">
-                                    <i class="fas fa-user-tie teacher-icon"></i>
-                                    <div class="teacher-details">
-                                        <span class="teacher-label">Teacher</span>
-                                        <span class="teacher-name">{{ $subject->teacher->name }}</span>
-                                    </div>
+                            <div class="subject-meta">
+                                <div class="meta-item">
+                                    <i class="fas fa-layer-group"></i>
+                                    <span>{{ $subject->grade_level }}</span>
                                 </div>
-                            @else
-                                <div class="teacher-info teacher-pending">
-                                    <i class="fas fa-user-clock teacher-icon"></i>
-                                    <div class="teacher-details">
-                                        <span class="teacher-label">Teacher</span>
-                                        <span class="teacher-name">To Be Assigned</span>
-                                    </div>
+                                <div class="meta-item">
+                                    <i class="fas fa-tag"></i>
+                                    <span>{{ $subject->strand ?? 'General' }}</span>
                                 </div>
-                            @endif
-                        </div>
+                            </div>
 
-                        <div class="subject-action">
-                            <button class="btn-view-details">
-                                <i class="fas fa-arrow-right"></i>
-                                View Details
-                            </button>
+                            <div class="subject-teacher">
+                                @if($subject->teacher)
+                                    <div class="teacher-info">
+                                        <i class="fas fa-user-tie teacher-icon"></i>
+                                        <div class="teacher-details">
+                                            <span class="teacher-label">Teacher</span>
+                                            <span class="teacher-name">{{ $subject->teacher->name }}</span>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="teacher-info teacher-pending">
+                                        <i class="fas fa-user-clock teacher-icon"></i>
+                                        <div class="teacher-details">
+                                            <span class="teacher-label">Teacher</span>
+                                            <span class="teacher-name">To Be Assigned</span>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="subject-action">
+                                <button class="btn-view-details">
+                                    <i class="fas fa-arrow-right"></i>
+                                    View Details
+                                </button>
+                            </div>
                         </div>
-                    </div>
                 @endforeach
             </div>
+            @endif
         @endif
     </div>
 </div>
@@ -607,6 +868,159 @@
     .stat-number {
         font-size: 1.5rem;
     }
+}
+
+/* Subject Category Styles */
+.subject-category {
+    margin-bottom: 2rem;
+}
+
+.category-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.category-title i {
+    font-size: 1.2rem;
+}
+
+.category-title small {
+    font-size: 0.9rem;
+    font-weight: 400;
+    margin-left: 0.5rem;
+}
+
+/* Subject Type Specific Styles */
+.core-subject {
+    border-left: 4px solid #f39c12;
+}
+
+.core-subject:hover {
+    border-left-color: #e67e22;
+}
+
+.applied-subject {
+    border-left: 4px solid #3498db;
+}
+
+.applied-subject:hover {
+    border-left-color: #2980b9;
+}
+
+.specialized-subject {
+    border-left: 4px solid #9b59b6;
+}
+
+.specialized-subject:hover {
+    border-left-color: #8e44ad;
+}
+
+.track-subject {
+    border-left: 4px solid #17a2b8;
+}
+
+.track-subject:hover {
+    border-left-color: #138496;
+}
+
+.strand-subject {
+    border-left: 4px solid #27ae60;
+}
+
+.strand-subject:hover {
+    border-left-color: #229954;
+}
+
+/* Badge Styles */
+.badge-core {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.badge-applied {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.badge-specialized {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.badge-track {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.badge-strand {
+    background: linear-gradient(135deg, #27ae60, #229954);
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+/* Alert Styles */
+.alert {
+    border-radius: 12px;
+    border: none;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    color: #155724;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    color: #856404;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+    color: #0c5460;
+}
+
+/* Subject Title and Code Styles */
+.subject-title {
+    color: var(--dark-color);
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+}
+
+.subject-badge {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.no-teacher {
+    color: #e74c3c;
 }
 </style>
 @endsection

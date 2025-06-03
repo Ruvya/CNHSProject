@@ -6,9 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\Subject;
 use App\Models\Grade;
+use App\Imports\StudentsImport;
+use App\Exports\StudentTemplateExport;
+use App\Helpers\UploadHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StudentController extends Controller
 {
@@ -54,10 +58,20 @@ class StudentController extends Controller
             });
         }
 
-        $students = $query->with(['subjects', 'grades'])
-                         ->orderBy('last_name')
-                         ->orderBy('first_name')
-                         ->paginate(20);
+        // Check if grades table exists before trying to load grades
+        $hasGradesTable = \Illuminate\Support\Facades\Schema::hasTable('grades');
+
+        if ($hasGradesTable) {
+            $students = $query->with(['subjects', 'grades'])
+                             ->orderBy('last_name')
+                             ->orderBy('first_name')
+                             ->paginate(20);
+        } else {
+            $students = $query->with(['subjects'])
+                             ->orderBy('last_name')
+                             ->orderBy('first_name')
+                             ->paginate(20);
+        }
 
         // Get filter options
         $gradeLevels = Student::distinct()->pluck('grade_level')->filter();
@@ -119,9 +133,16 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
-        $student->load(['subjects.grades' => function($query) use ($student) {
-            $query->where('student_id', $student->id);
-        }, 'grades.subject']);
+        // Check if grades table exists before trying to load grades
+        $hasGradesTable = \Illuminate\Support\Facades\Schema::hasTable('grades');
+
+        if ($hasGradesTable) {
+            $student->load(['subjects.grades' => function($query) use ($student) {
+                $query->where('student_id', $student->id);
+            }, 'grades.subject']);
+        } else {
+            $student->load(['subjects']);
+        }
 
         // Calculate academic statistics
         $totalSubjects = $student->subjects()->count();
@@ -137,10 +158,12 @@ class StudentController extends Controller
             }
         }
 
-        // From grades table
-        $gradeRecords = $student->grades()->whereNotNull('final_grade')->get();
-        foreach ($gradeRecords as $grade) {
-            $allGrades->push($grade->final_grade);
+        // From grades table (only if table exists)
+        if ($hasGradesTable) {
+            $gradeRecords = $student->grades()->whereNotNull('final_grade')->get();
+            foreach ($gradeRecords as $grade) {
+                $allGrades->push($grade->final_grade);
+            }
         }
 
         $averageGrade = $allGrades->count() > 0 ? $allGrades->avg() : null;
@@ -212,8 +235,10 @@ class StudentController extends Controller
             // Detach all subjects first
             $student->subjects()->detach();
 
-            // Delete all grades
-            $student->grades()->delete();
+            // Delete all grades (only if grades table exists)
+            if (\Illuminate\Support\Facades\Schema::hasTable('grades')) {
+                $student->grades()->delete();
+            }
 
             // Delete the student
             $student->delete();
@@ -296,7 +321,10 @@ class StudentController extends Controller
             case 'delete':
                 foreach ($students->get() as $student) {
                     $student->subjects()->detach();
-                    $student->grades()->delete();
+                    // Delete grades only if grades table exists
+                    if (\Illuminate\Support\Facades\Schema::hasTable('grades')) {
+                        $student->grades()->delete();
+                    }
                     $student->delete();
                 }
                 $message = 'Selected students deleted successfully.';
@@ -313,5 +341,439 @@ class StudentController extends Controller
 
         return redirect()->route('registrar.students.index')
                         ->with('success', $message);
+    }
+
+    /**
+     * Show Excel upload form
+     */
+    public function showUploadForm()
+    {
+        return view('registrar.students.upload');
+    }
+
+    /**
+     * Handle Excel file upload and import students
+     */
+    public function uploadExcel(Request $request)
+    {
+        // Configure PHP settings for large file processing
+        $originalSettings = UploadHelper::configureForLargeUploads();
+        $startTime = microtime(true);
+
+        $request->validate([
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv|max:20480', // 20MB max
+            'grade_level' => 'required|string|in:Grade 11,Grade 12',
+            'track' => 'required|string|in:Academic Track,TVL Track,Sports Track,Arts and Design Track',
+        ]);
+
+        try {
+            $file = $request->file('excel_file');
+            $fileName = $file->getClientOriginalName();
+            $fileSize = $file->getSize();
+            $userId = auth()->guard('registrar')->id();
+
+            // Validate file size using helper
+            if (!UploadHelper::isFileSizeValid($fileSize)) {
+                UploadHelper::restoreOriginalSettings($originalSettings);
+                return redirect()->back()
+                    ->with('error', 'File size exceeds the maximum allowed limit of ' . UploadHelper::formatBytes(UploadHelper::getMaxUploadSize()));
+            }
+
+            // Log upload attempt
+            UploadHelper::logUploadAttempt($fileName, $fileSize, $userId);
+
+            // Get selected grade level and track
+            $gradeLevel = $request->input('grade_level');
+            $track = $request->input('track');
+
+            // Handle CSV files directly without Excel package
+            if ($file->getClientOriginalExtension() === 'csv') {
+                $result = $this->importCsvFile($file, $gradeLevel, $track);
+
+                // Restore original settings
+                UploadHelper::restoreOriginalSettings($originalSettings);
+
+                return $result;
+            }
+
+            // Handle Excel files using Laravel Excel package with chunking
+            $import = new StudentsImport($gradeLevel, $track);
+
+            // Process with chunking for better memory management
+            Excel::import($import, $file);
+
+            $summary = [
+                'success_count' => $import->getSuccessCount(),
+                'update_count' => $import->getUpdateCount(),
+                'skip_count' => $import->getSkipCount(),
+                'error_count' => count($import->getErrors()),
+                'errors' => $import->getErrors(),
+            ];
+
+            // Calculate processing time
+            $processingTime = round(microtime(true) - $startTime, 2);
+
+            // Log successful upload
+            UploadHelper::logUploadCompletion($fileName, $summary, $processingTime);
+
+            // Restore original settings
+            UploadHelper::restoreOriginalSettings($originalSettings);
+
+            if ($import->hasErrors()) {
+                return redirect()->back()
+                    ->with('warning', 'Import completed with some errors.')
+                    ->with('import_summary', $summary);
+            }
+
+            return redirect()->route('registrar.students.index')
+                ->with('success', 'Students imported successfully!')
+                ->with('import_summary', $summary);
+
+        } catch (\Throwable $e) {
+            // Restore original settings on error
+            UploadHelper::restoreOriginalSettings($originalSettings);
+
+            // Log the error
+            UploadHelper::logUploadError($fileName ?? 'unknown', $e->getMessage(), $userId ?? null);
+
+            // Provide user-friendly error messages
+            $errorMessage = 'Error importing file: ';
+
+            if (strpos($e->getMessage(), 'Maximum execution time') !== false) {
+                $errorMessage .= 'The file is too large and took too long to process. Please try with a smaller file or contact support.';
+            } elseif (strpos($e->getMessage(), 'memory') !== false) {
+                $errorMessage .= 'The file is too large for available memory. Please try with a smaller file.';
+            } elseif (strpos($e->getMessage(), 'timeout') !== false) {
+                $errorMessage .= 'The upload timed out. Please try again or use a smaller file.';
+            } else {
+                $errorMessage .= $e->getMessage();
+            }
+
+            return redirect()->back()
+                ->with('error', $errorMessage);
+        }
+    }
+
+    /**
+     * Download sample Excel template
+     */
+    public function downloadTemplate(Request $request)
+    {
+        $headers = [
+            'student_id',
+            'first_name',
+            'middle_name',
+            'last_name',
+            'email',
+            'grade_level',
+            'section',
+            'track',
+            'strand',
+            'gender',
+            'date_of_birth',
+            'place_of_birth',
+            'nationality',
+            'religion',
+            'civil_status',
+            'lrn',
+            'profile_picture',
+            'contact_number',
+            'address',
+            'parent_name',
+            'parent_contact',
+            'advisor',
+            'province',
+            'municipality',
+            'barangay',
+            'permanent_address',
+            'phone',
+            'emergency_name',
+            'emergency_phone',
+            'emergency_relationship'
+        ];
+
+        $sampleData = [
+            [
+                'student_id' => '2024-001',
+                'first_name' => 'Juan',
+                'middle_name' => 'Santos',
+                'last_name' => 'Dela Cruz',
+                'email' => 'juan.delacruz@example.com',
+                'grade_level' => 'Grade 11',
+                'section' => 'A',
+                'track' => 'STEM',
+                'strand' => 'Science, Technology, Engineering and Mathematics',
+                'gender' => 'Male',
+                'date_of_birth' => '2006-05-15',
+                'place_of_birth' => 'Quezon City',
+                'nationality' => 'Filipino',
+                'religion' => 'Catholic',
+                'civil_status' => 'Single',
+                'lrn' => '123456789012',
+                'profile_picture' => 'juan_delacruz.jpg',
+                'contact_number' => '09123456789',
+                'address' => '123 Main St, City',
+                'parent_name' => 'Maria Dela Cruz',
+                'parent_contact' => '09987654321',
+                'advisor' => 'Ms. Teacher',
+                'province' => 'Metro Manila',
+                'municipality' => 'Quezon City',
+                'barangay' => 'Barangay 1',
+                'permanent_address' => '123 Main St, City',
+                'phone' => '09123456789',
+                'emergency_name' => 'Maria Dela Cruz',
+                'emergency_phone' => '09987654321',
+                'emergency_relationship' => 'Mother'
+            ]
+        ];
+
+        // Check if user wants Excel format
+        $format = $request->get('format', 'csv');
+
+        if ($format === 'excel') {
+            // Create Excel template using dedicated export class
+            try {
+                $export = new StudentTemplateExport($headers, $sampleData);
+                return Excel::download($export, 'student_upload_template.xlsx');
+            } catch (\Exception $e) {
+                // Fallback to CSV if Excel fails
+                return redirect()->route('registrar.students.template')
+                    ->with('warning', 'Excel template generation failed. Downloaded CSV template instead.');
+            }
+        }
+
+        // Default to CSV format
+        $csvData = [
+            '2024-001',
+            'Juan',
+            'Santos',
+            'Dela Cruz',
+            'juan.delacruz@example.com',
+            'Grade 11',
+            'A',
+            'STEM',
+            'Science, Technology, Engineering and Mathematics',
+            'Male',
+            '2006-05-15',
+            'Quezon City',
+            'Filipino',
+            'Catholic',
+            'Single',
+            '123456789012',
+            'juan_delacruz.jpg',
+            '09123456789',
+            '123 Main St, City',
+            'Maria Dela Cruz',
+            '09987654321',
+            'Ms. Teacher',
+            'Metro Manila',
+            'Quezon City',
+            'Barangay 1',
+            '123 Main St, City',
+            '09123456789',
+            'Maria Dela Cruz',
+            '09987654321',
+            'Mother'
+        ];
+
+        $filename = 'student_upload_template.csv';
+
+        $callback = function() use ($headers, $csvData) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $headers);
+            fputcsv($file, $csvData);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    /**
+     * Import CSV file directly
+     */
+    private function importCsvFile($file, $gradeLevel = null, $track = null)
+    {
+        $successCount = 0;
+        $updateCount = 0;
+        $errorCount = 0;
+        $errors = [];
+
+        try {
+            $handle = fopen($file->getPathname(), 'r');
+
+            // Read header row
+            $headers = fgetcsv($handle);
+            if (!$headers) {
+                throw new \Exception('Invalid CSV file format');
+            }
+
+            // Convert headers to lowercase for easier matching
+            $headers = array_map('strtolower', $headers);
+
+            // Check for required student_id column
+            if (!in_array('student_id', $headers)) {
+                throw new \Exception('CSV file must contain a "student_id" column');
+            }
+
+            $rowNumber = 2; // Start from row 2 (after header)
+
+            while (($data = fgetcsv($handle)) !== false) {
+                try {
+                    $studentData = [];
+
+                    // Map CSV data to student fields
+                    foreach ($headers as $index => $header) {
+                        if (isset($data[$index])) {
+                            $value = trim($data[$index]);
+
+                            // Handle date parsing for date_of_birth
+                            if ($header === 'date_of_birth' && !empty($value)) {
+                                $value = $this->parseDate($value);
+                            }
+
+                            $studentData[$header] = $value;
+                        }
+                    }
+
+                    // Validate required fields
+                    if (empty($studentData['student_id'])) {
+                        $errors[] = "Row {$rowNumber}: Student ID is required";
+                        $errorCount++;
+                        $rowNumber++;
+                        continue;
+                    }
+
+                    // Check if student exists
+                    $existingStudent = Student::where('student_id', $studentData['student_id'])->first();
+
+                    if ($existingStudent) {
+                        // Update existing student
+                        $this->updateStudentFromCsv($existingStudent, $studentData, $gradeLevel, $track);
+                        $updateCount++;
+                    } else {
+                        // Create new student
+                        $this->createStudentFromCsv($studentData, $gradeLevel, $track);
+                        $successCount++;
+                    }
+
+                } catch (\Exception $e) {
+                    $errors[] = "Row {$rowNumber}: " . $e->getMessage();
+                    $errorCount++;
+                }
+
+                $rowNumber++;
+            }
+
+            fclose($handle);
+
+            $summary = [
+                'success_count' => $successCount,
+                'update_count' => $updateCount,
+                'skip_count' => 0,
+                'error_count' => $errorCount,
+                'errors' => $errors,
+            ];
+
+            if ($errorCount > 0) {
+                return redirect()->back()
+                    ->with('warning', 'Import completed with some errors.')
+                    ->with('import_summary', $summary);
+            }
+
+            return redirect()->route('registrar.students.index')
+                ->with('success', 'Students imported successfully!')
+                ->with('import_summary', $summary);
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error importing CSV file: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update existing student from CSV data
+     */
+    private function updateStudentFromCsv($student, $data, $gradeLevel = null, $track = null)
+    {
+        // Apply selected grade level and track if provided
+        if ($gradeLevel) {
+            $data['grade_level'] = $gradeLevel;
+        }
+        if ($track) {
+            $data['track'] = $track;
+        }
+
+        // Mark as registrar-managed data
+        $data['registrar_data_uploaded'] = true;
+        $data['registrar_upload_date'] = now();
+        $data['allow_profile_edit'] = false; // Prevent students from editing
+
+        // Don't update password if student already has one and it's not temporary
+        if (!$student->is_temporary_account && $student->password) {
+            unset($data['password']);
+        }
+
+        $student->update($data);
+    }
+
+    /**
+     * Create new student from CSV data
+     */
+    private function createStudentFromCsv($data, $gradeLevel = null, $track = null)
+    {
+        // Apply selected grade level and track if provided
+        if ($gradeLevel) {
+            $data['grade_level'] = $gradeLevel;
+        }
+        if ($track) {
+            $data['track'] = $track;
+        }
+
+        // Generate a temporary password if not provided
+        if (empty($data['password'])) {
+            $data['password'] = Hash::make('temp' . $data['student_id']);
+            $data['is_temporary_account'] = true;
+        } else {
+            $data['password'] = Hash::make($data['password']);
+        }
+
+        // Mark as registrar-managed data
+        $data['registrar_data_uploaded'] = true;
+        $data['registrar_upload_date'] = now();
+        $data['allow_profile_edit'] = false; // Prevent students from editing
+        $data['profile_completed'] = false;
+
+        Student::create($data);
+    }
+
+    /**
+     * Parse date from various formats
+     */
+    private function parseDate($dateString)
+    {
+        if (empty($dateString)) {
+            return null;
+        }
+
+        // Try different date formats
+        $formats = ['Y-m-d', 'm/d/Y', 'd/m/Y', 'Y/m/d', 'm-d-Y', 'd-m-Y'];
+
+        foreach ($formats as $format) {
+            $date = \DateTime::createFromFormat($format, $dateString);
+            if ($date !== false) {
+                return $date->format('Y-m-d');
+            }
+        }
+
+        // If no format matches, try strtotime
+        $timestamp = strtotime($dateString);
+        if ($timestamp !== false) {
+            return date('Y-m-d', $timestamp);
+        }
+
+        return null;
     }
 }

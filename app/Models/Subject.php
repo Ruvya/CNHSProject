@@ -10,7 +10,6 @@ class Subject extends Model
         'name',
         'code',
         'grade_level',
-        'units',
         'teacher_id',
         'registrar_id',
         'description',

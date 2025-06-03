@@ -23,6 +23,14 @@ class SubjectController extends Controller
             ->orderBy('grade_level')
             ->pluck('grade_level');
 
+        // Get all available tracks for the filter dropdown
+        $availableTracks = Subject::select('track')
+            ->distinct()
+            ->whereNotNull('track')
+            ->where('track', '!=', '')
+            ->orderBy('track')
+            ->pluck('track');
+
         // Build the subjects query
         $subjectsQuery = Subject::with('teacher');
 
@@ -30,6 +38,12 @@ class SubjectController extends Controller
         $selectedGradeLevel = $request->get('grade_level');
         if ($selectedGradeLevel && $selectedGradeLevel !== 'all') {
             $subjectsQuery->where('grade_level', $selectedGradeLevel);
+        }
+
+        // Apply track filter if provided
+        $selectedTrack = $request->get('track');
+        if ($selectedTrack && $selectedTrack !== 'all') {
+            $subjectsQuery->where('track', $selectedTrack);
         }
 
         $subjects = $subjectsQuery->orderBy('name')->get();
@@ -47,7 +61,9 @@ class SubjectController extends Controller
         return view('admin.subjects.index', compact(
             'subjects',
             'availableGradeLevels',
+            'availableTracks',
             'selectedGradeLevel',
+            'selectedTrack',
             'totalSubjects',
             'subjectsByGrade',
             'teachers'

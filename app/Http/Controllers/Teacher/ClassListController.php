@@ -15,23 +15,27 @@ class ClassListController extends Controller
     {
         $teacher = Auth::guard('teacher')->user();
 
-        // Get teacher's subjects
-        $subjects = Subject::where('teacher_id', $teacher->id)->get();
+        // Get teacher's subjects (both assignment methods)
+        $assignedSubjects = $teacher->assignedSubjects()->get();
+        $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
+        $subjects = $assignedSubjects->merge($directSubjects)->unique('id');
 
         // Get unique grade levels and sections from teacher's subjects
         $gradeLevels = $subjects->pluck('grade_level')->unique()->sort()->values();
         $sections = ['A', 'B', 'C', 'D', 'E']; // Add more sections as needed
 
+        // Get all subject IDs for this teacher (both assignment methods)
+        $allSubjectIds = $subjects->pluck('id')->toArray();
+
         // Initialize students query - ONLY show students enrolled in teacher's subjects
-        $studentsQuery = Student::whereHas('subjects', function($query) use ($teacher) {
-            $query->where('teacher_id', $teacher->id);
+        $studentsQuery = Student::whereHas('subjects', function($query) use ($allSubjectIds) {
+            $query->whereIn('subjects.id', $allSubjectIds);
         });
 
         // Apply additional filters if provided
         if ($request->filled('subject_id')) {
-            $studentsQuery->whereHas('subjects', function($query) use ($request, $teacher) {
-                $query->where('subjects.id', $request->subject_id)
-                      ->where('teacher_id', $teacher->id); // Ensure it's still the teacher's subject
+            $studentsQuery->whereHas('subjects', function($query) use ($request) {
+                $query->where('subjects.id', $request->subject_id);
             });
         }
 
@@ -43,14 +47,17 @@ class ClassListController extends Controller
             $studentsQuery->where('section', $request->section);
         }
 
+        // Get all subject IDs for this teacher (both assignment methods)
+        $allSubjectIds = $subjects->pluck('id')->toArray();
+
         // Get students with their subjects and grades for teacher's subjects
         $students = $studentsQuery->with([
-            'subjects' => function($query) use ($teacher) {
-                $query->where('teacher_id', $teacher->id);
+            'subjects' => function($query) use ($allSubjectIds) {
+                $query->whereIn('subjects.id', $allSubjectIds);
             },
-            'grades' => function($query) use ($teacher) {
-                $query->whereHas('subject', function($subQuery) use ($teacher) {
-                    $subQuery->where('teacher_id', $teacher->id);
+            'grades' => function($query) use ($allSubjectIds) {
+                $query->whereHas('subject', function($subQuery) use ($allSubjectIds) {
+                    $subQuery->whereIn('subjects.id', $allSubjectIds);
                 });
             }
         ])->orderBy('last_name')->orderBy('first_name')->get();
@@ -61,9 +68,17 @@ class ClassListController extends Controller
     public function getSubjects($gradeLevel)
     {
         $teacher = Auth::guard('teacher')->user();
-        $subjects = Subject::where('teacher_id', $teacher->id)
+
+        // Get subjects from both assignment methods
+        $assignedSubjects = $teacher->assignedSubjects()
             ->where('grade_level', $gradeLevel)
             ->get();
+
+        $directSubjects = Subject::where('teacher_id', $teacher->id)
+            ->where('grade_level', $gradeLevel)
+            ->get();
+
+        $subjects = $assignedSubjects->merge($directSubjects)->unique('id');
 
         return response()->json($subjects);
     }
@@ -72,19 +87,23 @@ class ClassListController extends Controller
     {
         $teacher = Auth::guard('teacher')->user();
 
-        // Verify the subject belongs to this teacher
-        $subject = Subject::where('id', $subjectId)
-            ->where('teacher_id', $teacher->id)
-            ->first();
+        // Verify the subject belongs to this teacher (check both assignment methods)
+        $subject = Subject::find($subjectId);
 
         if (!$subject) {
             return response()->json([]);
         }
 
+        $hasDirectAccess = $subject->teacher_id === $teacher->id;
+        $hasAssignmentAccess = $teacher->assignedSubjects()->where('subjects.id', $subjectId)->exists();
+
+        if (!$hasDirectAccess && !$hasAssignmentAccess) {
+            return response()->json([]);
+        }
+
         $students = Student::where('grade_level', $gradeLevel)
-            ->whereHas('subjects', function($query) use ($subjectId, $teacher) {
-                $query->where('subjects.id', $subjectId)
-                      ->where('teacher_id', $teacher->id); // Ensure it's the teacher's subject
+            ->whereHas('subjects', function($query) use ($subjectId) {
+                $query->where('subjects.id', $subjectId);
             })
             ->with(['grades' => function($query) use ($subjectId) {
                 $query->where('subject_id', $subjectId);
@@ -100,9 +119,14 @@ class ClassListController extends Controller
     {
         $teacher = Auth::guard('teacher')->user();
 
+        // Get teacher's subjects from both assignment methods
+        $assignedSubjects = $teacher->assignedSubjects()->get();
+        $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
+        $allSubjectIds = $assignedSubjects->merge($directSubjects)->unique('id')->pluck('id')->toArray();
+
         // Start with students enrolled in teacher's subjects
-        $studentsQuery = Student::whereHas('subjects', function($query) use ($teacher) {
-            $query->where('teacher_id', $teacher->id);
+        $studentsQuery = Student::whereHas('subjects', function($query) use ($allSubjectIds) {
+            $query->whereIn('subjects.id', $allSubjectIds);
         });
 
         // Apply filters
@@ -150,16 +174,22 @@ class ClassListController extends Controller
     public function showStudent($studentId)
     {
         $teacher = Auth::guard('teacher')->user();
-        $student = Student::with(['subjects' => function($query) use ($teacher) {
-            $query->where('teacher_id', $teacher->id);
-        }, 'grades' => function($query) use ($teacher) {
-            $query->whereHas('subject', function($subQuery) use ($teacher) {
-                $subQuery->where('teacher_id', $teacher->id);
+
+        // Get teacher's subjects from both assignment methods
+        $assignedSubjects = $teacher->assignedSubjects()->get();
+        $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
+        $allSubjectIds = $assignedSubjects->merge($directSubjects)->unique('id')->pluck('id')->toArray();
+
+        $student = Student::with(['subjects' => function($query) use ($allSubjectIds) {
+            $query->whereIn('subjects.id', $allSubjectIds);
+        }, 'grades' => function($query) use ($allSubjectIds) {
+            $query->whereHas('subject', function($subQuery) use ($allSubjectIds) {
+                $subQuery->whereIn('subjects.id', $allSubjectIds);
             });
         }])->findOrFail($studentId);
 
         // Verify teacher has access to this student
-        $hasAccess = $student->subjects->where('teacher_id', $teacher->id)->count() > 0;
+        $hasAccess = $student->subjects->whereIn('id', $allSubjectIds)->count() > 0;
 
         if (!$hasAccess) {
             abort(403, 'You do not have access to this student.');

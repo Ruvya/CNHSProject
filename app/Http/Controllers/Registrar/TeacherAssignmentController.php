@@ -127,13 +127,43 @@ class TeacherAssignmentController extends Controller
         $teachers = Teacher::orderBy('name')->get();
         $subjects = Subject::orderBy('name')->get();
 
+        // Get available grade levels
+        $gradeLevels = Subject::distinct()->pluck('grade_level')->sort()->values();
+
         return view('registrar.teacher-assignments.create', compact(
             'teacher',
             'teachers',
             'subjects',
+            'gradeLevels',
             'currentSchoolYear',
             'currentGradingPeriod'
         ));
+    }
+
+    /**
+     * Get subjects by grade level (AJAX endpoint)
+     */
+    public function getSubjectsByGradeLevel(Request $request)
+    {
+        $gradeLevel = $request->get('grade_level');
+
+        if (!$gradeLevel) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Grade level is required'
+            ], 400);
+        }
+
+        $subjects = Subject::where('grade_level', $gradeLevel)
+            ->orderBy('track')
+            ->orderBy('strand')
+            ->orderBy('name')
+            ->get(['id', 'name', 'code', 'grade_level', 'track', 'strand']);
+
+        return response()->json([
+            'success' => true,
+            'subjects' => $subjects
+        ]);
     }
 
     /**
@@ -141,20 +171,26 @@ class TeacherAssignmentController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'teacher_id' => 'required|exists:teachers,id',
-            'subject_id' => 'required|exists:subjects,id',
-            'school_year' => 'required|string',
-            'grading_period' => 'required|string',
-            'schedule' => 'nullable|array',
-            'schedule.*.day' => 'required_with:schedule|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
-            'schedule.*.start_time' => 'required_with:schedule|date_format:H:i',
-            'schedule.*.end_time' => 'required_with:schedule|date_format:H:i|after:schedule.*.start_time',
-            'notes' => 'nullable|string|max:500'
-        ]);
+        try {
+            $request->validate([
+                'teacher_id' => 'required|exists:teachers,id',
+                'subject_id' => 'required|exists:subjects,id',
+                'school_year' => 'required|string',
+                'grading_period' => 'required|string',
+                'schedule' => 'nullable|array',
+                'schedule.*.day' => 'required_with:schedule|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
+                'schedule.*.start_time' => 'required_with:schedule|date_format:H:i',
+                'schedule.*.end_time' => 'required_with:schedule|date_format:H:i|after:schedule.*.start_time',
+                'notes' => 'nullable|string|max:500'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput()
+                ->with('error', 'Please check the form for errors and try again.');
+        }
 
-        // Check if assignment already exists
-        $existingAssignment = TeacherAssignment::where('teacher_id', $request->teacher_id)
+        try {
+            // Check if assignment already exists
+            $existingAssignment = TeacherAssignment::where('teacher_id', $request->teacher_id)
             ->where('subject_id', $request->subject_id)
             ->where('school_year', $request->school_year)
             ->where('grading_period', $request->grading_period)
@@ -176,8 +212,9 @@ class TeacherAssignmentController extends Controller
             }
         }
 
-        DB::transaction(function () use ($request) {
-            TeacherAssignment::create([
+        $assignment = null;
+        DB::transaction(function () use ($request, &$assignment) {
+            $assignment = TeacherAssignment::create([
                 'teacher_id' => $request->teacher_id,
                 'subject_id' => $request->subject_id,
                 'school_year' => $request->school_year,
@@ -190,8 +227,43 @@ class TeacherAssignmentController extends Controller
             ]);
         });
 
+        // Get teacher and subject details for the success message
+        $teacher = Teacher::find($request->teacher_id);
+        $subject = Subject::find($request->subject_id);
+
+        $successMessage = "🎉 Teacher successfully assigned! {$teacher->name} has been assigned to teach {$subject->name} ({$subject->code}) for {$request->school_year} - {$request->grading_period}.";
+
+        // Prepare assignment details for display
+        $assignmentDetails = [
+            'teacher_name' => $teacher->name,
+            'teacher_email' => $teacher->email,
+            'subject_name' => $subject->name,
+            'subject_code' => $subject->code,
+            'grade_level' => $subject->grade_level,
+            'track' => $subject->track,
+            'strand' => $subject->strand,
+            'school_year' => $request->school_year,
+            'grading_period' => $request->grading_period,
+            'assignment_date' => now()->format('M d, Y'),
+            'has_schedule' => !empty($request->schedule)
+        ];
+
         return redirect()->route('registrar.teacher-assignments.index')
-            ->with('success', 'Teacher assigned successfully.');
+            ->with('success', $successMessage)
+            ->with('assignment_details', $assignmentDetails);
+
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('Teacher assignment failed: ' . $e->getMessage(), [
+                'teacher_id' => $request->teacher_id,
+                'subject_id' => $request->subject_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->withInput()
+                ->with('error', 'Failed to assign teacher. Please try again. If the problem persists, contact the system administrator.');
+        }
     }
 
     /**

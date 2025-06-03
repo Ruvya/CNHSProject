@@ -212,9 +212,23 @@
                     method: this.method,
                     student_id: formData.get('student_id'),
                     email: formData.get('email'),
+                    username: formData.get('username'),
                     password: formData.get('password') ? '***filled***' : 'empty',
                     all_form_data: Object.fromEntries(formData)
                 });
+
+                if (role === 'admin') {
+                    const usernameField = document.getElementById('username-input');
+                    console.log('Admin username field value:', usernameField.value);
+                    console.log('Admin username field visible:', usernameField.offsetParent !== null);
+                    if (!usernameField.value) {
+                        alert('Please enter your Admin Username');
+                        return false;
+                    }
+                    // Ensure form action is set to admin login
+                    this.action = '/admin/login';
+                    console.log('Admin form action confirmed:', this.action);
+                }
 
                 if (role === 'student') {
                     const studentIdField = document.getElementById('student-id-input');
@@ -456,8 +470,8 @@
                     if (!usernameInput.value) {
                         usernameInput.value = '';
                     }
-                    passwordInput.placeholder = 'Password';
-                    form.action = "/admin/login";
+                    passwordInput.placeholder = 'Admin Password';
+                    form.action = "{{ route('login') }}";
                     console.log('Admin form action set to:', form.action);
                 } else if (this.value === 'teacher') {
                     emailContainer.style.display = 'block';
@@ -506,7 +520,7 @@
             const adminRadio = document.querySelector('input[name="role"][value="admin"]');
             if (adminRadio && adminRadio.checked) {
                 const form = document.getElementById('loginForm');
-                form.action = "/admin/login";
+                form.action = "{{ route('login') }}";
 
                 // Ensure admin fields are visible and others are hidden
                 const usernameContainer = document.getElementById('username-container');

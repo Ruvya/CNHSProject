@@ -110,39 +110,154 @@
                         </div>
                     @endif
 
-                    <!-- Grade Level Filter -->
+                    <!-- Advanced Filters -->
                     <div class="row mb-3">
-                        <div class="col-md-4">
-                            <form method="GET" action="{{ route('registrar.subjects.index') }}" id="gradeFilterForm">
-                                <div class="form-group">
-                                    <label for="grade_level" class="form-label font-weight-bold">
-                                        <i class="fas fa-filter me-2"></i>Grade Level Filter
-                                    </label>
-                                    <select name="grade_level" id="grade_level" class="form-control" onchange="this.form.submit()">
-                                        <option value="all" {{ (!$gradeFilter || $gradeFilter === 'all') ? 'selected' : '' }}>
-                                            All Grades
-                                        </option>
-                                        <option value="11" {{ $gradeFilter === '11' ? 'selected' : '' }}>
-                                            Grade 11
-                                        </option>
-                                        <option value="12" {{ $gradeFilter === '12' ? 'selected' : '' }}>
-                                            Grade 12
-                                        </option>
-                                    </select>
+                        <div class="col-12">
+                            <form method="GET" action="{{ route('registrar.subjects.index') }}" id="subjectFiltersForm">
+                                <div class="row">
+                                    <!-- Grade Level Filter -->
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="grade_level" class="form-label font-weight-bold">
+                                                <i class="fas fa-graduation-cap me-2"></i>Grade Level
+                                            </label>
+                                            <select name="grade_level" id="grade_level" class="form-control" onchange="updateFilters()">
+                                                <option value="all" {{ (!$gradeFilter || $gradeFilter === 'all') ? 'selected' : '' }}>
+                                                    All Grades
+                                                </option>
+                                                <option value="11" {{ $gradeFilter === '11' ? 'selected' : '' }}>
+                                                    Grade 11
+                                                </option>
+                                                <option value="12" {{ $gradeFilter === '12' ? 'selected' : '' }}>
+                                                    Grade 12
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Track Filter -->
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="track" class="form-label font-weight-bold">
+                                                <i class="fas fa-route me-2"></i>Track
+                                            </label>
+                                            <select name="track" id="track" class="form-control">
+                                                <option value="all">All Tracks</option>
+                                                @foreach($availableTracks as $track)
+                                                    <option value="{{ $track }}" {{ $trackFilter === $track ? 'selected' : '' }}>
+                                                        {{ $track }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Strand Filter -->
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="strand" class="form-label font-weight-bold">
+                                                <i class="fas fa-sitemap me-2"></i>Strand
+                                            </label>
+                                            <select name="strand" id="strand" class="form-control">
+                                                <option value="all">All Strands</option>
+                                                @foreach($availableStrands as $strand)
+                                                    <option value="{{ $strand }}" {{ $strandFilter === $strand ? 'selected' : '' }}>
+                                                        {{ $strand }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Filter Actions -->
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="filter-actions">
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-search me-1"></i>Apply Filters
+                                                </button>
+                                                <a href="{{ route('registrar.subjects.index') }}" class="btn btn-outline-secondary btn-sm ms-2">
+                                                    <i class="fas fa-times me-1"></i>Clear All
+                                                </a>
+                                            </div>
+                                            <div class="filter-info">
+                                                @if($gradeFilter || $trackFilter || $strandFilter)
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-filter me-1"></i>
+                                                        Filters active:
+                                                        @if($gradeFilter && $gradeFilter !== 'all')
+                                                            <span class="badge badge-info">Grade {{ $gradeFilter }}</span>
+                                                        @endif
+                                                        @if($trackFilter && $trackFilter !== 'all')
+                                                            <span class="badge badge-success">{{ $trackFilter }}</span>
+                                                        @endif
+                                                        @if($strandFilter && $strandFilter !== 'all')
+                                                            <span class="badge badge-warning">{{ $strandFilter }}</span>
+                                                        @endif
+                                                    </small>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </form>
                         </div>
-                        @if($gradeFilter && $gradeFilter !== 'all')
-                            <div class="col-md-8 d-flex align-items-end">
-                                <div class="alert alert-info mb-0 d-flex align-items-center">
-                                    <i class="fas fa-info-circle me-2"></i>
-                                    <span>Showing subjects for Grade {{ $gradeFilter }} only.
-                                        <a href="{{ route('registrar.subjects.index') }}" class="alert-link">Clear filter</a>
-                                    </span>
+                    </div>
+
+                    <!-- Dynamic Subject Display Section -->
+                    <div id="dynamicSubjectsSection" style="display: none;">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <h5><i class="fas fa-filter me-2"></i>Filtered Subjects</h5>
+                                    <p class="mb-0">Showing subjects for: <span id="filterSummary"></span></p>
                                 </div>
                             </div>
-                        @endif
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-list me-2"></i>Available Subjects (<span id="subjectCount">0</span>)</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="subjectsList" class="row">
+                                            <!-- Dynamic subjects will be loaded here -->
+                                        </div>
+
+                                        <!-- File Upload Section -->
+                                        <div id="fileUploadSection" style="display: none;" class="mt-4">
+                                            <hr>
+                                            <h6><i class="fas fa-upload me-2"></i>Upload Learning Materials</h6>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="selectedSubject">Select Subject:</label>
+                                                        <select id="selectedSubject" class="form-control">
+                                                            <option value="">Choose a subject...</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="materialFile">Upload File:</label>
+                                                        <input type="file" id="materialFile" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button type="button" id="uploadMaterialBtn" class="btn btn-success">
+                                                <i class="fas fa-upload me-2"></i>Upload Material
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
                     @if($allSubjects->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover" id="allSubjectsTable">
@@ -154,7 +269,7 @@
                                         <th>Track</th>
                                         <th>Strand</th>
                                         <th>Cluster</th>
-                                        <th>Units</th>
+                                        <th>Grading</th>
                                         <th>Semester</th>
                                         <th>Teacher</th>
                                         <th>Type</th>
@@ -180,7 +295,7 @@
                                                 <small class="text-muted">{{ $subject->cluster ?? '-' }}</small>
                                             </td>
                                             <td>
-                                                <span class="badge badge-light">{{ $subject->units }} {{ $subject->units == 1 ? 'unit' : 'units' }}</span>
+                                                <span class="badge badge-info">{{ $subject->grading ?? 'All Gradings' }}</span>
                                             </td>
                                             <td>
                                                 <small class="text-muted">{{ $subject->semester ?? 'N/A' }}</small>
@@ -331,17 +446,254 @@ $(document).ready(function() {
         "responsive": true
     });
 
-    // Add loading state for grade level filter
-    $('#grade_level').on('change', function() {
-        const form = $(this).closest('form');
-        const selectedValue = $(this).val();
+    // Dynamic filtering functionality
+    const gradeSelect = $('#grade_level');
+    const trackSelect = $('#track');
+    const strandSelect = $('#strand');
+    const dynamicSection = $('#dynamicSubjectsSection');
+    const subjectsList = $('#subjectsList');
+    const subjectCount = $('#subjectCount');
+    const filterSummary = $('#filterSummary');
+    const fileUploadSection = $('#fileUploadSection');
+    const selectedSubjectSelect = $('#selectedSubject');
 
-        // Show loading state
-        $(this).prop('disabled', true);
-        $('body').append('<div class="loading-overlay"><div class="spinner-border text-success" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+    // Grade level change handler
+    gradeSelect.on('change', function() {
+        const selectedGrade = $(this).val();
 
-        // Submit form
+        // Reset dependent dropdowns
+        trackSelect.html('<option value="all">All Tracks</option>');
+        strandSelect.html('<option value="all">All Strands</option>');
+
+        if (selectedGrade && selectedGrade !== 'all') {
+            // Load tracks for selected grade
+            loadTracks(selectedGrade);
+        }
+
+        // Hide dynamic section when grade changes
+        dynamicSection.hide();
+        fileUploadSection.hide();
+    });
+
+    // Track change handler
+    trackSelect.on('change', function() {
+        const selectedGrade = gradeSelect.val();
+        const selectedTrack = $(this).val();
+
+        // Reset strand dropdown
+        strandSelect.html('<option value="all">All Strands</option>');
+
+        if (selectedGrade && selectedGrade !== 'all' && selectedTrack && selectedTrack !== 'all') {
+            // Load strands for selected grade and track
+            loadStrands(selectedGrade, selectedTrack);
+        }
+
+        // Hide dynamic section when track changes
+        dynamicSection.hide();
+        fileUploadSection.hide();
+    });
+
+    // Strand change handler
+    strandSelect.on('change', function() {
+        const selectedGrade = gradeSelect.val();
+        const selectedTrack = trackSelect.val();
+        const selectedStrand = $(this).val();
+
+        if (selectedGrade && selectedGrade !== 'all' &&
+            selectedTrack && selectedTrack !== 'all' &&
+            selectedStrand && selectedStrand !== 'all') {
+            // Load subjects for selected combination
+            loadSubjects(selectedGrade, selectedTrack, selectedStrand);
+        } else {
+            dynamicSection.hide();
+            fileUploadSection.hide();
+        }
+    });
+
+    // Load tracks based on grade level
+    function loadTracks(gradeLevel) {
+        $.ajax({
+            url: '{{ route("registrar.api.tracks-by-grade") }}',
+            method: 'GET',
+            data: { grade_level: gradeLevel },
+            success: function(tracks) {
+                trackSelect.html('<option value="all">All Tracks</option>');
+                tracks.forEach(function(track) {
+                    trackSelect.append(`<option value="${track}">${track}</option>`);
+                });
+            },
+            error: function() {
+                console.error('Failed to load tracks');
+            }
+        });
+    }
+
+    // Load strands based on grade level and track
+    function loadStrands(gradeLevel, track) {
+        $.ajax({
+            url: '{{ route("registrar.api.strands-by-grade-track") }}',
+            method: 'GET',
+            data: {
+                grade_level: gradeLevel,
+                track: track
+            },
+            success: function(strands) {
+                strandSelect.html('<option value="all">All Strands</option>');
+                strands.forEach(function(strand) {
+                    strandSelect.append(`<option value="${strand}">${strand}</option>`);
+                });
+            },
+            error: function() {
+                console.error('Failed to load strands');
+            }
+        });
+    }
+
+    // Load subjects based on filters
+    function loadSubjects(gradeLevel, track, strand) {
+        showLoadingOverlay();
+
+        $.ajax({
+            url: '{{ route("registrar.api.subjects-by-filters") }}',
+            method: 'GET',
+            data: {
+                grade_level: gradeLevel,
+                track: track,
+                strand: strand
+            },
+            success: function(response) {
+                hideLoadingOverlay();
+                displaySubjects(response.subjects, gradeLevel, track, strand);
+                subjectCount.text(response.count);
+
+                // Update filter summary
+                filterSummary.text(`Grade ${gradeLevel} - ${track} - ${strand}`);
+
+                // Show dynamic section
+                dynamicSection.show();
+
+                // Show file upload section if subjects exist
+                if (response.count > 0) {
+                    populateSubjectSelect(response.subjects);
+                    fileUploadSection.show();
+                }
+            },
+            error: function() {
+                hideLoadingOverlay();
+                console.error('Failed to load subjects');
+            }
+        });
+    }
+
+    // Display subjects in cards
+    function displaySubjects(subjects, gradeLevel, track, strand) {
+        subjectsList.empty();
+
+        if (subjects.length === 0) {
+            subjectsList.html(`
+                <div class="col-12">
+                    <div class="alert alert-warning text-center">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <h5>No Subjects Found</h5>
+                        <p>No subjects found for Grade ${gradeLevel} - ${track} - ${strand}</p>
+                        <a href="{{ route('registrar.subjects.create') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Create New Subject
+                        </a>
+                    </div>
+                </div>
+            `);
+            return;
+        }
+
+        subjects.forEach(function(subject) {
+            const subjectCard = `
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100 border-primary">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">
+                                <strong>${subject.code || subject.subject_code}</strong>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title">${subject.name || subject.subject_name}</h6>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-user me-1"></i>
+                                    ${subject.teacher ? subject.teacher.name : 'Not Assigned'}
+                                </small>
+                            </p>
+                            <div class="mb-2">
+                                ${subject.is_core_subject ? '<span class="badge badge-danger">Core</span>' : ''}
+                                ${subject.is_master_subject ? '<span class="badge badge-warning">Master</span>' : ''}
+                                ${!subject.is_core_subject && !subject.is_master_subject ? '<span class="badge badge-light">Regular</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="btn-group w-100" role="group">
+                                <a href="/registrar/subjects/${subject.id}" class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                ${subject.registrar_id == {{ auth()->guard('registrar')->id() }} ? `
+                                    <a href="/registrar/subjects/${subject.id}/edit" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            subjectsList.append(subjectCard);
+        });
+    }
+
+    // Populate subject select dropdown for file upload
+    function populateSubjectSelect(subjects) {
+        selectedSubjectSelect.html('<option value="">Choose a subject...</option>');
+        subjects.forEach(function(subject) {
+            selectedSubjectSelect.append(`
+                <option value="${subject.id}">
+                    ${subject.code || subject.subject_code} - ${subject.name || subject.subject_name}
+                </option>
+            `);
+        });
+    }
+
+    // Filter update function (for manual apply button)
+    window.updateFilters = function() {
+        const form = $('#subjectFiltersForm');
+        showLoadingOverlay();
         form.submit();
+    };
+
+    // Show/Hide loading overlay functions
+    function showLoadingOverlay() {
+        if ($('.loading-overlay').length === 0) {
+            $('body').append('<div class="loading-overlay"><div class="spinner-border text-success" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+        }
+    }
+
+    function hideLoadingOverlay() {
+        $('.loading-overlay').remove();
+    }
+
+    // File upload handler (placeholder)
+    $('#uploadMaterialBtn').on('click', function() {
+        const selectedSubject = selectedSubjectSelect.val();
+        const fileInput = $('#materialFile')[0];
+
+        if (!selectedSubject) {
+            alert('Please select a subject first.');
+            return;
+        }
+
+        if (!fileInput.files.length) {
+            alert('Please select a file to upload.');
+            return;
+        }
+
+        // TODO: Implement actual file upload functionality
+        alert('File upload functionality will be implemented in the next phase.');
     });
 
     // Add smooth animations for stat cards
@@ -367,6 +719,139 @@ $(document).ready(function() {
 
 .border-left-info {
     border-left: 0.25rem solid #36b9cc !important;
+}
+
+/* Filter styling */
+.filter-actions .btn {
+    margin-right: 5px;
+}
+
+.filter-info .badge {
+    margin-left: 3px;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    border-radius: 6px;
+    border: 1px solid #d1d3e2;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+
+/* Enhanced filter section */
+#subjectFiltersForm {
+    background: #f8f9fc;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #e3e6f0;
+    margin-bottom: 20px;
+}
+
+.filter-actions {
+    margin-top: 10px;
+}
+
+.filter-info {
+    margin-top: 10px;
+}
+
+/* Dynamic subjects section styling */
+#dynamicSubjectsSection {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.card.border-primary {
+    border-width: 2px !important;
+}
+
+.card.h-100 {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card.h-100:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+#fileUploadSection {
+    background: #f8f9fc;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #e3e6f0;
+}
+
+#subjectsList .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+}
+
+#subjectsList .card-header h6 {
+    color: white !important;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+    border-color: #b6d4da;
+}
+
+/* Loading states */
+.form-control:disabled {
+    background-color: #f8f9fa;
+    opacity: 0.7;
+}
+
+/* Subject card animations */
+#subjectsList .card {
+    animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* File upload styling */
+#materialFile {
+    border: 2px dashed #dee2e6;
+    padding: 10px;
+    border-radius: 8px;
+    transition: border-color 0.3s ease;
+}
+
+#materialFile:hover {
+    border-color: #007bff;
+}
+
+#uploadMaterialBtn {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+#uploadMaterialBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
 }
 </style>
 @endsection

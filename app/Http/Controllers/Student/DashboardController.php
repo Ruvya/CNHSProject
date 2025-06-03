@@ -39,10 +39,17 @@ class DashboardController extends Controller
         }
 
         // Get recent announcements (last 3)
-        $recentAnnouncements = Announcement::with('author')
-            ->orderBy('created_at', 'desc')
-            ->take(3)
-            ->get();
+        try {
+            $recentAnnouncements = Announcement::with('author')
+                ->where('status', 'active')
+                ->where('is_published', true)
+                ->orderBy('created_at', 'desc')
+                ->take(3)
+                ->get();
+        } catch (\Exception $e) {
+            // If there's an error (like table doesn't exist), return empty collection
+            $recentAnnouncements = collect();
+        }
 
         // Get student's enrolled subjects
         $enrolledSubjects = collect();

@@ -13,29 +13,101 @@ class SubjectController extends Controller
     {
         $student = Auth::guard('student')->user();
 
-        // Get subjects specifically assigned to this student by the registrar
-        $assignedSubjects = $student->subjects()->with('teacher')->get();
-
-        // Get available subjects based on student's track and strand (for reference)
-        $availableSubjects = Subject::where('track', $student->track)
-            ->where('strand', $student->strand)
+        // Get subjects automatically assigned to this student (only those matching their grade, track, and strand)
+        $assignedSubjects = $student->subjects()
             ->where('grade_level', $student->grade_level)
+            ->where(function($query) use ($student) {
+                $query->where('is_core_subject', true)
+                      ->orWhere(function($subQuery) use ($student) {
+                          $subQuery->where('track', $student->track);
+                      })
+                      ->orWhere(function($subQuery) use ($student) {
+                          $subQuery->where('strand', $student->strand);
+                      });
+            })
             ->with('teacher')
             ->get();
 
+        // Categorize subjects according to DepEd curriculum structure
+        $coreSubjects = $assignedSubjects->where('is_core_subject', true);
+
+        // Applied subjects (track-specific but not strand-specific)
+        $appliedSubjects = $assignedSubjects->where('track', $student->track)
+            ->where('is_core_subject', false)
+            ->filter(function($subject) {
+                return empty($subject->strand) || $subject->strand === null;
+            });
+
+        // Specialized subjects (strand-specific)
+        $specializedSubjects = $assignedSubjects->where('strand', $student->strand)
+            ->where('is_core_subject', false)
+            ->where('strand', '!=', null);
+
+        // Legacy categorization for backward compatibility
+        $trackSubjects = $assignedSubjects->where('track', $student->track)->where('is_core_subject', false)->where('strand', '!=', $student->strand);
+        $strandSubjects = $assignedSubjects->where('strand', $student->strand)->where('is_core_subject', false);
+
         // Calculate statistics
         $totalAssigned = $assignedSubjects->count();
-        $totalUnits = $assignedSubjects->sum('units');
         $subjectsWithTeachers = $assignedSubjects->whereNotNull('teacher_id')->count();
+        $subjectsWithoutTeachers = $totalAssigned - $subjectsWithTeachers;
+
+        // Check if student has complete assignment
+        $hasCompleteAssignment = $student->isReadyForSubjectAssignment() && $student->hasCompleteSubjectAssignment();
+
+        // Get assignment status
+        $assignmentStatus = $this->getAssignmentStatus($student);
 
         return view('student.subjects', compact(
             'student',
             'assignedSubjects',
-            'availableSubjects',
+            'coreSubjects',
+            'appliedSubjects',
+            'specializedSubjects',
+            'trackSubjects',
+            'strandSubjects',
             'totalAssigned',
-            'totalUnits',
-            'subjectsWithTeachers'
+            'subjectsWithTeachers',
+            'subjectsWithoutTeachers',
+            'hasCompleteAssignment',
+            'assignmentStatus'
         ));
+    }
+
+    /**
+     * Get assignment status for the student
+     */
+    private function getAssignmentStatus($student)
+    {
+        if (!$student->track || !$student->strand || !$student->grade_level) {
+            return [
+                'status' => 'incomplete_data',
+                'message' => 'Your track, strand, or grade level information is incomplete. Please contact the registrar to update your information.',
+                'color' => 'warning'
+            ];
+        }
+
+        if ($student->subjects->count() == 0) {
+            return [
+                'status' => 'no_subjects',
+                'message' => 'No subjects have been assigned yet. Subjects will be automatically assigned based on your track and strand.',
+                'color' => 'info'
+            ];
+        }
+
+        if (!$student->hasCompleteSubjectAssignment()) {
+            return [
+                'status' => 'needs_update',
+                'message' => 'Your subject assignment may need updating based on your current track and strand.',
+                'color' => 'warning'
+            ];
+        }
+
+        return [
+            'status' => 'complete',
+            'message' => 'Your subjects have been automatically assigned based on your track and strand.',
+            'color' => 'success'
+        ];
     }
 
     public function show($id)

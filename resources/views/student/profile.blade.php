@@ -18,13 +18,13 @@
         .profile-header {
             margin-bottom: 1.5rem;
             padding: 1.25rem;
-            
-            
+
+
         }
 
         .profile-header h1 {
             margin-top: 3%;
-           
+
             font-size: 1.75rem;
             margin-bottom: 0.4rem;
             background: linear-gradient(135deg, #2563eb, #1d4ed8);
@@ -286,240 +286,22 @@
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
-<button id="editProfileBtn" class="btn btn-primary mb-3">Edit Profile</button>
+@if(session('error'))
+    <div class="alert alert-danger">{{ session('error') }}</div>
+@endif
 
-<form id="editProfileForm" method="POST" action="{{ route('student.profile.update') }}" style="display:none; max-width: 700px; margin-bottom: 2rem;">
-    @csrf
-    @method('PUT')
-    <div class="profile-grid">
-        <!-- Personal Information -->
-        <div class="profile-card personal-info-edit">
-            <div class="card-header">
-                <i class="fas fa-user"></i>
-                <h2>Personal Information</h2>
-            </div>
-            <div class="card-content">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <label for="first_name">First Name</label>
-                        <input type="text" class="form-control" name="first_name" id="first_name" value="{{ old('first_name', $student->first_name) }}">
-                    </div>
-                    <div class="info-item">
-                        <label for="middle_name">Middle Name</label>
-                        <input type="text" class="form-control" name="middle_name" id="middle_name" value="{{ old('middle_name', $student->middle_name) }}">
-                    </div>
-                    <div class="info-item">
-                        <label for="last_name">Last Name</label>
-                        <input type="text" class="form-control" name="last_name" id="last_name" value="{{ old('last_name', $student->last_name) }}">
-                    </div>
-                    <div class="info-item">
-                        <label for="gender">Gender</label>
-                        <select class="form-control" name="gender" id="gender">
-                            <option value="">Select Gender</option>
-                            @foreach($dropdownOptions['genders'] as $value => $label)
-                                <option value="{{ $value }}" {{ old('gender', $student->gender) === $value ? 'selected' : '' }}>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="info-item">
-                        <label for="contact_number">Contact Number</label>
-                        <input type="text" class="form-control" name="contact_number" id="contact_number" value="{{ old('contact_number', $student->contact_number) }}">
-                    </div>
-                    <div class="info-item">
-                        <label for="lrn">LRN (Learner Reference Number)</label>
-                        <input type="text" class="form-control" name="lrn" id="lrn" value="{{ old('lrn', $student->lrn) }}">
-                    </div>
-                </div>
-            </div>
-        </div>
+@if(session('info'))
+    <div class="alert alert-info">{{ session('info') }}</div>
+@endif
 
-        <!-- Academic Information -->
-        <div class="profile-card academic-info">
-            <div class="card-header">
-                <i class="fas fa-graduation-cap"></i>
-                <h2>Academic Information</h2>
-            </div>
-            <div class="card-content">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <label for="grade_level">Grade Level</label>
-                        <select class="form-control" name="grade_level" id="grade_level">
-                            <option value="">Select Grade Level</option>
-                            @foreach($dropdownOptions['grade_levels'] as $value => $label)
-                                <option value="{{ $value }}" {{ old('grade_level', $student->grade_level) === $value ? 'selected' : '' }}>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="info-item">
-                        <label for="section">Section</label>
-                        <select class="form-control" name="section" id="section">
-                            <option value="">Select Section</option>
-                            @foreach($dropdownOptions['sections'] as $value => $label)
-                                <option value="{{ $value }}" {{ old('section', $student->section) === $value ? 'selected' : '' }}>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="info-item">
-                        <label for="advisor">Adviser Name</label>
-                        <select class="form-control" name="advisor" id="advisor">
-                            <option value="">Select Adviser</option>
-                            @foreach($dropdownOptions['teachers'] as $value => $label)
-                                <option value="{{ $value }}" {{ old('advisor', $student->advisor) === $value ? 'selected' : '' }}>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="info-item">
-                        <label for="track">Track</label>
-                        <select class="form-control" name="track" id="track">
-                            <option value="">Select Track</option>
-                            @foreach($dropdownOptions['tracks'] as $value => $label)
-                                <option value="{{ $value }}" {{ old('track', $student->track) === $value ? 'selected' : '' }}>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="info-item">
-                        <label for="strand">Strand</label>
-                        <select class="form-control" name="strand" id="strand">
-                            <option value="">Select Strand</option>
-                            @foreach($dropdownOptions['strands'] as $value => $label)
-                                <option value="{{ $value }}" {{ old('strand', $student->strand) === $value ? 'selected' : '' }}>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Contact Information -->
-        <div class="profile-card contact-info">
-            <div class="card-header">
-                <i class="fas fa-address-card"></i>
-                <h2>Contact Information</h2>
-            </div>
-            <div class="card-content">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <label for="province">Province</label>
-                        <input type="text" class="form-control" name="province" id="province" value="{{ old('province', $student->province) }}">
-                    </div>
-                    <div class="info-item">
-                        <label for="municipality">Municipality</label>
-                        <input type="text" class="form-control" name="municipality" id="municipality" value="{{ old('municipality', $student->municipality) }}">
-                    </div>
-                    <div class="info-item">
-                        <label for="barangay">Barangay</label>
-                        <input type="text" class="form-control" name="barangay" id="barangay" value="{{ old('barangay', $student->barangay) }}">
-                    </div>
-                    <div class="info-item">
-                        <label for="permanent_address">Permanent Address (ZIP code)</label>
-                        <input type="text" class="form-control" name="permanent_address" id="permanent_address" value="{{ old('permanent_address', $student->permanent_address) }}">
-                    </div>
-                    <div class="info-item">
-                        <label for="phone">Contact Number</label>
-                        <input type="text" class="form-control" name="phone" id="phone" value="{{ old('phone', $student->phone) }}">
-                    </div>
-                    <div class="info-item">
-                        <label for="email">Email</label>
-                        <input type="email" class="form-control" name="email" id="email" value="{{ old('email', $student->email) }}">
-                    </div>
-                    <div class="info-item full-width">
-                        <label for="social_media">Social Media Accounts (optional)</label>
-                        <input type="text" class="form-control" name="social_media" id="social_media" value="{{ old('social_media', $student->social_media) }}" placeholder="Facebook, Twitter, etc.">
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Parent/Guardian Information -->
-        <div class="profile-card parent-info">
-            <div class="card-header">
-                <i class="fas fa-users"></i>
-                <h2>Parent/Guardian Information</h2>
-            </div>
-            <div class="card-content">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <label for="parent_name">Parent/Guardian Name</label>
-                        <input type="text" class="form-control" name="parent_name" id="parent_name" value="{{ old('parent_name', $student->parent_name) }}">
-                    </div>
-                    <div class="info-item">
-                        <label for="parent_contact">Parent/Guardian Contact</label>
-                        <input type="text" class="form-control" name="parent_contact" id="parent_contact" value="{{ old('parent_contact', $student->parent_contact) }}">
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- Profile editing is restricted to registrars only -->
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    <strong>Notice:</strong> Profile information can only be edited by the registrar's office.
+    Please contact the registrar for any changes to your information.
+</div>
 
-        <!-- Emergency Contact -->
-        <div class="profile-card emergency-info">
-            <div class="card-header">
-                <i class="fas fa-phone-alt"></i>
-                <h2>Emergency Contact</h2>
-            </div>
-            <div class="card-content">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <label for="emergency_name">Contact Person</label>
-                        <input type="text" class="form-control" name="emergency_name" id="emergency_name" value="{{ old('emergency_name', $student->emergency_name) }}">
-                    </div>
-                    <div class="info-item">
-                        <label for="emergency_relationship">Relationship</label>
-                        <select class="form-control" name="emergency_relationship" id="emergency_relationship">
-                            <option value="">Select Relationship</option>
-                            @foreach($dropdownOptions['relationships'] as $value => $label)
-                                <option value="{{ $value }}" {{ old('emergency_relationship', $student->emergency_relationship) === $value ? 'selected' : '' }}>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="info-item">
-                        <label for="emergency_phone">Contact Number</label>
-                        <input type="text" class="form-control" name="emergency_phone" id="emergency_phone" value="{{ old('emergency_phone', $student->emergency_phone) }}">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Password Change Section -->
-        <div class="profile-card password-change">
-            <div class="card-header">
-                <i class="fas fa-lock"></i>
-                <h2>Change Password</h2>
-            </div>
-            <div class="card-content">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    Leave password fields blank if you don't want to change your password.
-                </div>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <label for="password">New Password</label>
-                        <input type="password" class="form-control" name="password" id="password" minlength="8">
-                        <small class="form-text text-muted">Minimum 8 characters</small>
-                    </div>
-                    <div class="info-item">
-                        <label for="password_confirmation">Confirm New Password</label>
-                        <input type="password" class="form-control" name="password_confirmation" id="password_confirmation" minlength="8">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div style="text-align:right; margin-top: 1rem;">
-        <button type="submit" class="btn btn-success">Save Changes</button>
-    </div>
-</form>
+<!-- Edit form removed - students cannot edit their profiles -->
 
 <div class="profile-grid">
     <!-- Personal Information Card -->
@@ -531,31 +313,71 @@
         <div class="card-content">
             <div class="profile-image-container">
                 <img src="{{ $student && $student->profile_picture ? asset('storage/' . $student->profile_picture) : asset('images/photo.jpg') }}" alt="Profile Picture" class="large-profile-pic">
-                <form action="{{ route('student.profile.upload') }}" method="POST" enctype="multipart/form-data" id="profilePictureForm" style="display: none;">
-                    @csrf
-                    <input type="file" name="profile_picture" id="profilePictureInput" accept="image/*" onchange="this.form.submit()">
-                </form>
-                <button class="edit-photo-btn" onclick="document.getElementById('profilePictureInput').click()">
-                    <i class="fas fa-camera"></i>
-                </button>
+                <!-- Profile picture editing removed - students cannot edit their profiles -->
             </div>
             <div class="info-grid">
                 <div class="info-item">
                     <label>Full Name</label>
                     <p>{{ $student ? $student->first_name . ' ' . $student->last_name : 'N/A' }}</p>
                 </div>
+                @if($student && $student->gender)
                 <div class="info-item">
                     <label>Gender</label>
-                    <p>{{ $student ? ($student->gender ?? 'Not set') : 'N/A' }}</p>
+                    <p>{{ $student->gender }}</p>
                 </div>
+                @endif
                 <div class="info-item">
                     <label>Student ID</label>
                     <p>{{ $student ? $student->student_id : 'N/A' }}</p>
                 </div>
+                @if($student && $student->email)
                 <div class="info-item">
                     <label>Email</label>
-                    <p>{{ $student ? $student->email : 'N/A' }}</p>
+                    <p>{{ $student->email }}</p>
                 </div>
+                @endif
+                @if($student && $student->date_of_birth)
+                <div class="info-item">
+                    <label>Date of Birth</label>
+                    <p>{{ $student->date_of_birth->format('F j, Y') }}</p>
+                </div>
+                @endif
+                @if($student && $student->place_of_birth)
+                <div class="info-item">
+                    <label>Place of Birth</label>
+                    <p>{{ $student->place_of_birth }}</p>
+                </div>
+                @endif
+                @if($student && $student->nationality)
+                <div class="info-item">
+                    <label>Nationality</label>
+                    <p>{{ $student->nationality }}</p>
+                </div>
+                @endif
+                @if($student && $student->religion)
+                <div class="info-item">
+                    <label>Religion</label>
+                    <p>{{ $student->religion }}</p>
+                </div>
+                @endif
+                @if($student && $student->civil_status)
+                <div class="info-item">
+                    <label>Civil Status</label>
+                    <p>{{ $student->civil_status }}</p>
+                </div>
+                @endif
+                @if($student && $student->contact_number)
+                <div class="info-item">
+                    <label>Contact Number</label>
+                    <p>{{ $student->contact_number }}</p>
+                </div>
+                @endif
+                @if($student && $student->lrn)
+                <div class="info-item">
+                    <label>LRN (Learner Reference Number)</label>
+                    <p>{{ $student->lrn }}</p>
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -568,9 +390,21 @@
         </div>
         <div class="card-content">
             <div class="info-grid">
-                <div class="info-item"><label>Adviser Name</label><p>{{ $student->advisor ?? 'Not set' }}</p></div>
-                <div class="info-item"><label>Track</label><p>{{ $student->track ?? 'Not set' }}</p></div>
-                <div class="info-item"><label>Strand</label><p>{{ $student->strand ?? 'Not set' }}</p></div>
+                @if($student && $student->grade_level)
+                <div class="info-item"><label>Grade Level</label><p>{{ $student->grade_level }}</p></div>
+                @endif
+                @if($student && $student->section)
+                <div class="info-item"><label>Section</label><p>{{ $student->section }}</p></div>
+                @endif
+                @if($student && $student->advisor)
+                <div class="info-item"><label>Adviser Name</label><p>{{ $student->advisor }}</p></div>
+                @endif
+                @if($student && $student->track)
+                <div class="info-item"><label>Track</label><p>{{ $student->track }}</p></div>
+                @endif
+                @if($student && $student->strand)
+                <div class="info-item"><label>Strand</label><p>{{ $student->strand }}</p></div>
+                @endif
             </div>
         </div>
     </div>
@@ -583,18 +417,59 @@
         </div>
         <div class="card-content">
             <div class="info-grid">
-                <div class="info-item"><label>Province</label><p>{{ $student->province ?? 'Not set' }}</p></div>
-                <div class="info-item"><label>Municipality</label><p>{{ $student->municipality ?? 'Not set' }}</p></div>
-                <div class="info-item"><label>Barangay</label><p>{{ $student->barangay ?? 'Not set' }}</p></div>
-                <div class="info-item"><label>Permanent Address (ZIP code)</label><p>{{ $student->permanent_address ?? 'Not set' }}</p></div>
-                <div class="info-item"><label>Contact Number</label><p>{{ $student->phone ?? 'Not set' }}</p></div>
-                <div class="info-item"><label>Email</label><p>{{ $student->email ?? 'Not set' }}</p></div>
-                <div class="info-item full-width"><label>Social Media Accounts</label><p>{{ $student->social_media ?? 'Not set' }}</p></div>
+                @if($student && $student->province)
+                <div class="info-item"><label>Province</label><p>{{ $student->province }}</p></div>
+                @endif
+                @if($student && $student->municipality)
+                <div class="info-item"><label>Municipality</label><p>{{ $student->municipality }}</p></div>
+                @endif
+                @if($student && $student->barangay)
+                <div class="info-item"><label>Barangay</label><p>{{ $student->barangay }}</p></div>
+                @endif
+                @if($student && $student->permanent_address)
+                <div class="info-item"><label>Permanent Address (ZIP code)</label><p>{{ $student->permanent_address }}</p></div>
+                @endif
+                @if($student && $student->phone)
+                <div class="info-item"><label>Contact Number</label><p>{{ $student->phone }}</p></div>
+                @endif
+                @if($student && $student->email)
+                <div class="info-item"><label>Email</label><p>{{ $student->email }}</p></div>
+                @endif
+                @if($student && $student->social_media)
+                <div class="info-item full-width"><label>Social Media Accounts</label><p>{{ $student->social_media }}</p></div>
+                @endif
             </div>
         </div>
     </div>
 
+    <!-- Parent/Guardian Information Card -->
+    @if($student && ($student->parent_name || $student->parent_contact))
+    <div class="profile-card parent-info">
+        <div class="card-header">
+            <i class="fas fa-users"></i>
+            <h2>Parent/Guardian Information</h2>
+        </div>
+        <div class="card-content">
+            <div class="info-grid">
+                @if($student && $student->parent_name)
+                <div class="info-item">
+                    <label>Parent/Guardian Name</label>
+                    <p>{{ $student->parent_name }}</p>
+                </div>
+                @endif
+                @if($student && $student->parent_contact)
+                <div class="info-item">
+                    <label>Parent/Guardian Contact</label>
+                    <p>{{ $student->parent_contact }}</p>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Emergency Contact Card -->
+    @if($student && ($student->emergency_name || $student->emergency_relationship || $student->emergency_phone))
     <div class="profile-card emergency-info">
         <div class="card-header">
             <i class="fas fa-phone-alt"></i>
@@ -602,42 +477,34 @@
         </div>
         <div class="card-content">
             <div class="info-grid">
+                @if($student && $student->emergency_name)
                 <div class="info-item">
                     <label>Contact Person</label>
-                    <p>{{ $student->emergency_name ?? 'Not set' }}</p>
+                    <p>{{ $student->emergency_name }}</p>
                 </div>
+                @endif
+                @if($student && $student->emergency_relationship)
                 <div class="info-item">
                     <label>Relationship</label>
-                    <p>{{ $student->emergency_relationship ?? 'Not set' }}</p>
+                    <p>{{ $student->emergency_relationship }}</p>
                 </div>
+                @endif
+                @if($student && $student->emergency_phone)
                 <div class="info-item">
                     <label>Contact Number</label>
-                    <p>{{ $student->emergency_phone ?? 'Not set' }}</p>
+                    <p>{{ $student->emergency_phone }}</p>
                 </div>
+                @endif
             </div>
         </div>
     </div>
+    @endif
     </div>
 @endsection
 
 @push('scripts')
 <script>
-    // Profile picture preview
-    document.getElementById('profilePictureInput').addEventListener('change', function(e) {
-        if (e.target.files && e.target.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.querySelector('.large-profile-pic').src = e.target.result;
-            }
-            reader.readAsDataURL(e.target.files[0]);
-        }
-    });
-
-    // Toggle edit form
-    document.getElementById('editProfileBtn').onclick = function() {
-        var form = document.getElementById('editProfileForm');
-        form.style.display = (form.style.display === 'none') ? 'block' : 'none';
-        this.textContent = (form.style.display === 'none') ? 'Edit Profile' : 'Cancel Edit';
-    };
+    // Profile editing functionality removed - students cannot edit their profiles
+    console.log('Student profile is view-only. Contact registrar for changes.');
 </script>
 @endpush

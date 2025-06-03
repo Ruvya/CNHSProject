@@ -3,19 +3,27 @@
 @section('title', 'Student Records Management')
 
 @section('content')
-<div class="container-fluid">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0 text-gray-800">Student Records Management</h1>
-            <p class="text-muted">Comprehensive student enrollment and academic tracking system</p>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="page-title">
+                <i class="fas fa-user-graduate me-3 text-primary"></i>
+                Student Records Management
+            </h1>
+            <p class="page-subtitle">
+                Comprehensive student enrollment and academic tracking system
+            </p>
         </div>
-        <div>
-            <a href="{{ route('registrar.students.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Add New Student
-            </a>
+        <div class="col-md-4">
+            <div class="page-actions">
+                <a href="{{ route('registrar.students.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add New Student
+                </a>
+            </div>
         </div>
     </div>
+</div>
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -31,6 +39,85 @@
         </div>
     @endif
 
+    @if(session('warning'))
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ session('warning') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    <!-- Import Summary -->
+    @if(session('import_summary'))
+        @php $summary = session('import_summary'); @endphp
+        <div class="card mb-4 border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Excel Upload Results
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h3 class="text-success">{{ $summary['success_count'] ?? 0 }}</h3>
+                            <small class="text-muted">New Students Created</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h3 class="text-info">{{ $summary['update_count'] ?? 0 }}</h3>
+                            <small class="text-muted">Students Updated</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h3 class="text-warning">{{ $summary['skip_count'] ?? 0 }}</h3>
+                            <small class="text-muted">Records Skipped</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="text-danger">{{ $summary['error_count'] ?? 0 }}</h3>
+                        <small class="text-muted">Errors Found</small>
+                    </div>
+                </div>
+
+                @if(!empty($summary['errors']) && count($summary['errors']) > 0)
+                    <hr>
+                    <div class="mt-3">
+                        <h6 class="text-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>Errors Details:
+                        </h6>
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach($summary['errors'] as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                @endif
+
+                <div class="mt-3 text-center">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Upload completed successfully! Check the student records below to verify the imported data.
+                    </small>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Upload Progress Alert (Hidden by default) -->
+    <div id="uploadProgressAlert" class="alert alert-info" style="display: none;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-spinner fa-spin me-2"></i>
+            <span id="uploadProgressText">Uploading and processing Excel file...</span>
+        </div>
+        <div class="progress mt-2" style="height: 6px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+        </div>
+    </div>
+
     <!-- Advanced Filters -->
     <div class="card mb-4">
         <div class="card-header">
@@ -43,8 +130,8 @@
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label for="search" class="form-label">Search</label>
-                        <input type="text" class="form-control" id="search" name="search" 
-                               value="{{ request('search') }}" 
+                        <input type="text" class="form-control" id="search" name="search"
+                               value="{{ request('search') }}"
                                placeholder="Name, Student ID, Email...">
                     </div>
                     <div class="col-md-2">
@@ -114,85 +201,34 @@
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Students</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $students->total() }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Enrolled Students</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ $students->filter(function($student) { return $student->subjects->count() > 0; })->count() }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Grade 11 Students</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ $students->filter(function($student) { return $student->grade_level === 'Grade 11'; })->count() }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Grade 12 Students</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ $students->filter(function($student) { return $student->grade_level === 'Grade 12'; })->count() }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Students Table -->
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Student Records</h6>
             <div>
+                <!-- Upload Excel Button that redirects to upload form -->
+                <a href="{{ route('registrar.students.upload') }}" class="btn btn-sm btn-success me-2"
+                   title="Upload Excel (.xlsx, .xls) or CSV (.csv) file with grade level and track selection">
+                    <i class="fas fa-upload me-1"></i>Upload Excel
+                </a>
+
+                <!-- Template Download Dropdown -->
+                <div class="btn-group me-2" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-info dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-download me-1"></i>Templates
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/excel-template-emergency">
+                            <i class="fas fa-file-csv me-2"></i>Download CSV Template
+                        </a></li>
+                        <li><a class="dropdown-item" href="/excel-template-emergency?format=excel">
+                            <i class="fas fa-file-excel me-2"></i>Download Excel Template
+                        </a></li>
+                    </ul>
+                </div>
+
                 <button class="btn btn-sm btn-outline-primary" onclick="toggleBulkActions()">
                     <i class="fas fa-tasks me-1"></i>Bulk Actions
                 </button>
@@ -390,7 +426,7 @@ function toggleBulkActions() {
 function toggleAllCheckboxes() {
     const selectAll = document.getElementById('selectAll');
     const checkboxes = document.querySelectorAll('.student-checkbox');
-    
+
     checkboxes.forEach(checkbox => {
         checkbox.checked = selectAll.checked;
     });
@@ -411,13 +447,13 @@ document.getElementById('bulk_action').addEventListener('change', function() {
 // Collect selected student IDs for bulk actions
 document.getElementById('bulkActionForm').addEventListener('submit', function(e) {
     const selectedCheckboxes = document.querySelectorAll('.student-checkbox:checked');
-    
+
     if (selectedCheckboxes.length === 0) {
         e.preventDefault();
         alert('Please select at least one student.');
         return;
     }
-    
+
     // Add hidden inputs for selected student IDs
     selectedCheckboxes.forEach(checkbox => {
         const hiddenInput = document.createElement('input');
@@ -433,6 +469,73 @@ document.querySelectorAll('#filterForm select').forEach(select => {
     select.addEventListener('change', function() {
         document.getElementById('filterForm').submit();
     });
+});
+
+// Function to display stored upload results
+function displayStoredUploadResults() {
+    const importSummary = sessionStorage.getItem('import_summary');
+    const uploadMessage = sessionStorage.getItem('upload_message');
+    const uploadWarning = sessionStorage.getItem('upload_warning');
+    const uploadError = sessionStorage.getItem('upload_error');
+
+    if (importSummary || uploadMessage || uploadWarning || uploadError) {
+        // Create and show the import summary
+        let summaryHtml = '';
+
+        if (uploadMessage) {
+            summaryHtml += `<div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>${uploadMessage}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+        }
+
+        if (uploadWarning) {
+            summaryHtml += `<div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>${uploadWarning}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+        }
+
+        if (uploadError) {
+            summaryHtml += `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>${uploadError}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+        }
+
+        if (importSummary) {
+            const summary = JSON.parse(importSummary);
+            summaryHtml += `<div class="alert alert-info alert-dismissible fade show" role="alert">
+                <h5><i class="fas fa-info-circle me-2"></i>Import Summary</h5>
+                <ul class="mb-0">
+                    <li><strong>Total Processed:</strong> ${summary.total_processed || 0}</li>
+                    <li><strong>Successfully Created:</strong> ${summary.created || 0}</li>
+                    <li><strong>Successfully Updated:</strong> ${summary.updated || 0}</li>
+                    <li><strong>Errors:</strong> ${summary.errors || 0}</li>
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+        }
+
+        // Insert the summary at the top of the content
+        const contentArea = document.querySelector('.card-body');
+        if (contentArea && summaryHtml) {
+            contentArea.insertAdjacentHTML('afterbegin', summaryHtml);
+        }
+
+        // Clear the stored data
+        sessionStorage.removeItem('import_summary');
+        sessionStorage.removeItem('upload_message');
+        sessionStorage.removeItem('upload_warning');
+        sessionStorage.removeItem('upload_error');
+    }
+}
+
+// Note: Excel upload functionality moved to dedicated upload page with grade level and track selection
+
+// Call displayStoredUploadResults when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    displayStoredUploadResults();
 });
 </script>
 @endpush

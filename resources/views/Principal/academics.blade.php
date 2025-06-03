@@ -245,5 +245,25 @@
         background: var(--primary-color);
         color: white;
     }
+
+    .hero-section-small {
+        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{{ asset("images/im.jpg") }}');
+        background-size: cover;
+        background-position: center;
+        padding: 80px 0;
+        margin-top: -20px;
+        color: white;
+    }
+        .hero-title {
+        color: #fff;
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+
+    .hero-subtitle {
+        color: #fff;
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
 </style>
-@endsection 
+@endsection

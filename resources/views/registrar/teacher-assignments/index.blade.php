@@ -19,6 +19,68 @@
         </div>
     </div>
 
+    <!-- Success/Error Messages -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle fa-2x text-success me-3"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">✅ Success!</h5>
+                    <p class="mb-0">{{ session('success') }}</p>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-circle fa-2x text-danger me-3"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">❌ Error!</h5>
+                    <p class="mb-0">{{ session('error') }}</p>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('warning'))
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">⚠️ Warning!</h5>
+                    <p class="mb-0">{{ session('warning') }}</p>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('assignment_details'))
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle fa-2x text-info me-3"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">📋 Assignment Details</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Teacher:</strong> {{ session('assignment_details')['teacher_name'] ?? 'N/A' }}<br>
+                            <strong>Subject:</strong> {{ session('assignment_details')['subject_name'] ?? 'N/A' }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Grade Level:</strong> {{ session('assignment_details')['grade_level'] ?? 'N/A' }}<br>
+                            <strong>Track:</strong> {{ session('assignment_details')['track'] ?? 'N/A' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-md-3">
@@ -278,5 +340,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Auto-hide success alerts after 8 seconds
+setTimeout(function() {
+    const successAlert = document.querySelector('.alert-success');
+    if (successAlert) {
+        const bsAlert = new bootstrap.Alert(successAlert);
+        bsAlert.close();
+    }
+}, 8000);
+
+// Auto-hide info alerts after 10 seconds
+setTimeout(function() {
+    const infoAlert = document.querySelector('.alert-info');
+    if (infoAlert) {
+        const bsAlert = new bootstrap.Alert(infoAlert);
+        bsAlert.close();
+    }
+}, 10000);
+
+// Add smooth scroll to top when page loads with success message
+if (document.querySelector('.alert-success')) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 </script>
 @endsection

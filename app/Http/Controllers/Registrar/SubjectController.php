@@ -16,18 +16,33 @@ class SubjectController extends Controller
     {
         $registrar = Auth::guard('registrar')->user();
 
-        // Get the grade filter from request
+        // Get filters from request
         $gradeFilter = $request->get('grade_level');
+        $trackFilter = $request->get('track');
+        $strandFilter = $request->get('strand');
 
         // Build query for all subjects
         $query = Subject::with(['teacher', 'registrar'])
             ->orderBy('grade_level')
+            ->orderBy('track')
             ->orderBy('strand')
             ->orderBy('name');
 
-        // Apply grade filter if specified
+        // Apply filters if specified
         if ($gradeFilter && $gradeFilter !== 'all') {
-            $query->where('grade_level', $gradeFilter);
+            if ($gradeFilter === '11') {
+                $query->where('grade_level', 'Grade 11');
+            } elseif ($gradeFilter === '12') {
+                $query->where('grade_level', 'Grade 12');
+            }
+        }
+
+        if ($trackFilter && $trackFilter !== 'all') {
+            $query->where('track', $trackFilter);
+        }
+
+        if ($strandFilter && $strandFilter !== 'all') {
+            $query->where('strand', $strandFilter);
         }
 
         $allSubjects = $query->get();
@@ -38,7 +53,7 @@ class SubjectController extends Controller
         // Get filtered count
         $filteredSubjectsCount = $allSubjects->count();
 
-        // Get available grade levels for dropdown
+        // Get available options for dropdowns
         $availableGrades = Subject::select('grade_level')
             ->distinct()
             ->whereNotNull('grade_level')
@@ -47,12 +62,32 @@ class SubjectController extends Controller
             ->filter()
             ->values();
 
+        $availableTracks = Subject::select('track')
+            ->distinct()
+            ->whereNotNull('track')
+            ->orderBy('track')
+            ->pluck('track')
+            ->filter()
+            ->values();
+
+        $availableStrands = Subject::select('strand')
+            ->distinct()
+            ->whereNotNull('strand')
+            ->orderBy('strand')
+            ->pluck('strand')
+            ->filter()
+            ->values();
+
         return view('registrar.subjects.index', compact(
             'allSubjects',
             'totalSubjectsCount',
             'filteredSubjectsCount',
             'availableGrades',
-            'gradeFilter'
+            'availableTracks',
+            'availableStrands',
+            'gradeFilter',
+            'trackFilter',
+            'strandFilter'
         ));
     }
 
@@ -159,8 +194,7 @@ class SubjectController extends Controller
         // Ensure code is uppercase
         $validated['code'] = strtoupper($validated['code']);
 
-        // Add default units value since we removed it from the form
-        $validated['units'] = 3; // Default to 3 units
+        // Units removed - not applicable for senior high school
 
         Subject::create($validated);
 
@@ -174,11 +208,8 @@ class SubjectController extends Controller
 
     public function edit(Subject $subject)
     {
-        // Check if the current registrar owns this subject
-        if ($subject->registrar_id !== Auth::guard('registrar')->id()) {
-            return redirect()->route('registrar.subjects.index')
-                ->with('error', 'You can only edit subjects that you created.');
-        }
+        // Allow all registrars to edit any subject
+        // Note: Removed ownership restriction to allow full registrar access
 
         // Get all active teachers for assignment
         $teachers = \App\Models\Teacher::where('status', 'active')
@@ -190,11 +221,8 @@ class SubjectController extends Controller
 
     public function update(Request $request, Subject $subject)
     {
-        // Check if the current registrar owns this subject
-        if ($subject->registrar_id !== Auth::guard('registrar')->id()) {
-            return redirect()->route('registrar.subjects.index')
-                ->with('error', 'You can only update subjects that you created.');
-        }
+        // Allow all registrars to update any subject
+        // Note: Removed ownership restriction to allow full registrar access
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -228,11 +256,8 @@ class SubjectController extends Controller
 
     public function destroy(Subject $subject)
     {
-        // Check if the current registrar owns this subject
-        if ($subject->registrar_id !== Auth::guard('registrar')->id()) {
-            return redirect()->route('registrar.subjects.index')
-                ->with('error', 'You can only delete subjects that you created.');
-        }
+        // Allow all registrars to delete any subject
+        // Note: Removed ownership restriction to allow full registrar access
 
         // Check if subject is assigned to any students (optional safety check)
         // Uncomment if you have student-subject relationships
@@ -246,6 +271,93 @@ class SubjectController extends Controller
 
         return redirect()->route('registrar.subjects.index')
             ->with('success', "Subject '{$subjectName}' has been deleted successfully.");
+    }
+
+    /**
+     * Get tracks based on grade level (AJAX endpoint)
+     */
+    public function getTracksByGrade(Request $request)
+    {
+        $gradeLevel = $request->get('grade_level');
+
+        if (!$gradeLevel || $gradeLevel === 'all') {
+            $tracks = Subject::select('track')
+                ->distinct()
+                ->whereNotNull('track')
+                ->where('track', '!=', '')
+                ->orderBy('track')
+                ->pluck('track');
+        } else {
+            $gradeFilter = $gradeLevel === '11' ? 'Grade 11' : 'Grade 12';
+            $tracks = Subject::select('track')
+                ->distinct()
+                ->where('grade_level', $gradeFilter)
+                ->whereNotNull('track')
+                ->where('track', '!=', '')
+                ->orderBy('track')
+                ->pluck('track');
+        }
+
+        return response()->json($tracks);
+    }
+
+    /**
+     * Get strands based on grade level and track (AJAX endpoint)
+     */
+    public function getStrandsByGradeAndTrack(Request $request)
+    {
+        $gradeLevel = $request->get('grade_level');
+        $track = $request->get('track');
+
+        $query = Subject::select('strand')->distinct();
+
+        if ($gradeLevel && $gradeLevel !== 'all') {
+            $gradeFilter = $gradeLevel === '11' ? 'Grade 11' : 'Grade 12';
+            $query->where('grade_level', $gradeFilter);
+        }
+
+        if ($track && $track !== 'all') {
+            $query->where('track', $track);
+        }
+
+        $strands = $query->whereNotNull('strand')
+            ->where('strand', '!=', '')
+            ->orderBy('strand')
+            ->pluck('strand');
+
+        return response()->json($strands);
+    }
+
+    /**
+     * Get subjects based on grade level, track, and strand (AJAX endpoint)
+     */
+    public function getSubjectsByFilters(Request $request)
+    {
+        $gradeLevel = $request->get('grade_level');
+        $track = $request->get('track');
+        $strand = $request->get('strand');
+
+        $query = Subject::with(['teacher', 'registrar']);
+
+        if ($gradeLevel && $gradeLevel !== 'all') {
+            $gradeFilter = $gradeLevel === '11' ? 'Grade 11' : 'Grade 12';
+            $query->where('grade_level', $gradeFilter);
+        }
+
+        if ($track && $track !== 'all') {
+            $query->where('track', $track);
+        }
+
+        if ($strand && $strand !== 'all') {
+            $query->where('strand', $strand);
+        }
+
+        $subjects = $query->orderBy('name')->get();
+
+        return response()->json([
+            'subjects' => $subjects,
+            'count' => $subjects->count()
+        ]);
     }
 
     public function assignSubjects($studentId)

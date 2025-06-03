@@ -176,6 +176,71 @@
     </div>
 </div>
 
+<!-- Analytics Section -->
+<div class="row g-4 mb-4">
+    <!-- Students by Grade Chart -->
+    <div class="col-xl-6 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2 text-primary"></i>
+                    Students by Grade Level
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="studentsGradeChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students by Track Chart -->
+    <div class="col-xl-6 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2 text-success"></i>
+                    Students by Track
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="studentsTrackChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Registration Trends -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2 text-info"></i>
+                    Monthly Registration Trends (Last 6 Months)
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyRegistrationChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users by Role Chart -->
+    <div class="col-xl-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2 text-warning"></i>
+                    Users by Role
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="usersByRoleChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- System Overview Section -->
 <div class="row g-4 mb-4">
     <div class="col-xl-8">
@@ -347,5 +412,309 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
+/* Chart containers */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
 </style>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Chart.js default configuration
+    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.color = '#6b7280';
+    Chart.defaults.plugins.legend.display = true;
+    Chart.defaults.plugins.legend.position = 'bottom';
+
+    // Students by Grade Level Chart
+    const studentsGradeCtx = document.getElementById('studentsGradeChart').getContext('2d');
+    const studentsGradeData = @json($studentsByGrade);
+
+    new Chart(studentsGradeCtx, {
+        type: 'bar',
+        data: {
+            labels: studentsGradeData.map(item => item.grade_level || 'Not Set'),
+            datasets: [{
+                label: 'Number of Students',
+                data: studentsGradeData.map(item => item.count),
+                backgroundColor: [
+                    '#3b82f6', // Blue
+                    '#10b981', // Green
+                    '#f59e0b', // Yellow
+                    '#ef4444', // Red
+                    '#8b5cf6', // Purple
+                    '#06b6d4'  // Cyan
+                ],
+                borderColor: [
+                    '#2563eb',
+                    '#059669',
+                    '#d97706',
+                    '#dc2626',
+                    '#7c3aed',
+                    '#0891b2'
+                ],
+                borderWidth: 2,
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#374151',
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        color: '#6b7280'
+                    },
+                    grid: {
+                        color: '#f3f4f6'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#6b7280'
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Students by Track Chart
+    const studentsTrackCtx = document.getElementById('studentsTrackChart').getContext('2d');
+    const studentsTrackData = @json($studentsByTrack);
+
+    new Chart(studentsTrackCtx, {
+        type: 'bar',
+        data: {
+            labels: studentsTrackData.map(item => item.track || 'Not Set'),
+            datasets: [{
+                label: 'Number of Students',
+                data: studentsTrackData.map(item => item.count),
+                backgroundColor: [
+                    '#10b981', // Green
+                    '#3b82f6', // Blue
+                    '#f59e0b', // Yellow
+                    '#ef4444', // Red
+                    '#8b5cf6'  // Purple
+                ],
+                borderColor: [
+                    '#059669',
+                    '#2563eb',
+                    '#d97706',
+                    '#dc2626',
+                    '#7c3aed'
+                ],
+                borderWidth: 2,
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#374151',
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        color: '#6b7280'
+                    },
+                    grid: {
+                        color: '#f3f4f6'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#6b7280'
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Monthly Registration Trends Chart
+    const monthlyRegistrationCtx = document.getElementById('monthlyRegistrationChart').getContext('2d');
+    const monthlyRegistrationData = @json($monthlyRegistrations);
+
+    new Chart(monthlyRegistrationCtx, {
+        type: 'bar',
+        data: {
+            labels: monthlyRegistrationData.map(item => item.month),
+            datasets: [
+                {
+                    label: 'Students',
+                    data: monthlyRegistrationData.map(item => item.students),
+                    backgroundColor: '#3b82f6',
+                    borderColor: '#2563eb',
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    borderSkipped: false
+                },
+                {
+                    label: 'Teachers',
+                    data: monthlyRegistrationData.map(item => item.teachers),
+                    backgroundColor: '#10b981',
+                    borderColor: '#059669',
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    borderSkipped: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#374151',
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        color: '#6b7280'
+                    },
+                    grid: {
+                        color: '#f3f4f6'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#6b7280'
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Users by Role Chart (Doughnut)
+    const usersByRoleCtx = document.getElementById('usersByRoleChart').getContext('2d');
+    const usersByRoleData = @json($usersByRole);
+
+    new Chart(usersByRoleCtx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(usersByRoleData),
+            datasets: [{
+                data: Object.values(usersByRoleData),
+                backgroundColor: [
+                    '#ef4444', // Red for Admin
+                    '#10b981', // Green for Teacher
+                    '#3b82f6'  // Blue for Student
+                ],
+                borderColor: [
+                    '#dc2626',
+                    '#059669',
+                    '#2563eb'
+                ],
+                borderWidth: 2,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15,
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                    const dataset = data.datasets[0];
+                                    const value = dataset.data[i];
+                                    return {
+                                        text: `${label}: ${value}`,
+                                        fillStyle: dataset.backgroundColor[i],
+                                        strokeStyle: dataset.borderColor[i],
+                                        lineWidth: dataset.borderWidth,
+                                        pointStyle: 'circle',
+                                        hidden: false,
+                                        index: i
+                                    };
+                                });
+                            }
+                            return [];
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#374151',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return `${context.label}: ${context.parsed} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            cutout: '60%'
+        }
+    });
+});
+</script>
+@endpush

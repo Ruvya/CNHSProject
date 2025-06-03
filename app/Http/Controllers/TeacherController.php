@@ -19,30 +19,36 @@ class TeacherController extends Controller
     public function dashboard()
     {
         $teacher = Auth::guard('teacher')->user();
-        
+
+        // Get subjects from both assignment methods
+        $assignedSubjects = $teacher->assignedSubjects()->get();
+        $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
+        $allSubjects = $assignedSubjects->merge($directSubjects)->unique('id');
+        $allSubjectIds = $allSubjects->pluck('id')->toArray();
+
         // Get total students in teacher's subjects
-        $totalStudents = Student::whereHas('subjects', function($query) use ($teacher) {
-            $query->where('teacher_id', $teacher->id);
+        $totalStudents = Student::whereHas('subjects', function($query) use ($allSubjectIds) {
+            $query->whereIn('subjects.id', $allSubjectIds);
         })->count();
 
         // Get total subjects assigned to teacher
-        $totalSubjects = Subject::where('teacher_id', $teacher->id)->count();
+        $totalSubjects = $allSubjects->count();
 
         // Get total classes (subjects with students)
-        $totalClasses = Subject::where('teacher_id', $teacher->id)
+        $totalClasses = Subject::whereIn('id', $allSubjectIds)
             ->whereHas('students')
             ->count();
 
         // Get pending tasks (grades that need to be submitted)
-        $pendingTasks = Grade::whereHas('subject', function($query) use ($teacher) {
-            $query->where('teacher_id', $teacher->id);
+        $pendingTasks = Grade::whereHas('subject', function($query) use ($allSubjectIds) {
+            $query->whereIn('subjects.id', $allSubjectIds);
         })
         ->whereNull('grade')
         ->count();
 
         // Get recent activities (grades posted)
-        $recentActivities = Grade::whereHas('subject', function($query) use ($teacher) {
-            $query->where('teacher_id', $teacher->id);
+        $recentActivities = Grade::whereHas('subject', function($query) use ($allSubjectIds) {
+            $query->whereIn('subjects.id', $allSubjectIds);
         })
         ->with(['student', 'subject'])
         ->latest()
@@ -64,4 +70,4 @@ class TeacherController extends Controller
             'recentActivities'
         ));
     }
-} 
+}

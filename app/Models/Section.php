@@ -36,13 +36,7 @@ class Section extends Model
         return $this->belongsTo(Teacher::class, 'adviser_id');
     }
 
-    /**
-     * Get all student assignments for this section
-     */
-    public function studentAssignments(): HasMany
-    {
-        return $this->hasMany(StudentAssignment::class);
-    }
+
 
     /**
      * Get all teacher assignments for this section
@@ -52,20 +46,7 @@ class Section extends Model
         return $this->hasMany(TeacherAssignment::class);
     }
 
-    /**
-     * Get students currently assigned to this section
-     */
-    public function students()
-    {
-        return $this->hasManyThrough(
-            Student::class,
-            StudentAssignment::class,
-            'section_id',
-            'id',
-            'id',
-            'student_id'
-        )->where('student_assignments.status', 'active');
-    }
+
 
     /**
      * Check if section is full

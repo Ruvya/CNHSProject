@@ -14,7 +14,11 @@ class GradeController extends Controller
     public function index(Request $request)
     {
         $teacher = Auth::guard('teacher')->user();
-        $subjects = Subject::where('teacher_id', $teacher->id)->get();
+
+        // Get subjects from both assignment methods
+        $assignedSubjects = $teacher->assignedSubjects()->get();
+        $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
+        $subjects = $assignedSubjects->merge($directSubjects)->unique('id');
         $sections = ['A', 'B', 'C', 'D', 'E']; // Add more sections as needed
 
         $query = Student::query()
@@ -60,8 +64,11 @@ class GradeController extends Controller
         $student = Student::findOrFail($request->student_id);
         $subject = Subject::findOrFail($request->subject_id);
 
-        // Verify teacher has access to this subject
-        if ($subject->teacher_id !== $teacher->id) {
+        // Verify teacher has access to this subject (check both assignment methods)
+        $hasDirectAccess = $subject->teacher_id === $teacher->id;
+        $hasAssignmentAccess = $teacher->assignedSubjects()->where('subjects.id', $subject->id)->exists();
+
+        if (!$hasDirectAccess && !$hasAssignmentAccess) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have permission to grade this subject.'
@@ -124,8 +131,11 @@ class GradeController extends Controller
         $student = Student::findOrFail($request->student_id);
         $subject = Subject::findOrFail($request->subject_id);
 
-        // Verify teacher has access to this subject
-        if ($subject->teacher_id !== $teacher->id) {
+        // Verify teacher has access to this subject (check both assignment methods)
+        $hasDirectAccess = $subject->teacher_id === $teacher->id;
+        $hasAssignmentAccess = $teacher->assignedSubjects()->where('subjects.id', $subject->id)->exists();
+
+        if (!$hasDirectAccess && !$hasAssignmentAccess) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have permission to grade this subject.'
@@ -173,8 +183,11 @@ class GradeController extends Controller
         $teacher = Auth::guard('teacher')->user();
         $subject = Subject::findOrFail($subjectId);
 
-        // Verify teacher has access to this subject
-        if ($subject->teacher_id !== $teacher->id) {
+        // Verify teacher has access to this subject (check both assignment methods)
+        $hasDirectAccess = $subject->teacher_id === $teacher->id;
+        $hasAssignmentAccess = $teacher->assignedSubjects()->where('subjects.id', $subject->id)->exists();
+
+        if (!$hasDirectAccess && !$hasAssignmentAccess) {
             abort(403, 'You do not have permission to access this grade.');
         }
 

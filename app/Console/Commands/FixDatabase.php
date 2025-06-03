@@ -157,32 +157,8 @@ class FixDatabase extends Command
                 $this->info('   ✓ Sections table already exists.');
             }
 
-            // 5. Create student_assignments table
-            $this->info('5. Creating student_assignments table...');
-            if (!Schema::hasTable('student_assignments')) {
-                DB::statement("
-                    CREATE TABLE student_assignments (
-                        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                        student_id BIGINT UNSIGNED NOT NULL,
-                        section_id BIGINT UNSIGNED NOT NULL,
-                        school_year VARCHAR(255) NOT NULL,
-                        grading_period VARCHAR(255) NOT NULL,
-                        assignment_date DATE NOT NULL,
-                        status ENUM('active', 'transferred', 'dropped') DEFAULT 'active',
-                        assigned_by BIGINT UNSIGNED NOT NULL,
-                        notes TEXT NULL,
-                        created_at TIMESTAMP NULL,
-                        updated_at TIMESTAMP NULL,
-                        FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
-                        FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE CASCADE,
-                        FOREIGN KEY (assigned_by) REFERENCES registrars(id) ON DELETE CASCADE,
-                        UNIQUE KEY unique_student_per_term (student_id, school_year, grading_period)
-                    )
-                ");
-                $this->info('   ✓ Student assignments table created successfully!');
-            } else {
-                $this->info('   ✓ Student assignments table already exists.');
-            }
+            // 5. Student assignments functionality has been removed
+            $this->info('5. Student assignments functionality has been removed - skipping...');
 
             // 6. Create teacher_assignments table
             $this->info('6. Creating teacher_assignments table...');

@@ -88,4 +88,52 @@ class Teacher extends Authenticatable
     {
         return $this->hasMany(Section::class, 'adviser_id');
     }
+
+    /**
+     * Get subjects assigned to this teacher through teacher assignments
+     */
+    public function assignedSubjects()
+    {
+        return $this->belongsToMany(Subject::class, 'teacher_assignments', 'teacher_id', 'subject_id')
+            ->wherePivot('status', 'active')
+            ->withPivot('school_year', 'grading_period', 'schedule', 'assignment_date', 'notes');
+    }
+
+    /**
+     * Get current active assigned subjects for the current school year
+     */
+    public function currentAssignedSubjects($schoolYear = null, $gradingPeriod = null)
+    {
+        $query = $this->belongsToMany(Subject::class, 'teacher_assignments', 'teacher_id', 'subject_id')
+            ->wherePivot('status', 'active');
+
+        if ($schoolYear) {
+            $query->wherePivot('school_year', $schoolYear);
+        }
+
+        if ($gradingPeriod) {
+            $query->wherePivot('grading_period', $gradingPeriod);
+        }
+
+        return $query->withPivot('school_year', 'grading_period', 'schedule', 'assignment_date', 'notes');
+    }
+
+    /**
+     * Get all subjects (both direct assignment and through teacher assignments)
+     */
+    public function allSubjects()
+    {
+        // Get subjects from direct assignment (old way)
+        $directSubjects = $this->subjects();
+
+        // Get subjects from teacher assignments (new way)
+        $assignedSubjects = $this->assignedSubjects();
+
+        // Combine both and return unique subjects
+        $directIds = $directSubjects->pluck('id')->toArray();
+        $assignedIds = $assignedSubjects->pluck('id')->toArray();
+        $allIds = array_unique(array_merge($directIds, $assignedIds));
+
+        return Subject::whereIn('id', $allIds);
+    }
 }

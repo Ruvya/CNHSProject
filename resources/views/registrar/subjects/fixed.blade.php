@@ -10,7 +10,7 @@
                     <span class="badge bg-success">All Admin-Created Subjects Visible</span>
                 </div>
                 <div class="card-body">
-                    
+
                     <!-- Success Alert -->
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -86,7 +86,7 @@
                             <i class="fas fa-graduation-cap me-2 text-success"></i>Grade 11 Subjects
                             <span class="badge bg-success ms-2">{{ $grade11Count }} subjects</span>
                         </h4>
-                        
+
                         @foreach($availableStrands as $strand)
                             @php
                                 $subjects11 = $subjectsByGradeAndStrand['Grade 11'][$strand] ?? collect();
@@ -148,7 +148,7 @@
                             <i class="fas fa-graduation-cap me-2 text-info"></i>Grade 12 Subjects
                             <span class="badge bg-info ms-2">{{ $grade12Count }} subjects</span>
                         </h4>
-                        
+
                         @foreach($availableStrands as $strand)
                             @php
                                 $subjects12 = $subjectsByGradeAndStrand['Grade 12'][$strand] ?? collect();
@@ -173,9 +173,9 @@
                                                             <th>Subject Code</th>
                                                             <th>Subject Name</th>
                                                             <th>Description</th>
-                                                            <th>Units</th>
-                                                            <th>Teacher</th>
                                                             <th>Track</th>
+                                                            <th>Teacher</th>
+                                                            <th>Strand</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -184,9 +184,9 @@
                                                                 <td><strong>{{ $subject->code ?? $subject->subject_code ?? 'N/A' }}</strong></td>
                                                                 <td>{{ $subject->name ?? $subject->subject_name ?? 'N/A' }}</td>
                                                                 <td>{{ Str::limit($subject->description ?? 'No description', 50) }}</td>
-                                                                <td><span class="badge bg-info">{{ $subject->units ?? 'N/A' }}</span></td>
+                                                                <td><span class="badge bg-info">{{ $subject->track ?? 'N/A' }}</span></td>
                                                                 <td>{{ $subject->teacher->name ?? 'Not Assigned' }}</td>
-                                                                <td><span class="badge bg-secondary">{{ $subject->track ?? 'N/A' }}</span></td>
+                                                                <td><span class="badge bg-secondary">{{ $subject->strand ?? 'N/A' }}</span></td>
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
@@ -210,7 +210,7 @@
                             <i class="fas fa-list me-2 text-warning"></i>All Subjects (Unfiltered View)
                             <span class="badge bg-warning ms-2">{{ $allSubjects->count() }} subjects</span>
                         </h4>
-                        
+
                         <div class="card">
                             <div class="card-header bg-warning text-dark">
                                 <h6 class="mb-0">Complete Subject List (Including Admin-Created Subjects)</h6>
