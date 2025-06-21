@@ -233,7 +233,8 @@ class Student extends Authenticatable
         return !empty($this->track) && !empty($this->strand) && !empty($this->grade_level);
     }
 
-
-
-
+    public function yearlyRecords()
+    {
+        return $this->hasMany(StudentYearlyRecord::class);
+    }
 }

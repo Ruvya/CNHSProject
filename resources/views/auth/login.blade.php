@@ -384,13 +384,17 @@
                     @enderror
                 </div>
 
+                <div class="mb-3 text-center">
+                    <a href="#" class="forgot-password-link">Forgot Password?</a>
+                </div>
+
+                <div class="register-link">
+                    <p>Don't have an account? <a href="{{ route('register.teacher') }}">Register as a Teacher</a></p>
+                </div>
+
                 <button type="submit" class="btn btn-primary btn-login mb-3">
                     Login
                 </button>
-
-                <div class="register-link">
-                    <p>Don't have an account? <a href="{{ route('register') }}">Register</a></p>
-                </div>
             </form>
         </div>
     </div>

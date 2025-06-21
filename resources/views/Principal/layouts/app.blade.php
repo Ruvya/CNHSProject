@@ -8,6 +8,9 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -30,22 +33,14 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: #0d47a1 !important;
-            font-weight: 600;
-        }
+      span{
+        color: #0d47a1 !important;
+        font-weight: 600;
+        font-size: 1.25rem;
+        letter-spacing: 0.5px;
+      }
 
-        .navbar-brand span {
-            font-size: 1.25rem;
-            letter-spacing: 0.5px;
-        }
-
-        .navbar-brand:hover {
-            color: #1565c0 !important;
-        }
+       
 
         .navbar-brand img {
             transition: transform 0.3s ease;
@@ -75,9 +70,6 @@
             transition: width 0.3s ease;
         }
 
-        .nav-link:hover {
-            color: #1565c0 !important;
-        }
 
         .nav-link:hover::after {
             width: 100%;

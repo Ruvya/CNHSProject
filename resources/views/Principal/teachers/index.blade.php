@@ -1,48 +1,172 @@
-@extends('PRINCIPAL.layouts.admin')
+@extends('Principal.layouts.admin')
 
-@section('title', 'Manage Teachers')
+@section('title', 'Teacher Management')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <h2 class="mb-4">Teachers List</h2>
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="page-title">
+            <div class="">
+                 
+                </div>
+                <i class="fas fa-chalkboard-teacher me-3"></i>
+                Faculty Management
+            </h1>
+            <p class="page-subtitle">
+                Manage teaching staff information, assignments, and status
+            </p>
         </div>
-        <div class="col-md-6 text-md-end">
-            <a href="{{ route('principal.teachers.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Add New Teacher
-            </a>
-        </div>
+       
     </div>
+</div>
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>Success!</strong> {{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
-    <div class="card">
-        <div class="card-body">
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <strong>Error!</strong> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('info'))
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Info:</strong> {{ session('info') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    <!-- Faculty Registration Information -->
+    <div class="info-card mb-4">
+        <div class="info-card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-user-plus me-2"></i>
+                Faculty Registration Process
+            </h5>
+        </div>
+        <div class="info-card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="registration-steps">
+                        <h6 class="text-primary mb-3">How New Faculty Members Join:</h6>
+                        <div class="step-item">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <strong>Self Registration:</strong> Faculty visit <code>{{ url('/register') }}</code>
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <strong>Role Selection:</strong> They select "Teacher" during account creation
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <strong>Account Creation:</strong> Complete profile with email and password
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <strong>Management:</strong> They appear here for administrative oversight
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="registration-visual">
+                        <div class="visual-icon">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <h6 class="mt-3 mb-2">Self-Service Registration</h6>
+                        <p class="text-muted small mb-0">Faculty create their own accounts</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Faculty Directory -->
+    <div class="faculty-directory-card">
+        <div class="faculty-directory-header">
+            <h5 class="mb-0">
+                <i class="fas fa-address-book me-2"></i>
+                Faculty Directory
+            </h5>
+            <div class="faculty-stats">
+                <span class="stat-item">
+                    <i class="fas fa-users me-1"></i>
+                    {{ count($teachers) }} Total
+                </span>
+                <span class="stat-item">
+                    <i class="fas fa-check-circle me-1"></i>
+                    {{ collect($teachers)->where('status', 'active')->count() }} Active
+                </span>
+            </div>
+            <div class="dropdown ms-3">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="facultyFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-filter me-2"></i>Filter Faculty
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="facultyFilterDropdown">
+                    <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); filterTeachers('active');"><i class="fas fa-check-circle me-2 text-success"></i>Active Only</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); filterTeachers('inactive');"><i class="fas fa-pause-circle me-2 text-secondary"></i>Inactive Only</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); filterTeachers('all');"><i class="fas fa-users me-2"></i>Show All</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="faculty-directory-body">
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="faculty-table">
                     <thead>
                         <tr>
-                            <th>Full Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            
-                            <th>Subject Specialty</th>
-                            <th>Actions</th>
+                            <th>
+                                <i class="fas fa-user me-2"></i>FACULTY MEMBER
+                            </th>
+                            <th>
+                                <i class="fas fa-envelope me-2"></i>EMAIL
+                            </th>
+                            <th>
+                                <i class="fas fa-phone me-2"></i>CONTACT NUMBER
+                            </th>
+                            <th>
+                                <i class="fas fa-book me-2"></i>SUBJECT AREA
+                            </th>
+                            <th>
+                                <i class="fas fa-graduation-cap me-2"></i>STRAND
+                            </th>
+                            <th>
+                                <i class="fas fa-toggle-on me-2"></i>STATUS
+                            </th>
+                            <th>
+                                <i class="fas fa-cogs me-2"></i>ACTIONS
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($teachers as $teacher)
-                            <tr>
+                            <tr id="teacher-row-{{ $teacher->id }}">
                                 <td>{{ $teacher->name }}</td>
                                 <td>{{ $teacher->email }}</td>
-                                <td>{{ $teacher->phone }}</td>
-                                <td>{{ $teacher->subject_specialty }}</td>
+                                <td>{{ $teacher->contact_number }}</td>
+                                <td>{{ $teacher->subject ?? 'N/A' }}</td>
+                                <td>{{ $teacher->strand ?? 'N/A' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ $teacher->status === 'active' ? 'success' : 'secondary' }}">
+                                        {{ ucfirst($teacher->status) }}
+                                    </span>
+                                </td>
                                 <td>
                                     <a href="{{ route('principal.teachers.edit', $teacher) }}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-edit"></i>
@@ -58,7 +182,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center">No teachers found.</td>
+                                <td colspan="7" class="text-center">No teachers found.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -67,4 +191,497 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection
+
+@section('styles')
+<style>
+    /* CSS Variables */
+    :root {
+        --primary-orange: #ff6b35;
+        --primary-orange-light: #ff8c5a;
+        --primary-yellow: #ffd23f;
+        --primary-blue: #007bff;
+        --primary-blue-light: #4dabf7;
+        --success-color: #28a745;
+        --info-color: #17a2b8;
+    }
+
+    /* Page Header Styling */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-yellow) 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        border: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        color: var(--white);
+    }
+
+    .page-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
+        clip-path: polygon(100% 0, 100% 100%, 0 100%, 20% 0);
+        opacity: 0.9;
+        z-index: 1;
+    }
+
+    .page-title {
+        color: var(--white);
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .page-subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
+        margin-bottom: 0;
+        font-weight: 400;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Info Card Styling */
+    .info-card {
+        background: var(--white);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: none;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-card-header {
+        background: linear-gradient(to right, var(--primary-blue), var(--primary-blue-light));
+        color: var(--white);
+        padding: 1.5rem;
+        border-bottom: none;
+        font-weight: 600;
+    }
+
+    .info-card-body {
+        padding: 1.5rem;
+    }
+
+    /* Registration Steps */
+    .registration-steps {
+        padding: 1rem 0;
+    }
+
+    .step-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .step-item:hover {
+        background: var(--gray-50);
+    }
+
+    .step-number {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
+        color: var(--white);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+
+    .step-content {
+        flex-grow: 1;
+    }
+
+    /* Faculty Directory */
+    .faculty-directory-card {
+        background: var(--white);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: none;
+        overflow: hidden;
+    }
+
+    .faculty-directory-header {
+        background: linear-gradient(to right, var(--primary-blue), var(--primary-blue-light));
+        color: var(--white);
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .faculty-stats {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .stat-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+    }
+
+    .faculty-directory-body {
+        padding: 1.5rem;
+    }
+
+    /* Table Styling */
+    .faculty-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .faculty-table th {
+        background: var(--gray-50);
+        color: var(--text-dark);
+        font-weight: 600;
+        padding: 1rem;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--gray-200);
+    }
+
+    .faculty-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--gray-200);
+        vertical-align: middle;
+    }
+
+    .faculty-table tr:hover {
+        background-color: var(--gray-50);
+    }
+
+    /* Badge Styling */
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge.bg-success {
+        background: linear-gradient(135deg, var(--success-color) 0%, #16a34a 100%) !important;
+    }
+
+    .badge.bg-secondary {
+        background: linear-gradient(135deg,var(--primary-blue-light) 0%, var(--primary-blue) 100%) !important;
+    }
+
+    /* Button Styling */
+ 
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+
+    .btn-danger:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--primary-orange-light);
+    }
+
+
+    .btn-outline-primary:hover {
+        background: var(--primary-orange-light) var(--primary-orange-light);
+        border-color: transparent;
+        color: var(--white);
+        transform: translateY(-1px);
+    }
+
+    /* Alert Styling */
+    .alert {
+        border: none;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, var(--success-color) 0%, #16a34a 100%);
+        color: var(--white);
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: var(--white);
+    }
+
+    .alert-info {
+        background: linear-gradient(135deg, var(--info-color) 0%, #2563eb 100%);
+        color: var(--white);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .page-header {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            justify-content: center;
+        }
+
+        .faculty-directory-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .faculty-stats {
+            justify-content: center;
+        }
+
+        .faculty-table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+    }
+
+    /* Header Button Group */
+    .header-button-group {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        padding: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        z-index: 2;
+    }
+
+    .header-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+        border: none;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        color: var(--white);
+    }
+
+    .header-btn:hover {
+        transform: translateY(-2px);
+        color: var(--white);
+    }
+
+    .header-btn.btn-refresh {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+    }
+
+    .header-btn.btn-refresh:hover {
+        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
+        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .dropdown-menu {
+        border: none;
+        border-radius: 10px;
+        padding: 0.5rem;
+        min-width: 200px;
+        background: #ffffff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-top: 0.5rem;
+    }
+
+    .dropdown-item {
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        transition: all 0.2s ease;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .dropdown-item:hover {
+        background-color: rgba(0, 123, 255, 0.1);
+        transform: translateX(5px);
+    }
+
+    .dropdown-item i {
+        width: 20px;
+        text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .header-button-group {
+            margin-top: 1rem;
+        }
+    }
+</style>
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listener to all delete buttons
+    document.querySelectorAll('form[action*="teachers"]').forEach(form => {
+        if (form.querySelector('button[type="submit"]').textContent.includes('trash')) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                if (confirm('Are you sure you want to delete this teacher?')) {
+                    const form = this;
+                    const button = form.querySelector('button[type="submit"]');
+                    const teacherId = form.action.split('/').pop();
+                    const row = document.getElementById('teacher-row-' + teacherId);
+
+                    // Immediately hide the row with animation
+                    if (row) {
+                        row.style.transition = 'all 0.3s ease';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(-20px)';
+
+                        // Remove the row after animation
+                        setTimeout(() => {
+                            row.remove();
+
+                            // Check if there are no more teachers
+                            const remainingRows = document.querySelectorAll('tbody tr:not(.no-teachers)');
+                            if (remainingRows.length === 0) {
+                                const tbody = document.querySelector('tbody');
+                                const noTeachersRow = document.createElement('tr');
+                                noTeachersRow.className = 'no-teachers';
+                                noTeachersRow.innerHTML = `
+                                    <td colspan="7" class="text-center">No teachers found.</td>
+                                `;
+                                tbody.appendChild(noTeachersRow);
+                            }
+                        }, 300);
+                    }
+
+                    // Submit the form to server
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: new FormData(form)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+
+                        // Show success message
+                        showAlert('success', 'Teacher deleted successfully.');
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+
+                        // If there was an error, revert the deletion
+                        if (!document.getElementById('teacher-row-' + teacherId)) {
+                            const tbody = document.querySelector('tbody');
+                            tbody.insertBefore(row, tbody.firstChild);
+                            row.style.opacity = '1';
+                            row.style.transform = 'translateX(0)';
+                        }
+
+                        // Show error message
+                        showAlert('danger', 'Error deleting teacher. The teacher has been restored.');
+                    });
+                }
+            });
+        }
+    });
+
+    // Filter functionality
+    window.filterTeachers = function(status) {
+        const rows = document.querySelectorAll('tbody tr:not(.no-teachers)');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const statusBadge = row.querySelector('.badge');
+            const teacherStatus = statusBadge ? statusBadge.textContent.toLowerCase().trim() : '';
+
+            if (status === 'all' || teacherStatus === status) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Update filter button text
+        const filterBtn = document.querySelector('.header-btn');
+        const filterText = status === 'all' ? 'All Teachers' :
+                          status === 'active' ? 'Active Only' : 'Inactive Only';
+        filterBtn.innerHTML = `<i class="fas fa-filter"></i> ${filterText}`;
+
+        // Show/hide no results message
+        const tbody = document.querySelector('tbody');
+        const noTeachersRow = tbody.querySelector('.no-teachers');
+
+        if (visibleCount === 0 && !noTeachersRow) {
+            const noResultsRow = document.createElement('tr');
+            noResultsRow.className = 'no-teachers';
+            noResultsRow.innerHTML = `
+                <td colspan="7" class="text-center">No teachers found for the selected filter.</td>
+            `;
+            tbody.appendChild(noResultsRow);
+        } else if (visibleCount > 0 && noTeachersRow) {
+            noTeachersRow.remove();
+        }
+    };
+
+    // Function to show alert messages
+    function showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.style.opacity = '0';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+
+        const container = document.querySelector('.container-fluid');
+        container.insertBefore(alertDiv, container.children[1]);
+
+        // Animate the alert
+        setTimeout(() => {
+            alertDiv.style.transition = 'opacity 0.3s ease';
+            alertDiv.style.opacity = '1';
+        }, 10);
+
+        // Auto-dismiss the alert after 3 seconds
+        setTimeout(() => {
+            alertDiv.style.opacity = '0';
+            setTimeout(() => alertDiv.remove(), 300);
+        }, 3000);
+    }
+});
+</script>
+@endsection

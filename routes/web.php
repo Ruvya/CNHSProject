@@ -5,8 +5,22 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\Registrar\AuthController as RegistrarAuthController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
-use App\Http\Controllers\Student\ProfileController;
+use App\Http\Controllers\Student\ProfileController as StudentProfileController;
 use App\Http\Controllers\Teacher\TeacherController;
+use App\Http\Controllers\Principal\EventController;
+use App\Http\Controllers\Principal\DashboardController;
+use App\Http\Controllers\Principal\ProfileController as PrincipalProfileController;
+use App\Http\Controllers\Principal\MessageController;
+use App\Http\Controllers\Principal\AnnouncementController;
+use App\Http\Controllers\Principal\SettingsController;
+use App\Http\Controllers\Principal\UserController;
+use App\Http\Controllers\Registrar\DashboardController as RegistrarDashboardController;
+use App\Http\Controllers\Registrar\StudentController as RegistrarStudentController;
+use App\Http\Controllers\Registrar\SubjectController as RegistrarSubjectController;
+use App\Http\Controllers\Registrar\TeacherAssignmentController;
+use App\Http\Controllers\Registrar\StudentSubjectAssignmentController;
+use App\Http\Controllers\Registrar\AutomaticSubjectAssignmentController;
+use App\Http\Controllers\Registrar\StudentYearlyRecordController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -646,6 +660,10 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+// Teacher Registration Routes
+Route::get('/register/teacher', [RegisterController::class, 'showTeacherRegistrationForm'])->name('register.teacher');
+Route::post('/register/teacher', [RegisterController::class, 'registerTeacher'])->name('register.teacher.submit');
+
 // Simple Student Login (for testing)
 Route::get('/student-login', function () {
     return view('auth.simple-student-login');
@@ -693,7 +711,6 @@ Route::get('/direct-student-dashboard', function () {
 // Registration Routes
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register/student', [RegisterController::class, 'registerStudent'])->name('register.student');
-Route::post('/register/teacher', [RegisterController::class, 'registerTeacher'])->name('register.teacher');
 Route::get('/register/student', [RegisterController::class, 'showStudentRegisterForm'])->name('register.student.form');
 
 // Protected Routes
@@ -801,15 +818,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
 // Registrar Authentication Routes
 Route::prefix('registrar')->name('registrar.')->group(function () {
-    Route::get('/login', [App\Http\Controllers\Registrar\AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [App\Http\Controllers\Registrar\AuthController::class, 'login'])->name('login'); // Fixed: same name for POST
-    Route::post('/logout', [App\Http\Controllers\Registrar\AuthController::class, 'logout'])->name('logout');
+    Route::get('/login', [RegistrarAuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [RegistrarAuthController::class, 'login']);
+    Route::post('/logout', [RegistrarAuthController::class, 'logout'])->name('logout');
 });
 
 // Registrar Routes
 Route::prefix('registrar')->group(function () {
     // Dashboard route with proper middleware
-    Route::get('/dashboard', [App\Http\Controllers\Registrar\DashboardController::class, 'index'])
+    Route::get('/dashboard', [RegistrarDashboardController::class, 'index'])
         ->name('registrar.dashboard')
         ->middleware('auth:registrar');
 
@@ -817,87 +834,93 @@ Route::prefix('registrar')->group(function () {
         // Other protected routes will go here
 
         // Subject Management Routes
-        Route::get('/subjects', [App\Http\Controllers\Registrar\SubjectController::class, 'index'])->name('registrar.subjects.index');
-        Route::get('/subjects/create', [App\Http\Controllers\Registrar\SubjectController::class, 'create'])->name('registrar.subjects.create');
-        Route::post('/subjects', [App\Http\Controllers\Registrar\SubjectController::class, 'store'])->name('registrar.subjects.store');
-        Route::get('/subjects/{subject}', [App\Http\Controllers\Registrar\SubjectController::class, 'show'])->name('registrar.subjects.show');
-        Route::get('/subjects/{subject}/edit', [App\Http\Controllers\Registrar\SubjectController::class, 'edit'])->name('registrar.subjects.edit');
-        Route::put('/subjects/{subject}', [App\Http\Controllers\Registrar\SubjectController::class, 'update'])->name('registrar.subjects.update');
-        Route::delete('/subjects/{subject}', [App\Http\Controllers\Registrar\SubjectController::class, 'destroy'])->name('registrar.subjects.destroy');
-        Route::get('/subjects-fixed', [App\Http\Controllers\Registrar\SubjectController::class, 'subjectsFixed'])->name('registrar.subjects.fixed');
-        Route::get('/assign-subjects/{studentId}', [App\Http\Controllers\Registrar\SubjectController::class, 'assignSubjects'])->name('registrar.assign-subjects');
-        Route::post('/assign-subjects/{studentId}', [App\Http\Controllers\Registrar\SubjectController::class, 'storeAssignedSubjects'])->name('registrar.store-assigned-subjects');
+        Route::get('/subjects', [RegistrarSubjectController::class, 'index'])->name('registrar.subjects.index');
+        Route::get('/subjects/create', [RegistrarSubjectController::class, 'create'])->name('registrar.subjects.create');
+        Route::post('/subjects', [RegistrarSubjectController::class, 'store'])->name('registrar.subjects.store');
+        Route::get('/subjects/{subject}', [RegistrarSubjectController::class, 'show'])->name('registrar.subjects.show');
+        Route::get('/subjects/{subject}/edit', [RegistrarSubjectController::class, 'edit'])->name('registrar.subjects.edit');
+        Route::put('/subjects/{subject}', [RegistrarSubjectController::class, 'update'])->name('registrar.subjects.update');
+        Route::delete('/subjects/{subject}', [RegistrarSubjectController::class, 'destroy'])->name('registrar.subjects.destroy');
+        Route::get('/subjects-fixed', [RegistrarSubjectController::class, 'subjectsFixed'])->name('registrar.subjects.fixed');
+        Route::get('/assign-subjects/{studentId}', [RegistrarSubjectController::class, 'assignSubjects'])->name('registrar.assign-subjects');
+        Route::post('/assign-subjects/{studentId}', [RegistrarSubjectController::class, 'storeAssignedSubjects'])->name('registrar.store-assigned-subjects');
 
         // AJAX routes for dynamic filtering
-        Route::get('/api/tracks-by-grade', [App\Http\Controllers\Registrar\SubjectController::class, 'getTracksByGrade'])->name('registrar.api.tracks-by-grade');
-        Route::get('/api/strands-by-grade-track', [App\Http\Controllers\Registrar\SubjectController::class, 'getStrandsByGradeAndTrack'])->name('registrar.api.strands-by-grade-track');
-        Route::get('/api/subjects-by-filters', [App\Http\Controllers\Registrar\SubjectController::class, 'getSubjectsByFilters'])->name('registrar.api.subjects-by-filters');
+        Route::get('/api/tracks-by-grade', [RegistrarSubjectController::class, 'getTracksByGrade'])->name('registrar.api.tracks-by-grade');
+        Route::get('/api/strands-by-grade-track', [RegistrarSubjectController::class, 'getStrandsByGradeAndTrack'])->name('registrar.api.strands-by-grade-track');
+        Route::get('/api/subjects-by-filters', [RegistrarSubjectController::class, 'getSubjectsByFilters'])->name('registrar.api.subjects-by-filters');
 
 
 
         // Profile Management Routes
-        Route::get('/profile', [App\Http\Controllers\Registrar\ProfileController::class, 'index'])->name('registrar.profile');
-        Route::post('/profile', [App\Http\Controllers\Registrar\ProfileController::class, 'update'])->name('registrar.update-profile');
+        Route::get('/profile', [RegistrarAuthController::class, 'profile'])->name('profile');
+        Route::post('/profile', [RegistrarAuthController::class, 'updateProfile'])->name('profile.update');
 
         // Student Records Management Routes
-        Route::get('/students', [App\Http\Controllers\Registrar\StudentController::class, 'index'])->name('registrar.students.index');
-        Route::get('/students/create', [App\Http\Controllers\Registrar\StudentController::class, 'create'])->name('registrar.students.create');
-        Route::post('/students', [App\Http\Controllers\Registrar\StudentController::class, 'store'])->name('registrar.students.store');
-        Route::get('/students/{student}', [App\Http\Controllers\Registrar\StudentController::class, 'show'])->name('registrar.students.show');
-        Route::get('/students/{student}/edit', [App\Http\Controllers\Registrar\StudentController::class, 'edit'])->name('registrar.students.edit');
-        Route::put('/students/{student}', [App\Http\Controllers\Registrar\StudentController::class, 'update'])->name('registrar.students.update');
-        Route::delete('/students/{student}', [App\Http\Controllers\Registrar\StudentController::class, 'destroy'])->name('registrar.students.destroy');
-        Route::get('/students/{student}/enrollment', [App\Http\Controllers\Registrar\StudentController::class, 'enrollment'])->name('registrar.students.enrollment');
-        Route::post('/students/{student}/enrollment', [App\Http\Controllers\Registrar\StudentController::class, 'updateEnrollment'])->name('registrar.students.update-enrollment');
-        Route::post('/students/{student}/toggle-enrollment', [App\Http\Controllers\Registrar\StudentController::class, 'toggleEnrollmentStatus'])->name('registrar.students.toggle-enrollment');
-        Route::post('/students/bulk-action', [App\Http\Controllers\Registrar\StudentController::class, 'bulkAction'])->name('registrar.students.bulk-action');
+        Route::get('/students', [RegistrarStudentController::class, 'index'])->name('registrar.students.index');
+        Route::get('/students/create', [RegistrarStudentController::class, 'create'])->name('registrar.students.create');
+        Route::post('/students', [RegistrarStudentController::class, 'store'])->name('registrar.students.store');
+        Route::get('/students/{student}', [RegistrarStudentController::class, 'show'])->name('registrar.students.show');
+        Route::get('/students/{student}/edit', [RegistrarStudentController::class, 'edit'])->name('registrar.students.edit');
+        Route::put('/students/{student}', [RegistrarStudentController::class, 'update'])->name('registrar.students.update');
+        Route::delete('/students/{student}', [RegistrarStudentController::class, 'destroy'])->name('registrar.students.destroy');
+        Route::get('/students/{student}/enrollment', [RegistrarStudentController::class, 'enrollment'])->name('registrar.students.enrollment');
+        Route::post('/students/{student}/enrollment', [RegistrarStudentController::class, 'updateEnrollment'])->name('registrar.students.update-enrollment');
+        Route::post('/students/{student}/toggle-enrollment', [RegistrarStudentController::class, 'toggleEnrollmentStatus'])->name('registrar.students.toggle-enrollment');
+        Route::post('/students/bulk-action', [RegistrarStudentController::class, 'bulkAction'])->name('registrar.students.bulk-action');
 
         // Excel Upload Routes
-        Route::get('/students/upload', [App\Http\Controllers\Registrar\StudentController::class, 'showUploadForm'])->name('registrar.students.upload');
-        Route::post('/students/upload', [App\Http\Controllers\Registrar\StudentController::class, 'uploadExcel'])->name('registrar.students.upload.process');
-        Route::get('/students/template', [App\Http\Controllers\Registrar\StudentController::class, 'downloadTemplate'])->name('registrar.students.template');
+        Route::get('/students/upload', [RegistrarStudentController::class, 'showUploadForm'])->name('registrar.students.upload');
+        Route::post('/students/upload', [RegistrarStudentController::class, 'uploadExcel'])->name('registrar.students.upload.process');
+        Route::get('/students/template', [RegistrarStudentController::class, 'downloadTemplate'])->name('registrar.students.template');
+
+        // Yearly Student Records Management
+        Route::get('/students/records', [RegistrarStudentController::class, 'showYearlyRecords'])->name('registrar.students.records');
+        Route::get('/students/records/{year}', [RegistrarStudentController::class, 'showYearlyRecordDetail'])->name('registrar.students.records.detail');
+        Route::post('/students/records/archive/{year}', [RegistrarStudentController::class, 'archiveYear'])->name('registrar.students.records.archive');
+        Route::get('/students/records/{year}/export', [RegistrarStudentController::class, 'exportYearlyRecords'])->name('registrar.students.records.export');
 
 
 
 
         // Teacher Assignment Routes
-        Route::get('/teacher-assignments', [App\Http\Controllers\Registrar\TeacherAssignmentController::class, 'index'])->name('registrar.teacher-assignments.index');
-        Route::get('/teacher-assignments/create', [App\Http\Controllers\Registrar\TeacherAssignmentController::class, 'create'])->name('registrar.teacher-assignments.create');
-        Route::post('/teacher-assignments', [App\Http\Controllers\Registrar\TeacherAssignmentController::class, 'store'])->name('registrar.teacher-assignments.store');
-        Route::get('/teacher-assignments/{teacherAssignment}', [App\Http\Controllers\Registrar\TeacherAssignmentController::class, 'show'])->name('registrar.teacher-assignments.show');
-        Route::get('/teacher-assignments/{teacherAssignment}/edit', [App\Http\Controllers\Registrar\TeacherAssignmentController::class, 'edit'])->name('registrar.teacher-assignments.edit');
-        Route::put('/teacher-assignments/{teacherAssignment}', [App\Http\Controllers\Registrar\TeacherAssignmentController::class, 'update'])->name('registrar.teacher-assignments.update');
-        Route::delete('/teacher-assignments/{teacherAssignment}', [App\Http\Controllers\Registrar\TeacherAssignmentController::class, 'destroy'])->name('registrar.teacher-assignments.destroy');
-        Route::get('/teacher-assignments/check-qualification', [App\Http\Controllers\Registrar\TeacherAssignmentController::class, 'checkQualification'])->name('registrar.teacher-assignments.check-qualification');
-        Route::get('/teacher-assignments/check-schedule-conflict', [App\Http\Controllers\Registrar\TeacherAssignmentController::class, 'checkScheduleConflict'])->name('registrar.teacher-assignments.check-schedule-conflict');
+        Route::get('/teacher-assignments', [TeacherAssignmentController::class, 'index'])->name('registrar.teacher-assignments.index');
+        Route::get('/teacher-assignments/create', [TeacherAssignmentController::class, 'create'])->name('registrar.teacher-assignments.create');
+        Route::post('/teacher-assignments', [TeacherAssignmentController::class, 'store'])->name('registrar.teacher-assignments.store');
+        Route::get('/teacher-assignments/{teacherAssignment}', [TeacherAssignmentController::class, 'show'])->name('registrar.teacher-assignments.show');
+        Route::get('/teacher-assignments/{teacherAssignment}/edit', [TeacherAssignmentController::class, 'edit'])->name('registrar.teacher-assignments.edit');
+        Route::put('/teacher-assignments/{teacherAssignment}', [TeacherAssignmentController::class, 'update'])->name('registrar.teacher-assignments.update');
+        Route::delete('/teacher-assignments/{teacherAssignment}', [TeacherAssignmentController::class, 'destroy'])->name('registrar.teacher-assignments.destroy');
+        Route::get('/teacher-assignments/check-qualification', [TeacherAssignmentController::class, 'checkQualification'])->name('registrar.teacher-assignments.check-qualification');
+        Route::get('/teacher-assignments/check-schedule-conflict', [TeacherAssignmentController::class, 'checkScheduleConflict'])->name('registrar.teacher-assignments.check-schedule-conflict');
 
         // AJAX routes for teacher assignments
-        Route::get('/api/subjects-by-grade-level', [App\Http\Controllers\Registrar\TeacherAssignmentController::class, 'getSubjectsByGradeLevel'])->name('registrar.api.subjects-by-grade-level');
+        Route::get('/api/subjects-by-grade-level', [TeacherAssignmentController::class, 'getSubjectsByGradeLevel'])->name('registrar.api.subjects-by-grade-level');
 
         // Student Subject Assignment Routes
-        Route::get('/student-subject-assignments', [App\Http\Controllers\Registrar\StudentSubjectAssignmentController::class, 'index'])->name('registrar.student-subject-assignments.index');
-        Route::get('/student-subject-assignments/create/{student}', [App\Http\Controllers\Registrar\StudentSubjectAssignmentController::class, 'create'])->name('registrar.student-subject-assignments.create');
-        Route::post('/student-subject-assignments/store/{student}', [App\Http\Controllers\Registrar\StudentSubjectAssignmentController::class, 'store'])->name('registrar.student-subject-assignments.store');
-        Route::get('/student-subject-assignments/bulk-create', [App\Http\Controllers\Registrar\StudentSubjectAssignmentController::class, 'bulkCreate'])->name('registrar.student-subject-assignments.bulk-create');
-        Route::post('/student-subject-assignments/bulk-store', [App\Http\Controllers\Registrar\StudentSubjectAssignmentController::class, 'bulkStore'])->name('registrar.student-subject-assignments.bulk-store');
-        Route::delete('/student-subject-assignments/{student}/{subject}', [App\Http\Controllers\Registrar\StudentSubjectAssignmentController::class, 'removeSubject'])->name('registrar.student-subject-assignments.remove');
+        Route::get('/student-subject-assignments', [StudentSubjectAssignmentController::class, 'index'])->name('registrar.student-subject-assignments.index');
+        Route::get('/student-subject-assignments/create/{student}', [StudentSubjectAssignmentController::class, 'create'])->name('registrar.student-subject-assignments.create');
+        Route::post('/student-subject-assignments/store/{student}', [StudentSubjectAssignmentController::class, 'store'])->name('registrar.student-subject-assignments.store');
+        Route::get('/student-subject-assignments/bulk-create', [StudentSubjectAssignmentController::class, 'bulkCreate'])->name('registrar.student-subject-assignments.bulk-create');
+        Route::post('/student-subject-assignments/bulk-store', [StudentSubjectAssignmentController::class, 'bulkStore'])->name('registrar.student-subject-assignments.bulk-store');
+        Route::delete('/student-subject-assignments/{student}/{subject}', [StudentSubjectAssignmentController::class, 'removeSubject'])->name('registrar.student-subject-assignments.remove');
 
         // AJAX routes for student subject assignments
-        Route::get('/api/subjects-by-filters', [App\Http\Controllers\Registrar\StudentSubjectAssignmentController::class, 'getSubjectsByFilters'])->name('registrar.api.subjects-by-filters');
+        Route::get('/api/subjects-by-filters', [StudentSubjectAssignmentController::class, 'getSubjectsByFilters'])->name('registrar.api.subjects-by-filters');
 
         // Automatic Subject Assignment Routes
-        Route::get('/automatic-subject-assignment', [App\Http\Controllers\Registrar\AutomaticSubjectAssignmentController::class, 'index'])->name('registrar.automatic-subject-assignment.index');
-        Route::get('/automatic-subject-assignment/preview/{student}', [App\Http\Controllers\Registrar\AutomaticSubjectAssignmentController::class, 'preview'])->name('registrar.automatic-subject-assignment.preview');
-        Route::post('/automatic-subject-assignment/assign/{student}', [App\Http\Controllers\Registrar\AutomaticSubjectAssignmentController::class, 'assignToStudent'])->name('registrar.automatic-subject-assignment.assign');
-        Route::post('/automatic-subject-assignment/bulk-assign', [App\Http\Controllers\Registrar\AutomaticSubjectAssignmentController::class, 'bulkAssign'])->name('registrar.automatic-subject-assignment.bulk-assign');
-        Route::post('/automatic-subject-assignment/bulk-reassign', [App\Http\Controllers\Registrar\AutomaticSubjectAssignmentController::class, 'bulkReassign'])->name('registrar.automatic-subject-assignment.bulk-reassign');
-        Route::get('/automatic-subject-assignment/curriculum-mapping', [App\Http\Controllers\Registrar\AutomaticSubjectAssignmentController::class, 'curriculumMapping'])->name('registrar.automatic-subject-assignment.curriculum-mapping');
-        Route::get('/automatic-subject-assignment/fix-incomplete-data', [App\Http\Controllers\Registrar\AutomaticSubjectAssignmentController::class, 'fixIncompleteData'])->name('registrar.automatic-subject-assignment.fix-incomplete-data');
-        Route::post('/automatic-subject-assignment/update-student-data/{student}', [App\Http\Controllers\Registrar\AutomaticSubjectAssignmentController::class, 'updateStudentData'])->name('registrar.automatic-subject-assignment.update-student-data');
+        Route::get('/automatic-subject-assignment', [AutomaticSubjectAssignmentController::class, 'index'])->name('registrar.automatic-subject-assignment.index');
+        Route::get('/automatic-subject-assignment/preview/{student}', [AutomaticSubjectAssignmentController::class, 'preview'])->name('registrar.automatic-subject-assignment.preview');
+        Route::post('/automatic-subject-assignment/assign/{student}', [AutomaticSubjectAssignmentController::class, 'assignToStudent'])->name('registrar.automatic-subject-assignment.assign');
+        Route::post('/automatic-subject-assignment/bulk-assign', [AutomaticSubjectAssignmentController::class, 'bulkAssign'])->name('registrar.automatic-subject-assignment.bulk-assign');
+        Route::post('/automatic-subject-assignment/bulk-reassign', [AutomaticSubjectAssignmentController::class, 'bulkReassign'])->name('registrar.automatic-subject-assignment.bulk-reassign');
+        Route::get('/automatic-subject-assignment/curriculum-mapping', [AutomaticSubjectAssignmentController::class, 'curriculumMapping'])->name('registrar.automatic-subject-assignment.curriculum-mapping');
+        Route::get('/automatic-subject-assignment/fix-incomplete-data', [AutomaticSubjectAssignmentController::class, 'fixIncompleteData'])->name('registrar.automatic-subject-assignment.fix-incomplete-data');
+        Route::post('/automatic-subject-assignment/update-student-data/{student}', [AutomaticSubjectAssignmentController::class, 'updateStudentData'])->name('registrar.automatic-subject-assignment.update-student-data');
 
         // AJAX routes for automatic assignment
-        Route::get('/api/subjects-for-track-strand', [App\Http\Controllers\Registrar\AutomaticSubjectAssignmentController::class, 'getSubjectsForTrackStrand'])->name('registrar.api.subjects-for-track-strand');
-        Route::post('/api/test-assignment', [App\Http\Controllers\Registrar\AutomaticSubjectAssignmentController::class, 'testAssignment'])->name('registrar.api.test-assignment');
+        Route::get('/api/subjects-for-track-strand', [AutomaticSubjectAssignmentController::class, 'getSubjectsForTrackStrand'])->name('registrar.api.subjects-for-track-strand');
+        Route::post('/api/test-assignment', [AutomaticSubjectAssignmentController::class, 'testAssignment'])->name('registrar.api.test-assignment');
 
         // Teacher Management Routes (placeholder routes for future implementation)
         Route::get('/teachers', function() {
@@ -907,6 +930,12 @@ Route::prefix('registrar')->group(function () {
         Route::get('/teachers/create', function() {
             return redirect()->route('registrar.subjects.create')->with('info', 'Teacher creation feature coming soon. For now, you can create subjects.');
         })->name('registrar.teachers.create');
+
+        Route::resource('students', RegistrarStudentController::class);
+        Route::resource('students.yearly-records', StudentYearlyRecordController::class)->except(['show']);
+
+        Route::get('/students/upload', [RegistrarStudentController::class, 'showUploadForm'])->name('students.upload');
+        Route::post('/students/upload', [RegistrarStudentController::class, 'uploadExcel'])->name('students.upload.process');
     });
 });
 
@@ -2392,6 +2421,13 @@ Route::post('/debug-admin-login-post', function(\Illuminate\Http\Request $reques
         } else {
             $output .= '<p style="color: green;">✅ Admin user found: ' . $admin->name . '</p>';
 
+            // Test password verification
+            if (\Illuminate\Support\Facades\Hash::check($credentials['password'], $admin->password)) {
+                $output .= '<p style="color: green;">✅ Password verification successful</p>';
+            } else {
+                $output .= '<p style="color: red;">❌ Password verification failed</p>';
+            }
+
             // Test authentication
             if (\Illuminate\Support\Facades\Auth::guard('admin')->attempt($credentials)) {
                 $output .= '<p style="color: green;">✅ Authentication successful!</p>';
@@ -3655,9 +3691,7 @@ Route::prefix('principal')->name('principal.')->group(function () {
 
     // Protected routes that require principal authentication
     Route::middleware(['auth:principal'])->group(function () {
-        Route::get('/dashboard', function() {
-            return view('Principal.dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', [App\Http\Controllers\Principal\DashboardController::class, 'index'])->name('dashboard');
 
         // Announcement Routes
         Route::get('/announcements', 'App\Http\Controllers\Principal\AnnouncementController@index')->name('announcements.index');
@@ -3665,9 +3699,31 @@ Route::prefix('principal')->name('principal.')->group(function () {
         Route::post('/announcements', 'App\Http\Controllers\Principal\AnnouncementController@store')->name('announcements.store');
         Route::get('/announcements/{id}/edit', 'App\Http\Controllers\Principal\AnnouncementController@edit')->name('announcements.edit');
         Route::put('/announcements/{id}', 'App\Http\Controllers\Principal\AnnouncementController@update')->name('announcements.update');
-        Route::delete('/announcements/{id}', 'App\Http\Controllers\Principal\AnnouncementController@destroy')->name('announcements.destroy');
+        Route::patch('/announcements/{announcement}/toggle-status', 'App\Http\Controllers\Principal\AnnouncementController@toggleStatus')->name('announcements.toggle-status');
+        Route::delete('/announcements/{announcement}', 'App\Http\Controllers\Principal\AnnouncementController@destroy')->name('announcements.destroy');
+        Route::get('/announcements/{id}/verify-deletion', 'App\Http\Controllers\Principal\AnnouncementController@verifyDeletion')->name('announcements.verify-deletion');
+        Route::post('/announcements/force-clear-cache', 'App\Http\Controllers\Principal\AnnouncementController@forceClearCache')->name('announcements.force-clear-cache');
+        Route::post('/announcements/cleanup-soft-deleted', 'App\Http\Controllers\Principal\AnnouncementController@cleanupSoftDeleted')->name('announcements.cleanup-soft-deleted');
+        Route::get('/announcements/test-endpoint', 'App\Http\Controllers\Principal\AnnouncementController@testEndpoint')->name('announcements.test-endpoint');
 
         Route::post('/logout', 'App\Http\Controllers\Principal\AuthController@logout')->name('logout');
+
+        // Profile routes
+        Route::get('/profile', 'App\Http\Controllers\Principal\ProfileController@index')->name('profile');
+        Route::put('/profile', 'App\Http\Controllers\Principal\ProfileController@update')->name('profile.update');
+        Route::post('/profile/upload-picture', 'App\Http\Controllers\Principal\ProfileController@uploadProfilePicture')->name('profile.upload-picture');
+        Route::delete('/profile/remove-picture', 'App\Http\Controllers\Principal\ProfileController@removeProfilePicture')->name('profile.remove-picture');
+        Route::get('/profile/debug-picture', 'App\Http\Controllers\Principal\ProfileController@getProfilePictureInfo')->name('profile.debug-picture');
+
+        // Event routes
+        Route::get('/events', [\App\Http\Controllers\Principal\EventController::class, 'index'])->name('events.index');
+        Route::post('/events', [\App\Http\Controllers\Principal\EventController::class, 'store'])->name('events.store');
+        Route::get('/events/{id}', [\App\Http\Controllers\Principal\EventController::class, 'show'])->name('events.show');
+        Route::put('/events/{id}', [\App\Http\Controllers\Principal\EventController::class, 'update'])->name('events.update');
+        Route::delete('/events/{id}', [\App\Http\Controllers\Principal\EventController::class, 'destroy'])->name('events.destroy');
+
+        // New route for fetching upcoming events HTML for AJAX refresh
+        Route::get('/upcoming-events-html', [\App\Http\Controllers\Principal\DashboardController::class, 'getUpcomingEventsHtml'])->name('dashboard.upcoming_events_html');
     });
 });
 
@@ -3870,6 +3926,49 @@ Route::get('/fix-registrar-database-now', function() {
     } catch (Exception $e) {
         return '<h1 style="color:red">❌ ERROR</h1><p>' . $e->getMessage() . '</p><pre>' . $e->getTraceAsString() . '</pre>';
     }
+});
+
+// ... existing code ...
+Route::middleware(['auth:principal'])->prefix('principal')->name('principal.')->group(function () {
+    // ... existing routes ...
+    Route::get('/events', [\App\Http\Controllers\Principal\EventController::class, 'index'])->name('events.index');
+    Route::post('/events', [\App\Http\Controllers\Principal\EventController::class, 'store'])->name('events.store');
+    Route::get('/events/{id}', [\App\Http\Controllers\Principal\EventController::class, 'show'])->name('events.show');
+    Route::put('/events/{id}', [\App\Http\Controllers\Principal\EventController::class, 'update'])->name('events.update');
+    Route::delete('/events/{id}', [\App\Http\Controllers\Principal\EventController::class, 'destroy'])->name('events.destroy');
+
+    // New route for fetching upcoming events HTML for AJAX refresh
+    Route::get('/upcoming-events-html', [\App\Http\Controllers\Principal\DashboardController::class, 'getUpcomingEventsHtml'])->name('dashboard.upcoming_events_html');
+});
+// ... existing code ...
+
+Route::prefix('registrar')->name('registrar.')->group(function () {
+    Route::get('/login', [RegistrarAuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [RegistrarAuthController::class, 'login']);
+
+    Route::middleware(['auth:registrar'])->group(function () {
+        Route::post('/logout', [RegistrarAuthController::class, 'logout'])->name('logout');
+        Route::get('/dashboard', [RegistrarDashboardController::class, 'index'])->name('dashboard');
+        
+        Route::get('/profile', [RegistrarAuthController::class, 'profile'])->name('profile');
+        Route::post('/profile', [RegistrarAuthController::class, 'updateProfile'])->name('profile.update');
+
+        Route::get('/students/records', [RegistrarStudentController::class, 'showYearlyRecords'])->name('students.records');
+        Route::get('/students/records/{year}', [RegistrarStudentController::class, 'showYearlyRecordDetail'])->name('students.records.detail');
+
+        Route::resource('students', RegistrarStudentController::class);
+        Route::resource('students.yearly-records', StudentYearlyRecordController::class)->except(['show']);
+
+        Route::get('/students/upload', [RegistrarStudentController::class, 'showUploadForm'])->name('students.upload');
+        Route::post('/students/upload', [RegistrarStudentController::class, 'uploadExcel'])->name('students.upload.process');
+        Route::get('/students/template', [RegistrarStudentController::class, 'downloadTemplate'])->name('students.template');
+        
+        Route::resource('subjects', RegistrarSubjectController::class);
+        Route::resource('teacher-assignments', TeacherAssignmentController::class);
+        Route::resource('student-subject-assignments', StudentSubjectAssignmentController::class);
+        Route::resource('automatic-subject-assignment', AutomaticSubjectAssignmentController::class);
+
+    });
 });
 
 

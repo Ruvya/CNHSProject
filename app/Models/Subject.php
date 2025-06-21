@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Subject extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'name',
         'code',
@@ -23,8 +26,6 @@ class Subject extends Model
         'is_core_subject',
         'prerequisite_subjects'
     ];
-
-
 
     public function teacher()
     {
@@ -51,7 +52,10 @@ class Subject extends Model
         return $this->hasMany(Grade::class);
     }
 
-
+    public function teacherAssignments()
+    {
+        return $this->hasMany(TeacherAssignment::class);
+    }
 
     /**
      * Scope for master subjects only

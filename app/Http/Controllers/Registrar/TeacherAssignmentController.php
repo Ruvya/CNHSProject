@@ -171,22 +171,17 @@ class TeacherAssignmentController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            $request->validate([
-                'teacher_id' => 'required|exists:teachers,id',
-                'subject_id' => 'required|exists:subjects,id',
-                'school_year' => 'required|string',
-                'grading_period' => 'required|string',
-                'schedule' => 'nullable|array',
-                'schedule.*.day' => 'required_with:schedule|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
-                'schedule.*.start_time' => 'required_with:schedule|date_format:H:i',
-                'schedule.*.end_time' => 'required_with:schedule|date_format:H:i|after:schedule.*.start_time',
-                'notes' => 'nullable|string|max:500'
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return back()->withErrors($e->errors())->withInput()
-                ->with('error', 'Please check the form for errors and try again.');
-        }
+        $validated = $request->validate([
+            'teacher_id' => 'required|exists:teachers,id',
+            'subject_id' => 'required|exists:subjects,id',
+            'school_year' => 'required|string',
+            'grading_period' => 'required|string',
+            'schedule' => 'nullable|array',
+            'schedule.*.day' => 'nullable|string|max:255',
+            'schedule.*.start_time' => 'nullable|date_format:H:i',
+            'schedule.*.end_time' => 'nullable|date_format:H:i|after:schedule.*.start_time',
+            'notes' => 'nullable|string|max:500'
+        ]);
 
         try {
             // Check if assignment already exists

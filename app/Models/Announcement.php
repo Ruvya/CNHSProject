@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Announcement extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The table associated with the model.
@@ -24,17 +25,45 @@ class Announcement extends Model
     protected $fillable = [
         'title',
         'content',
+        'status',
         'author_type',
         'author_id',
         'is_published',
-        'published_at',
-        'status'
+        'published_at'
     ];
 
-    protected $casts = [
-        'is_published' => 'boolean',
-        'published_at' => 'datetime',
+    protected $dates = [
+        'published_at',
+        'created_at',
+        'updated_at',
+        'deleted_at'
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Clear cache when model is saved or deleted
+        static::saved(function ($model) {
+            cache()->forget('announcements_list');
+            // Try cache tags, but fall back to simple cache if not supported
+            try {
+                cache()->tags(['announcements'])->forget('announcement_' . $model->id);
+            } catch (\Exception $e) {
+                cache()->forget('announcement_' . $model->id);
+            }
+        });
+
+        static::deleted(function ($model) {
+            cache()->forget('announcements_list');
+            // Try cache tags, but fall back to simple cache if not supported
+            try {
+                cache()->tags(['announcements'])->forget('announcement_' . $model->id);
+            } catch (\Exception $e) {
+                cache()->forget('announcement_' . $model->id);
+            }
+        });
+    }
 
     /**
      * Get the formatted created date.

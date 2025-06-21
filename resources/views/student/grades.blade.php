@@ -12,6 +12,7 @@
             position: relative;
             overflow-x: hidden;
             margin-left: 250px !important;
+            
 
         }
 
@@ -21,28 +22,52 @@
             align-items: center;
             margin-bottom: 30px;
             margin-top: 3%;
+            background-image: linear-gradient(to right, #FFA726, #FF7043);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(255, 112, 67, 0.3);
+            padding: 1.5rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
 
+        .grades-header::before{
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            clip-path: polygon(100% 0, 100% 100%, 0 100%, 20% 0);
+            opacity: 0.9;
+            z-index: 1;
         }
 
         .header-title h1 {
-            font-size: 1.8rem;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 5px;
+            font-size: 2.8rem;
+            color: white;
+            margin-bottom: 0.5rem;
             font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+            z-index: 2;
+            position: relative;
         }
 
         .subtitle {
-            color: #6b7280;
-            font-size: 0.9rem;
+            color: white;
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 0;
+            z-index: 2;
+            position: relative;
         }
 
         .header-actions {
             display: flex;
             gap: 15px;
             align-items: center;
+            z-index: 2;
+            position: relative;
         }
 
         .filter-options {
@@ -53,28 +78,39 @@
 
         .filter-select {
             padding: 8px 15px;
-            border: 1px solid rgba(37, 99, 235, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
             border-radius: 8px;
-            background-color: white;
-            color: #2563eb;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
             font-size: 0.9rem;
             cursor: pointer;
             min-width: 150px;
             transition: all 0.3s ease;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%20viewBox%3D%220%200%20292.4%20292.4%22%3E%3Cpath%20fill%3D%22white%22%20d%3D%22M287%2C197.35L146.2%2C56.65c-3.7-3.7-9.8-3.7-13.5%2C0L5.3%2C197.35c-3.7%2C3.7-3.7%2C9.8%2C0%2C13.5l13.5%2C13.5c3.7%2C3.7%2C9.8%2C3.7%2C13.5%2C0l100.8-100.8L259.9%2C224.45c3.7%2C3.7%2C9.8%2C3.7%2C13.5%2C0l13.5-13.5C290.7%2C207.15%2C290.7%2C201.05%2C287%2C197.35z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px;
+            padding-right: 30px;
         }
 
         .filter-select:hover {
-            border-color: #2563eb;
+            border-color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(255, 255, 255, 0.3);
         }
 
         .filter-select:focus {
             outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+            border-color: white;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+            background-color: rgba(255, 255, 255, 0.3);
         }
 
         .filter-select option {
-            padding: 8px;
+            background-color: #3b82f6;
+            color: white;
         }
 
         .btn-print {
@@ -82,18 +118,20 @@
             align-items: center;
             gap: 8px;
             padding: 8px 15px;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: white;
+            background: white;
+            color: #2563eb;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            font-weight: 600;
         }
 
         .btn-print:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            background-color: #f0f0f0;
         }
 
         /* Quick Stats */
@@ -701,12 +739,7 @@
     </div>
 </div>
 
-<div class="chart-container fade-in">
-    <div class="chart-header">
-        <h3>Academic Performance Trend</h3>
-    </div>
-    <canvas id="academicPerformanceChart"></canvas>
-</div>
+
 
 <div class="grades-table-container fade-in">
     <div class="table-header">

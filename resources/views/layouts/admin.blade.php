@@ -8,6 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    @include('layouts.shared.dashboard-styles')
     <style>
         :root {
             --primary-color: #2563eb;
@@ -34,9 +35,10 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             color: #334155;
             line-height: 1.6;
+            min-height: 100vh;
         }
 
         /* Header */
@@ -223,6 +225,8 @@
             margin-top: var(--header-height);
             padding: 2rem;
             min-height: calc(100vh - var(--header-height));
+            background: #ffffff;
+            position: relative;
         }
 
         /* Page Header */
@@ -597,9 +601,34 @@
             padding: 0.5rem 0.75rem;
             border-radius: 6px;
         }
+
+        /* Ensure clean backgrounds for all admin content */
+        .container, .container-fluid, .row, .col, [class*="col-"] {
+            background: transparent !important;
+        }
+
+        .table {
+            background: #ffffff;
+        }
+
+        .modal-content {
+            background: #ffffff;
+        }
+
+        /* Remove any potential background images from all elements */
+        * {
+            background-image: none !important;
+        }
+
+        /* Exception: Keep necessary background images for icons and UI elements */
+        .fas, .far, .fab, .fal, .fad, [class*="fa-"] {
+            background-image: initial !important;
+        }
+
+        @yield('styles')
     </style>
 </head>
-<body>
+<body class="admin-theme">
     <!-- Header -->
     <header class="admin-header">
         <button class="sidebar-toggle" id="sidebarToggle">

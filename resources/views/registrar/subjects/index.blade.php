@@ -57,16 +57,10 @@
         <div class="col-lg-3 col-md-6">
             <div class="stat-card stat-card-primary">
                 <div class="stat-card-body">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-book"></i>
-                    </div>
+                    <div class="stat-card-icon"><i class="fas fa-book"></i></div>
                     <div class="stat-card-content">
                         <div class="stat-card-title">Total Subjects</div>
                         <div class="stat-card-value">{{ $totalSubjectsCount ?? 0 }}</div>
-                        <div class="stat-card-subtitle">
-                            <i class="fas fa-graduation-cap me-1"></i>
-                            All grade levels
-                        </div>
                     </div>
                 </div>
             </div>
@@ -75,16 +69,10 @@
         <div class="col-lg-3 col-md-6">
             <div class="stat-card stat-card-success">
                 <div class="stat-card-body">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-user-check"></i>
-                    </div>
+                    <div class="stat-card-icon"><i class="fas fa-user-check"></i></div>
                     <div class="stat-card-content">
                         <div class="stat-card-title">Your Subjects</div>
-                        <div class="stat-card-value">{{ $allSubjects->where('registrar_id', auth()->guard('registrar')->id())->count() ?? 0 }}</div>
-                        <div class="stat-card-subtitle">
-                            <i class="fas fa-check me-1"></i>
-                            Created by you
-                        </div>
+                        <div class="stat-card-value">{{ $yourSubjectsCount ?? 0 }}</div>
                     </div>
                 </div>
             </div>
@@ -93,16 +81,10 @@
         <div class="col-lg-3 col-md-6">
             <div class="stat-card stat-card-warning">
                 <div class="stat-card-body">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-chalkboard-teacher"></i>
-                    </div>
+                    <div class="stat-card-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                     <div class="stat-card-content">
                         <div class="stat-card-title">With Teachers</div>
-                        <div class="stat-card-value">{{ $allSubjects->where('teacher_id', '!=', null)->count() ?? 0 }}</div>
-                        <div class="stat-card-subtitle">
-                            <i class="fas fa-user me-1"></i>
-                            Assigned teachers
-                        </div>
+                        <div class="stat-card-value">{{ $withTeachersCount ?? 0 }}</div>
                     </div>
                 </div>
             </div>
@@ -111,16 +93,10 @@
         <div class="col-lg-3 col-md-6">
             <div class="stat-card stat-card-info">
                 <div class="stat-card-body">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-layer-group"></i>
-                    </div>
+                    <div class="stat-card-icon"><i class="fas fa-layer-group"></i></div>
                     <div class="stat-card-content">
                         <div class="stat-card-title">Grade Levels</div>
-                        <div class="stat-card-value">{{ $availableGrades->count() ?? 2 }}</div>
-                        <div class="stat-card-subtitle">
-                            <i class="fas fa-graduation-cap me-1"></i>
-                            Available grades
-                        </div>
+                        <div class="stat-card-value">{{ $gradeLevelsCount ?? 0 }}</div>
                     </div>
                 </div>
             </div>
@@ -130,251 +106,67 @@
     <!-- Subjects Table -->
     <div class="card shadow-sm">
         <div class="card-header bg-white border-bottom">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="mb-1">
-                        <i class="fas fa-list me-2 text-primary"></i>
-                        All Subjects
-                        <span class="badge bg-primary ms-2">{{ $allSubjects->count() ?? 0 }}</span>
-                    </h5>
-                    <p class="text-muted mb-0 small">Manage your subjects and view all subjects in the system</p>
+            <form action="{{ route('registrar.subjects.index') }}" method="GET" class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2">
+                    <input type="text" name="search" class="form-control" placeholder="Search by name or code..." value="{{ request('search') }}">
+                    <select name="grade_level" class="form-select" style="width: auto;">
+                        <option value="">All Grades</option>
+                        <option value="11" {{ request('grade_level') == '11' ? 'selected' : '' }}>Grade 11</option>
+                        <option value="12" {{ request('grade_level') == '12' ? 'selected' : '' }}>Grade 12</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
+                    <a href="{{ route('registrar.subjects.index') }}" class="btn btn-secondary"><i class="fas fa-sync"></i> Reset</a>
                 </div>
-                <div class="d-flex gap-2 align-items-center">
-                    <!-- Dynamic Filtering Controls -->
-                    <div class="d-flex gap-2 align-items-center">
-                        <!-- Grade Level Filter -->
-                        <select id="grade_level" class="form-select form-select-sm" style="width: auto;">
-                            <option value="all">All Grades</option>
-                            <option value="11">Grade 11</option>
-                            <option value="12">Grade 12</option>
-                        </select>
-
-                        <!-- Track Filter -->
-                        <select id="track" class="form-select form-select-sm" style="width: auto;">
-                            <option value="all">All Tracks</option>
-                            @if($availableTracks ?? false)
-                                @foreach($availableTracks as $track)
-                                    <option value="{{ $track }}">{{ $track }}</option>
-                                @endforeach
-                            @endif
-                        </select>
-
-                        <!-- Strand Filter -->
-                        <select id="strand" class="form-select form-select-sm" style="width: auto;">
-                            <option value="all">All Strands</option>
-                            @if($availableStrands ?? false)
-                                @foreach($availableStrands as $strand)
-                                    <option value="{{ $strand }}">{{ $strand }}</option>
-                                @endforeach
-                            @endif
-                        </select>
-                    </div>
-
-                    <a href="{{ route('registrar.subjects.create') }}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus me-1"></i>Add Subject
-                    </a>
-                </div>
+                <h5 class="mb-0 text-muted">
+                    <i class="fas fa-list me-2"></i>
+                    Displaying {{ $subjects->firstItem() }}-{{ $subjects->lastItem() }} of {{ $subjects->total() }} subjects
+                </h5>
+            </form>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Code</th>
+                            <th>Grade Level</th>
+                            <th>Track</th>
+                            <th>Strand</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($subjects as $subject)
+                            <tr>
+                                <td>{{ $subject->name }}</td>
+                                <td>{{ $subject->code }}</td>
+                                <td>{{ $subject->grade_level }}</td>
+                                <td>{{ $subject->track ?? 'N/A' }}</td>
+                                <td>{{ $subject->strand ?? 'N/A' }}</td>
+                                <td>
+                                    <a href="{{ route('registrar.subjects.edit', $subject) }}" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
+                                    <form action="{{ route('registrar.subjects.destroy', $subject) }}" method="POST" style="display:inline-block;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
+                                    <p class="mb-0">No subjects found matching your criteria.</p>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
-
-        <div class="card-body">
-            <!-- Dynamic Subject Display Section -->
-            <div id="dynamicSubjectsSection" style="display: none;">
-                <div class="row mb-3">
-                    <div class="col-12">
-                        <div class="alert alert-info">
-                            <h5><i class="fas fa-filter me-2"></i>Filtered Subjects</h5>
-                            <p class="mb-0">Showing subjects for: <span id="filterSummary"></span></p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-12">
-                        <div class="card border-primary">
-                            <div class="card-header bg-primary text-white">
-                                <h6 class="mb-0"><i class="fas fa-list me-2"></i>Available Subjects (<span id="subjectCount">0</span>)</h6>
-                            </div>
-                            <div class="card-body">
-                                <div id="subjectsList" class="row">
-                                    <!-- Dynamic subjects will be loaded here -->
-                                </div>
-
-                                <!-- File Upload Section -->
-                                <div id="fileUploadSection" style="display: none;" class="mt-4">
-                                    <hr>
-                                    <h6><i class="fas fa-upload me-2"></i>Upload Learning Materials</h6>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="selectedSubject">Select Subject:</label>
-                                                <select id="selectedSubject" class="form-control">
-                                                    <option value="">Choose a subject...</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="materialFile">Upload File:</label>
-                                                <input type="file" id="materialFile" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button type="button" id="uploadMaterialBtn" class="btn btn-success">
-                                        <i class="fas fa-upload me-2"></i>Upload Material
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            @if($allSubjects && $allSubjects->count() > 0)
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle" id="subjectsTable">
-                        <thead class="table-dark">
-                            <tr>
-                                <th class="text-center">Code</th>
-                                <th>Subject Name</th>
-                                <th class="text-center">Grade Level</th>
-                                <th>Track</th>
-                                <th>Strand</th>
-                                <th>Cluster/Specialization</th>
-                                <th>Teacher</th>
-                                <th class="text-center">Grading Period</th>
-                                <th class="text-center">Created By</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($allSubjects as $subject)
-                            <tr class="{{ $subject->registrar_id == auth()->guard('registrar')->id() ? 'table-primary' : '' }}">
-                                <td class="text-center">
-                                    <span class="badge bg-primary fs-6">{{ $subject->code ?? $subject->subject_code }}</span>
-                                </td>
-                                <td>
-                                    <div class="subject-info">
-                                        <h6 class="mb-1">{{ $subject->name ?? $subject->subject_name }}</h6>
-                                        @if($subject->description)
-                                            <small class="text-muted">{{ Str::limit($subject->description, 50) }}</small>
-                                        @endif
-                                    </div>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge bg-info">{{ $subject->grade_level }}</span>
-                                </td>
-                                <td>
-                                    @if($subject->track)
-                                        <span class="badge bg-warning text-dark">{{ $subject->track }}</span>
-                                    @else
-                                        <span class="text-muted small">Not Set</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($subject->strand)
-                                        <span class="badge bg-secondary">{{ $subject->strand }}</span>
-                                    @else
-                                        <span class="text-muted small">Not Set</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($subject->cluster)
-                                        <span class="badge bg-info text-white mb-1">{{ $subject->cluster }}</span>
-                                    @endif
-                                    @if($subject->specialization)
-                                        @if($subject->cluster)<br>@endif
-                                        <span class="badge bg-light text-dark">{{ $subject->specialization }}</span>
-                                    @endif
-                                    @if(!$subject->cluster && !$subject->specialization)
-                                        <span class="text-muted small">Not specified</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($subject->teacher)
-                                        <div class="d-flex align-items-center">
-                                            <div class="teacher-avatar">
-                                                {{ substr($subject->teacher->name, 0, 1) }}
-                                            </div>
-                                            <div class="ms-2">
-                                                <div class="fw-semibold small">{{ $subject->teacher->name }}</div>
-                                            </div>
-                                        </div>
-                                    @else
-                                        <span class="text-muted small">Not Assigned</span>
-                                    @endif
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge bg-success">{{ $subject->grading ?? 'Not Set' }}</span>
-                                </td>
-                                <td class="text-center">
-                                    @if($subject->registrar_id == auth()->guard('registrar')->id())
-                                        <span class="badge bg-success">You</span>
-                                    @elseif($subject->registrar)
-                                        <span class="badge bg-secondary">{{ $subject->registrar->full_name ?? 'Other Registrar' }}</span>
-                                    @else
-                                        <span class="badge bg-warning">System</span>
-                                    @endif
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group" role="group">
-                                        <!-- View Button - Always Available -->
-                                        <a href="{{ route('registrar.subjects.show', $subject) }}"
-                                           class="btn btn-outline-info btn-sm"
-                                           title="View Details">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-
-                                        <!-- Edit Button - Available for all registrars -->
-                                        <a href="{{ route('registrar.subjects.edit', $subject) }}"
-                                           class="btn btn-outline-primary btn-sm"
-                                           title="Edit Subject">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-
-                                        <!-- Delete Button - Available for all registrars -->
-                                        <form action="{{ route('registrar.subjects.destroy', $subject) }}"
-                                              method="POST"
-                                              class="d-inline"
-                                              onsubmit="return confirm('Are you sure you want to delete this subject: {{ $subject->name }}?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                    class="btn btn-outline-danger btn-sm"
-                                                    title="Delete Subject">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-
-                                    <!-- Show ownership info below buttons -->
-                                    <div class="mt-1">
-                                        @if($subject->registrar_id == auth()->guard('registrar')->id())
-                                            <small class="text-success">
-                                                <i class="fas fa-check-circle"></i> Your Subject
-                                            </small>
-                                        @else
-                                            <small class="text-muted">
-                                                <i class="fas fa-lock"></i> View Only
-                                            </small>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @else
-                <div class="text-center py-5">
-                    <i class="fas fa-book fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No Subjects Found</h5>
-                    <p class="text-muted mb-4">Start by creating your first subject with the DepEd curriculum structure.</p>
-                    <a href="{{ route('registrar.subjects.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>Create Your First Subject
-                    </a>
-                </div>
-            @endif
+        <div class="card-footer bg-white">
+            {{ $subjects->appends(request()->query())->links() }}
         </div>
     </div>
 </div>

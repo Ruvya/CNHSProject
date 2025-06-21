@@ -10,7 +10,11 @@ class PagesController extends Controller
 {
     public function index()
     {
-        return view('Principal.index');
+        $upcomingEvents = \App\Models\Event::where('start', '>=', now())
+            ->orderBy('start', 'asc')
+            ->limit(3)
+            ->get();
+        return view('Principal.index', compact('upcomingEvents'));
     }
 
     public function about()
@@ -26,7 +30,10 @@ class PagesController extends Controller
     public function news()
     {
         $announcements = Announcement::latest()->get();
-        return view('Principal.news', compact('announcements'));
+        $upcomingEvents = \App\Models\Event::where('start', '>=', now())
+            ->orderBy('start', 'asc')
+            ->get();
+        return view('Principal.news', compact('announcements', 'upcomingEvents'));
     }
 
     public function contact()

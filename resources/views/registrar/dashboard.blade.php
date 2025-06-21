@@ -1,622 +1,347 @@
 @extends('layouts.registrar')
 
-@section('content')
-<!-- Page Header -->
-<div class="page-header">
-    <div class="row align-items-center">
-        <div class="col-md-8">
-            <h1 class="page-title">
-                <i class="fas fa-tachometer-alt me-3 text-primary"></i>
-                Registrar Dashboard
-            </h1>
-            <p class="page-subtitle">
-                Welcome back, {{ auth()->guard('registrar')->user()->first_name }}! Here's your system overview.
-            </p>
-            <div class="text-muted">
-                <i class="fas fa-clock me-2"></i>
-                {{ now()->format('l, F j, Y - g:i A') }}
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="page-actions">
-                <a href="{{ route('registrar.students.create') }}" class="btn btn-primary">
-                    <i class="fas fa-user-plus me-2"></i>
-                    Generate Credentials
-                </a>
-                <a href="{{ route('registrar.subjects.create') }}" class="btn btn-outline-primary">
-                    <i class="fas fa-book-plus me-2"></i>
-                    Add Subject
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-    <!-- Statistics Cards -->
-    <div class="row g-4 mb-4">
-        <!-- Total Students Card -->
-        <div class="col-xl-3 col-md-6">
-            <div class="stat-card stat-card-primary">
-                <div class="stat-card-body">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <div class="stat-card-title">Total Students</div>
-                        <div class="stat-card-value">{{ number_format($totalStudents) }}</div>
-                        <div class="stat-card-subtitle">+{{ $recentStudentsCount ?? 0 }} this month</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Total Teachers Card -->
-        <div class="col-xl-3 col-md-6">
-            <div class="stat-card stat-card-success">
-                <div class="stat-card-body">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-chalkboard-teacher"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <div class="stat-card-title">Total Teachers</div>
-                        <div class="stat-card-value">{{ number_format($totalTeachers) }}</div>
-                        <div class="stat-card-subtitle">{{ $assignmentStats['assignment_rate'] ?? 0 }}% assigned</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Total Subjects Card -->
-        <div class="col-xl-3 col-md-6">
-            <div class="stat-card stat-card-info">
-                <div class="stat-card-body">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <div class="stat-card-title">Total Subjects</div>
-                        <div class="stat-card-value">{{ number_format($totalSubjects) }}</div>
-                        <div class="stat-card-subtitle">+{{ $recentSubjectsCount ?? 0 }} recent</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- My Subjects Card -->
-        <div class="col-xl-3 col-md-6">
-            <div class="stat-card stat-card-warning">
-                <div class="stat-card-body">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-user-edit"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <div class="stat-card-title">My Subjects</div>
-                        <div class="stat-card-value">{{ number_format($mySubjects) }}</div>
-                        <div class="stat-card-subtitle">Created by you</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Actions Section -->
-    <div class="row g-3 mb-4">
-        <div class="col-12">
-            <h5 class="section-title mb-3">
-                <i class="fas fa-bolt text-primary me-2"></i>
-                Quick Actions
-            </h5>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ route('registrar.students.create') }}" class="quick-action-card">
-                <div class="quick-action-icon bg-primary">
-                    <i class="fas fa-user-plus"></i>
-                </div>
-                <div class="quick-action-content">
-                    <h6>Generate Credentials</h6>
-                    <p>Create student login accounts</p>
-                </div>
-            </a>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ route('registrar.subjects.create') }}" class="quick-action-card">
-                <div class="quick-action-icon bg-success">
-                    <i class="fas fa-book-plus"></i>
-                </div>
-                <div class="quick-action-content">
-                    <h6>Add Subject</h6>
-                    <p>Create new subject</p>
-                </div>
-            </a>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ route('registrar.subjects.index') }}" class="quick-action-card">
-                <div class="quick-action-icon bg-info">
-                    <i class="fas fa-book"></i>
-                </div>
-                <div class="quick-action-content">
-                    <h6>Manage Subjects</h6>
-                    <p>View and edit subjects</p>
-                </div>
-            </a>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ route('registrar.students.index') }}" class="quick-action-card">
-                <div class="quick-action-icon bg-warning">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="quick-action-content">
-                    <h6>Student Records</h6>
-                    <p>Manage student accounts</p>
-                </div>
-            </a>
-        </div>
-    </div>
-
-    <!-- Main Content Grid -->
-    <div class="row g-4">
-        <!-- Left Column - Charts and Analytics -->
-        <div class="col-lg-8">
-            <!-- Analytics Charts -->
-            <div class="row g-4 mb-4">
-                <!-- Students by Grade Chart -->
-                <div class="col-md-6">
-                    <div class="card h-100">
-                        <div class="card-header">
-                            <h6 class="card-title mb-0">
-                                <i class="fas fa-chart-pie text-primary me-2"></i>
-                                Students by Grade
-                            </h6>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="studentsGradeChart" height="200"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Subjects by Track Chart -->
-                <div class="col-md-6">
-                    <div class="card h-100">
-                        <div class="card-header">
-                            <h6 class="card-title mb-0">
-                                <i class="fas fa-chart-bar text-success me-2"></i>
-                                Subjects by Track
-                            </h6>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="subjectsTrackChart" height="200"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- System Overview -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-line text-primary me-2"></i>
-                        System Overview
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <h6 class="text-muted mb-3">System Statistics</h6>
-                            <div class="overview-stats">
-                                <div class="overview-stat-item">
-                                    <div class="overview-stat-icon bg-primary">
-                                        <i class="fas fa-users"></i>
-                                    </div>
-                                    <div class="overview-stat-content">
-                                        <div class="overview-stat-label">Total Users</div>
-                                        <div class="overview-stat-value">{{ number_format($totalStudents + $totalTeachers) }} accounts</div>
-                                    </div>
-                                </div>
-                                <div class="overview-stat-item">
-                                    <div class="overview-stat-icon bg-success">
-                                        <i class="fas fa-user-graduate"></i>
-                                    </div>
-                                    <div class="overview-stat-content">
-                                        <div class="overview-stat-label">Active Students</div>
-                                        <div class="overview-stat-value">{{ number_format($totalStudents) }} students</div>
-                                    </div>
-                                </div>
-                                <div class="overview-stat-item">
-                                    <div class="overview-stat-icon bg-info">
-                                        <i class="fas fa-chalkboard-teacher"></i>
-                                    </div>
-                                    <div class="overview-stat-content">
-                                        <div class="overview-stat-label">Faculty Members</div>
-                                        <div class="overview-stat-value">{{ number_format($totalTeachers) }} teachers</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="text-muted mb-3">System Status</h6>
-                            <div class="overview-stats">
-                                <div class="overview-stat-item">
-                                    <div class="overview-stat-icon bg-success">
-                                        <i class="fas fa-database"></i>
-                                    </div>
-                                    <div class="overview-stat-content">
-                                        <div class="overview-stat-label">Database</div>
-                                        <div class="overview-stat-value">Operational</div>
-                                    </div>
-                                </div>
-                                <div class="overview-stat-item">
-                                    <div class="overview-stat-icon bg-primary">
-                                        <i class="fas fa-cogs"></i>
-                                    </div>
-                                    <div class="overview-stat-content">
-                                        <div class="overview-stat-label">Application</div>
-                                        <div class="overview-stat-value">Running</div>
-                                    </div>
-                                </div>
-                                <div class="overview-stat-item">
-                                    <div class="overview-stat-icon bg-info">
-                                        <i class="fas fa-shield-alt"></i>
-                                    </div>
-                                    <div class="overview-stat-content">
-                                        <div class="overview-stat-label">Security</div>
-                                        <div class="overview-stat-value">Protected</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        <!-- Right Column - Recent Activity -->
-        <div class="col-lg-4">
-            <!-- Recent Subjects -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-history text-primary me-2"></i>
-                        Recent Subjects
-                    </h6>
-                </div>
-                <div class="card-body">
-                    @if(isset($myRecentSubjects) && $myRecentSubjects->count() > 0)
-                        <div class="recent-items">
-                            @foreach($myRecentSubjects->take(5) as $subject)
-                                <div class="recent-item">
-                                    <div class="recent-item-content">
-                                        <div class="recent-item-title">{{ $subject->name }}</div>
-                                        <div class="recent-item-meta">
-                                            <span class="badge bg-primary me-1">{{ $subject->code }}</span>
-                                            <span class="badge bg-info">Grade {{ $subject->grade_level }}</span>
-                                        </div>
-                                        <div class="recent-item-date">{{ $subject->created_at->diffForHumans() }}</div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                        <div class="text-center mt-3">
-                            <a href="{{ route('registrar.subjects.index') }}" class="btn btn-outline-primary btn-sm">
-                                View All Subjects
-                            </a>
-                        </div>
-                    @else
-                        <div class="empty-state">
-                            <i class="fas fa-book fa-2x text-muted mb-3"></i>
-                            <p class="text-muted mb-0">No subjects created yet</p>
-                            <a href="{{ route('registrar.subjects.create') }}" class="btn btn-primary btn-sm mt-2">
-                                Create Your First Subject
-                            </a>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Recent Students -->
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-user-graduate text-success me-2"></i>
-                        Recent Students
-                    </h6>
-                </div>
-                <div class="card-body">
-                    @if(isset($recentStudents) && $recentStudents->count() > 0)
-                        <div class="recent-items">
-                            @foreach($recentStudents->take(5) as $student)
-                                <div class="recent-item">
-                                    <div class="d-flex align-items-center">
-                                        <div class="student-avatar me-3">
-                                            {{ substr($student->first_name ?? 'S', 0, 1) }}
-                                        </div>
-                                        <div class="recent-item-content flex-grow-1">
-                                            <div class="recent-item-title">{{ $student->first_name }} {{ $student->last_name }}</div>
-                                            <div class="recent-item-meta">
-                                                @if($student->grade_level)
-                                                    <span class="badge bg-info me-1">Grade {{ $student->grade_level }}</span>
-                                                @endif
-                                                @if($student->strand)
-                                                    <span class="badge bg-secondary">{{ $student->strand }}</span>
-                                                @endif
-                                            </div>
-                                            <div class="recent-item-date">{{ $student->created_at->diffForHumans() }}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                        <div class="text-center mt-3">
-                            <a href="{{ route('registrar.students.index') }}" class="btn btn-outline-success btn-sm">
-                                View All Students
-                            </a>
-                        </div>
-                    @else
-                        <div class="empty-state">
-                            <i class="fas fa-users fa-2x text-muted mb-3"></i>
-                            <p class="text-muted mb-0">No recent students</p>
-                            <a href="{{ route('registrar.students.create') }}" class="btn btn-success btn-sm mt-2">
-                                Generate Student Credentials
-                            </a>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
-
 @push('styles')
 <style>
-/* ===== CUSTOM DASHBOARD STYLES ===== */
-
-/* Section Titles */
-.section-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 0;
+/* Clean Page Header */
+.dashboard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 12px;
+}
+.dashboard-title {
+    font-size: 2rem;
+    font-weight: 700;
+}
+.dashboard-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
 }
 
-/* Quick Action Cards */
-.quick-action-card {
-    display: block;
+/* Clean Statistics Cards */
+.clean-stat-card {
     background: white;
-    border: none;
-    border-radius: 12px;
-    padding: 1.5rem;
-    text-decoration: none;
-    color: inherit;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    border-top: 4px solid;
+}
+.clean-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+.students-card { border-color: #4facfe; }
+.subjects-card { border-color: #43e97b; }
+.teachers-card { border-color: #fa709a; }
+.records-card { border-color: #a8edea; }
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    margin-bottom: 1rem;
+    float: right;
+}
+.students-card .stat-icon { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+.subjects-card .stat-icon { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+.teachers-card .stat-icon { background: linear-gradient(135deg, #fa709a, #fee140); }
+.records-card .stat-icon { background: linear-gradient(135deg, #a8edea, #fed6e3); }
+.stat-content h3 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+.stat-content p {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+.stat-change {
+    font-size: 0.85rem;
+    color: #28a745;
+    font-weight: 500;
+}
+
+/* Action Group Cards */
+.action-group-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
     height: 100%;
 }
-
-.quick-action-card:hover {
-    text-decoration: none;
-    color: inherit;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+.action-group-header {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
-
-.quick-action-icon {
-    width: 50px;
-    height: 50px;
+.action-group-header i { font-size: 1.5rem; color: #667eea; }
+.action-group-header h6 { font-size: 1.1rem; font-weight: 600; color: #2c3e50; margin: 0; }
+.action-group-body { padding: 1rem; }
+.action-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
     border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    color: white;
-    margin-bottom: 1rem;
-}
-
-.quick-action-content h6 {
-    font-weight: 600;
+    text-decoration: none;
     color: #2c3e50;
-    margin-bottom: 0.25rem;
-}
-
-.quick-action-content p {
-    font-size: 0.875rem;
-    color: #6c757d;
-    margin-bottom: 0;
-}
-
-/* Overview Stats */
-.overview-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.overview-stat-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #f1f3f4;
-}
-
-.overview-stat-item:last-child {
-    border-bottom: none;
-}
-
-.overview-stat-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1rem;
-    flex-shrink: 0;
-}
-
-.overview-stat-content {
-    flex: 1;
-}
-
-.overview-stat-label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 0.25rem;
-}
-
-.overview-stat-value {
-    font-size: 0.8rem;
-    color: #6c757d;
-}
-
-/* Recent Items */
-.recent-items {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.recent-item {
-    padding: 0.75rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
     transition: all 0.3s ease;
+    margin-bottom: 0.5rem;
 }
+.action-item:hover {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    text-decoration: none;
+    transform: translateX(5px);
+}
+.action-item i { font-size: 1.1rem; width: 20px; text-align: center; }
+.action-item span { font-weight: 500; }
 
-.recent-item:hover {
+/* Analytics Card */
+.analytics-card {
     background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transform: translateY(-1px);
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    margin-bottom: 2rem;
 }
-
-.recent-item-content {
-    flex: 1;
+.analytics-header {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 1.5rem;
 }
-
-.recent-item-title {
+.analytics-header h5 { font-size: 1.3rem; font-weight: 600; color: #2c3e50; margin: 0; }
+.analytics-body { padding: 2rem; }
+.chart-container {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+.chart-container h6 {
+    font-size: 1rem;
     font-weight: 600;
     color: #2c3e50;
-    margin-bottom: 0.25rem;
-    font-size: 0.9rem;
-}
-
-.recent-item-meta {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 0.25rem;
-}
-
-.recent-item-date {
-    font-size: 0.75rem;
-    color: #6c757d;
-}
-
-/* Student Avatar */
-.student-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 1rem;
-    flex-shrink: 0;
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 2rem 1rem;
-}
-
-.empty-state i {
-    display: block;
     margin-bottom: 1rem;
+    text-align: center;
+}
+.chart-container canvas {
+    max-height: 250px !important;
+    width: 100% !important;
 }
 </style>
 @endpush
+
+@section('content')
+<div class="container-fluid py-4">
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container-fluid">
+            <h1 class="dashboard-title">Registrar Dashboard</h1>
+            <p class="dashboard-subtitle">Welcome back, {{ auth()->guard('registrar')->user()->first_name }}! Here's your school's overview.</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Students Card -->
+        <div class="col-lg-3 col-md-6">
+            <div class="clean-stat-card students-card">
+                <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+                <div class="stat-content">
+                    <h3>{{ number_format($totalStudents ?? 0) }}</h3>
+                    <p>Total Students</p>
+                    <span class="stat-change">+{{ $recentStudentsCount ?? 0 }} this month</span>
+                </div>
+            </div>
+        </div>
+        <!-- Subjects Card -->
+        <div class="col-lg-3 col-md-6">
+            <div class="clean-stat-card subjects-card">
+                <div class="stat-icon"><i class="fas fa-book"></i></div>
+                <div class="stat-content">
+                    <h3>{{ number_format($totalSubjects ?? 0) }}</h3>
+                    <p>Total Subjects</p>
+                    <span class="stat-change">{{ number_format($mySubjects ?? 0) }} created by you</span>
+                </div>
+            </div>
+        </div>
+        <!-- Teachers Card -->
+        <div class="col-lg-3 col-md-6">
+            <div class="clean-stat-card teachers-card">
+                <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                <div class="stat-content">
+                    <h3>{{ number_format($totalTeachers ?? 0) }}</h3>
+                    <p>Faculty Members</p>
+                    <span class="stat-change">{{ $assignmentStats['assignment_rate'] ?? 0 }}% assigned</span>
+                </div>
+            </div>
+        </div>
+        <!-- Yearly Records Card -->
+        <div class="col-lg-3 col-md-6">
+            <div class="clean-stat-card records-card">
+                <div class="stat-icon"><i class="fas fa-archive"></i></div>
+                <div class="stat-content">
+                    <h3>{{ date('Y') }}</h3>
+                    <p>Current Year</p>
+                    <span class="stat-change">
+                        <a href="{{ route('registrar.students.records') }}" class="text-primary">View Records</a>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <div class="action-group-card">
+                <div class="action-group-header"><i class="fas fa-bolt"></i><h6>Quick Actions</h6></div>
+                <div class="action-group-body">
+                    <a href="{{ route('registrar.students.upload') }}" class="action-item"><i class="fas fa-upload"></i><span>Upload Students</span></a>
+                    <a href="{{ route('registrar.students.create') }}" class="action-item"><i class="fas fa-user-plus"></i><span>Generate Credentials</span></a>
+                    <a href="{{ route('registrar.teacher-assignments.index') }}" class="action-item"><i class="fas fa-user-tie"></i><span>Assign Teachers</span></a>
+                    <a href="{{ route('registrar.student-subject-assignments.index') }}" class="action-item"><i class="fas fa-user-graduate"></i><span>Assign Subjects to Students</span></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Overview -->
+        <div class="col-lg-8">
+            <div class="analytics-card">
+                <div class="analytics-header"><h5><i class="fas fa-chart-line me-2"></i>Enrollment Analytics</h5></div>
+                <div class="analytics-body">
+                    <div class="chart-container">
+                        <h6>Students by Grade Level</h6>
+                        <canvas id="studentsGradeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+@endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Students by Grade Chart
-    const studentsGradeCtx = document.getElementById('studentsGradeChart').getContext('2d');
-    const studentsGradeData = @json($studentsByGrade);
-
-    new Chart(studentsGradeCtx, {
-        type: 'doughnut',
-        data: {
-            labels: studentsGradeData.map(item => item.grade_level || 'Not Set'),
-            datasets: [{
-                data: studentsGradeData.map(item => item.count),
-                backgroundColor: [
-                    '#007bff',
-                    '#28a745',
-                    '#ffc107',
-                    '#dc3545',
-                    '#6f42c1'
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true
-                    }
-                }
-            }
-        }
-    });
-
-    // Subjects by Track Chart
-    const subjectsTrackCtx = document.getElementById('subjectsTrackChart').getContext('2d');
-    const subjectsTrackData = @json($subjectsByTrack);
-
-    new Chart(subjectsTrackCtx, {
-        type: 'bar',
-        data: {
-            labels: subjectsTrackData.map(item => item.track || 'Not Set'),
-            datasets: [{
-                label: 'Subjects',
-                data: subjectsTrackData.map(item => item.count),
-                backgroundColor: [
-                    '#007bff',
-                    '#28a745',
-                    '#ffc107',
-                    '#dc3545'
-                ],
-                borderRadius: 6,
-                borderSkipped: false
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
+    const studentsGradeCanvas = document.getElementById('studentsGradeChart');
+    if (studentsGradeCanvas) {
+        const studentsGradeCtx = studentsGradeCanvas.getContext('2d');
+        const studentsGradeData = @json($studentsByGradeLevel ?? []);
+        
+        new Chart(studentsGradeCtx, {
+            type: 'bar',
+            data: {
+                labels: studentsGradeData.map(item => item.grade_level),
+                datasets: [{
+                    label: 'Number of Students',
+                    data: studentsGradeData.map(item => item.count),
+                    backgroundColor: [
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(67, 233, 123, 0.8)',
+                        'rgba(250, 112, 154, 0.8)',
+                        'rgba(168, 237, 234, 0.8)',
+                        'rgba(255, 193, 7, 0.8)',
+                        'rgba(220, 53, 69, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(102, 126, 234, 1)',
+                        'rgba(67, 233, 123, 1)',
+                        'rgba(250, 112, 154, 1)',
+                        'rgba(168, 237, 234, 1)',
+                        'rgba(255, 193, 7, 1)',
+                        'rgba(220, 53, 69, 1)'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 20,
+                        right: 20,
+                        bottom: 20,
+                        left: 20
                     }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 12,
+                                weight: '500'
+                            },
+                            color: '#6c757d'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 12,
+                                weight: '500'
+                            },
+                            color: '#6c757d'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Students: ' + context.parsed.y;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
                 }
             }
-        }
-    });
+        });
+    }
 });
 </script>
 @endpush
