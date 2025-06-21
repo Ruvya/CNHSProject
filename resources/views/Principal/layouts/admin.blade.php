@@ -64,9 +64,9 @@
                                 <i class="fas fa-tachometer-alt me-2"></i> Dashboard
                             </a>
                         </li>
-                                                <li class="nav-item">
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('principal.announcements.*') ? 'active' : '' }}" href="{{ route('principal.announcements.index') }}">
-                                <i class="fas fa-bullhorn me-2"></i> Announcements
+                                <i class="fas fa-bullhorn me-2"></i> My Announcements
                             </a>
                         </li>
                         <li class="nav-item">

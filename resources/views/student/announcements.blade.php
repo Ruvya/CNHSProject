@@ -455,7 +455,15 @@
                 <p>{{ $announcement->content }}</p>
                 @if(isset($announcement->author))
                     <div class="announcement-author">
-                        <small>📝 Posted by: {{ $announcement->author->name ?? 'School Administration' }}</small>
+                        <small>
+                            @if($announcement->isFromTeacher())
+                                👨‍🏫 Posted by: {{ $announcement->author->name ?? 'Teacher' }} (Teacher)
+                            @elseif($announcement->isFromPrincipal())
+                                🏫 Posted by: {{ $announcement->author->name ?? 'Principal' }} (Principal)
+                            @else
+                                📝 Posted by: {{ $announcement->author->name ?? 'School Administration' }}
+                            @endif
+                        </small>
                     </div>
                 @endif
             </div>

@@ -390,7 +390,7 @@
                 <i class="fas fa-chalkboard-teacher"></i> Teachers
             </a>
             <a href="{{ route('principal.announcements.index') }}" class="sidebar-link {{ request()->routeIs('principal.announcements.*') ? 'active' : '' }}">
-                <i class="fas fa-bullhorn"></i> Announcements
+                <i class="fas fa-bullhorn"></i> My Announcements
             </a>
             <a href="#" class="sidebar-link">
                 <i class="fas fa-calendar-alt"></i> Events

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Subject;
 use App\Models\Student;
 use App\Models\Grade;
+use App\Models\TeacherAssignment;
 use Illuminate\Support\Facades\Auth;
 
 class GradeController extends Controller
@@ -45,6 +46,43 @@ class GradeController extends Controller
         $students = $query->get();
 
         return view('teacher.grades', compact('subjects', 'sections', 'students'));
+    }
+
+    public function gradeManagement(Request $request)
+    {
+        $teacher = Auth::guard('teacher')->user();
+
+        // Get subjects from both assignment methods
+        $assignedSubjects = $teacher->assignedSubjects()->get();
+        $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
+        $subjects = $assignedSubjects->merge($directSubjects)->unique('id');
+
+        // Get grade statistics
+        $gradeStats = [];
+        foreach ($subjects as $subject) {
+            $totalStudents = Student::whereHas('subjects', function($q) use ($subject) {
+                $q->where('subjects.id', $subject->id);
+            })->count();
+
+            $gradedStudents = Grade::where('subject_id', $subject->id)
+                ->whereNotNull('final_grade')
+                ->count();
+
+            $averageGrade = Grade::where('subject_id', $subject->id)
+                ->whereNotNull('final_grade')
+                ->avg('final_grade');
+
+            $gradeStats[] = [
+                'subject' => $subject,
+                'total_students' => $totalStudents,
+                'graded_students' => $gradedStudents,
+                'pending_grades' => $totalStudents - $gradedStudents,
+                'average_grade' => $averageGrade ? round($averageGrade, 2) : 0,
+                'completion_percentage' => $totalStudents > 0 ? round(($gradedStudents / $totalStudents) * 100, 1) : 0
+            ];
+        }
+
+        return view('teacher.grade-management', compact('gradeStats', 'subjects'));
     }
 
     public function saveGrade(Request $request)
@@ -197,5 +235,28 @@ class GradeController extends Controller
                      ->first();
 
         return view('teacher.edit-grade', compact('teacher', 'student', 'subject', 'grade'));
+    }
+
+    public function show(Subject $subject)
+    {
+        $teacher = Auth::guard('teacher')->user();
+        $students = $subject->students()->where('teacher_id', $teacher->id)->with('grades')->get();
+
+        $totalStudents = $students->count();
+        $studentsWithGrades = $students->filter(function($student) {
+            return $student->grades->isNotEmpty();
+        })->count();
+
+        $totalGrades = Grade::where('subject_id', $subject->id)->whereIn('student_id', $students->pluck('id'))->avg('final_grade');
+        $totalSubjects = TeacherAssignment::where('teacher_id', $teacher->id)->distinct('subject_id')->count();
+
+        return view('teacher.subjects.grades', [
+            'subject' => $subject,
+            'students' => $students,
+            'totalStudents' => $totalStudents,
+            'studentsWithGrades' => $studentsWithGrades,
+            'averageGrade' => $totalGrades,
+            'totalSubjects' => $totalSubjects,
+        ]);
     }
 }

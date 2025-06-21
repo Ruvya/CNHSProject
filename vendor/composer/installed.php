@@ -3,7 +3,7 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-cnhs_branch',
         'version' => 'dev-cnhs_branch',
-        'reference' => 'c4e2ddf5df896a127ec96bc8780d24b73fdcb184',
+        'reference' => '5fb1dff1934db585e3c81922e3075604d70b06c6',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -415,7 +415,7 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-cnhs_branch',
             'version' => 'dev-cnhs_branch',
-            'reference' => 'c4e2ddf5df896a127ec96bc8780d24b73fdcb184',
+            'reference' => '5fb1dff1934db585e3c81922e3075604d70b06c6',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

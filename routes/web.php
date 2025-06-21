@@ -718,12 +718,37 @@ Route::middleware(['auth:teacher'])->group(function () {
     Route::get('/teacher/classlist', [App\Http\Controllers\Teacher\ClassListController::class, 'index'])->name('teacher.classlist');
     Route::get('/teacher/students/{student}', [App\Http\Controllers\Teacher\ClassListController::class, 'showStudent'])->name('teacher.students.show');
     Route::get('/teacher/grades', [App\Http\Controllers\Teacher\GradeController::class, 'index'])->name('teacher.grades');
+    Route::get('/teacher/grade-management', [App\Http\Controllers\Teacher\GradeController::class, 'gradeManagement'])->name('teacher.grade-management');
     Route::post('/teacher/grades/save', [App\Http\Controllers\Teacher\GradeController::class, 'saveGrade'])->name('teacher.save-grade');
     Route::post('/teacher/grades/save-quarter', [App\Http\Controllers\Teacher\GradeController::class, 'saveQuarterGrade'])->name('teacher.save-quarter-grade');
     Route::get('/teacher/grades/{student}/{subject}/edit', [App\Http\Controllers\Teacher\GradeController::class, 'editGrade'])->name('teacher.grades.edit');
     Route::get('/teacher/profile', [App\Http\Controllers\Teacher\ProfileController::class, 'index'])->name('teacher.profile');
     Route::post('/teacher/profile', [App\Http\Controllers\Teacher\ProfileController::class, 'update'])->name('teacher.update-profile');
     Route::post('/teacher/profile/upload', [App\Http\Controllers\Teacher\ProfileController::class, 'uploadProfilePicture'])->name('teacher.profile.upload');
+
+    // Teacher Announcement Routes
+    Route::get('/teacher/announcements', [App\Http\Controllers\Teacher\AnnouncementController::class, 'index'])->name('teacher.announcements.index');
+    Route::get('/teacher/announcements/create', [App\Http\Controllers\Teacher\AnnouncementController::class, 'create'])->name('teacher.announcements.create');
+    Route::post('/teacher/announcements', [App\Http\Controllers\Teacher\AnnouncementController::class, 'store'])->name('teacher.announcements.store');
+    Route::get('/teacher/announcements/{announcement}/edit', [App\Http\Controllers\Teacher\AnnouncementController::class, 'edit'])->name('teacher.announcements.edit');
+    Route::put('/teacher/announcements/{announcement}', [App\Http\Controllers\Teacher\AnnouncementController::class, 'update'])->name('teacher.announcements.update');
+    Route::delete('/teacher/announcements/{announcement}', [App\Http\Controllers\Teacher\AnnouncementController::class, 'destroy'])->name('teacher.announcements.destroy');
+    Route::get('/teacher/principal-announcements', [App\Http\Controllers\Teacher\AnnouncementController::class, 'getPrincipalAnnouncements'])->name('teacher.principal-announcements');
+    
+    // Temporary test route for principal announcements
+    Route::get('/test/principal-announcements', function() {
+        $announcements = \App\Models\Announcement::where('author_type', 'App\Models\Principal')
+            ->where('status', 'active')
+            ->where('is_published', true)
+            ->latest()
+            ->take(10)
+            ->get();
+        
+        return response()->json([
+            'announcements' => $announcements,
+            'count' => $announcements->count()
+        ]);
+    });
 
     // AJAX routes for dynamic loading
     Route::get('/teacher/api/subjects/{gradeLevel}', [App\Http\Controllers\Teacher\ClassListController::class, 'getSubjects'])->name('teacher.api.subjects');
@@ -1302,8 +1327,6 @@ Route::get('/fix-grades-table', function() {
                 $table->decimal('final_grade', 5, 2)->nullable();
                 $table->string('remarks')->nullable();
                 $table->timestamps();
-
-                // Add unique constraint to prevent duplicate records
                 $table->unique(['student_id', 'subject_id']);
             });
             $message .= "✅ Created grades table with correct columns<br>";
@@ -2953,7 +2976,6 @@ Route::get('/force-run-all-migrations', function() {
     try {
         $output = "<h2>⚡ Force Run All Migrations</h2>";
         $output .= "<p style='color: red;'><strong>Warning:</strong> This will attempt to run ALL migrations, even if some fail.</p>";
-
         // Get all migration files in order
         $migrationFiles = glob(database_path('migrations/*.php'));
         sort($migrationFiles); // Ensure chronological order
@@ -3871,6 +3893,7 @@ Route::get('/fix-registrar-database-now', function() {
         return '<h1 style="color:red">❌ ERROR</h1><p>' . $e->getMessage() . '</p><pre>' . $e->getTraceAsString() . '</pre>';
     }
 });
+
 
 
 

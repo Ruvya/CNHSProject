@@ -56,7 +56,12 @@ class SubjectController extends Controller
             ->orderBy('first_name')
             ->get();
 
-        return view('teacher.subjects.students', compact('subject', 'students', 'teacher'));
+        // Get all subjects for the teacher (for the dropdown)
+        $assignedSubjects = $teacher->assignedSubjects()->get();
+        $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
+        $subjects = $assignedSubjects->merge($directSubjects)->unique('id');
+
+        return view('teacher.subjects.students', compact('subject', 'students', 'teacher', 'subjects'));
     }
 
     /**

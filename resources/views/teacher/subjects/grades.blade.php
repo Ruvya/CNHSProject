@@ -5,97 +5,18 @@
 @section('content')
 <div class="container-fluid">
     <!-- Header Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h3 mb-2 text-gray-800">{{ $subject->name }} - Manage Grades</h1>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ route('teacher.dashboard') }}">Dashboard</a></li>
-                            <li class="breadcrumb-item"><a href="{{ route('teacher.subjects') }}">Subjects</a></li>
-                            <li class="breadcrumb-item active">{{ $subject->name }} Grades</li>
-                        </ol>
-                    </nav>
-                </div>
-                <div>
-                    <a href="{{ route('teacher.subjects') }}" class="btn btn-secondary me-2">
-                        <i class="fas fa-arrow-left"></i> Back to Subjects
-                    </a>
-                    <a href="{{ route('teacher.subjects.students', $subject) }}" class="btn btn-info">
-                        <i class="fas fa-users"></i> View Students
-                    </a>
-                </div>
+    <div class="dashboard-header mb-4">
+        <div class="header-content">
+            <i class="fas fa-clipboard-check"></i>
+            <div>
+                <h1>Manage Grades</h1>
+                <p>{{ $subject->name }}</p>
             </div>
         </div>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Students</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalStudents }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Students with Grades</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $studentsWithGrades }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Class Average</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ $averageGrade ? number_format($averageGrade, 2) : 'N/A' }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Grades</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalStudents - $studentsWithGrades }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="header-actions">
+            <a href="{{ route('teacher.subjects') }}" class="btn btn-light-blue rounded-pill">
+                <i class="fas fa-arrow-left me-2"></i> Back to Subjects
+            </a>
         </div>
     </div>
 
@@ -106,13 +27,9 @@
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">Grade Management</h6>
                     <div>
-                        <button type="button" class="btn btn-success btn-sm" id="saveAllBtn">
-                            <i class="fas fa-save"></i> Save All Grades
-                        </button>
                         <button type="button" class="btn btn-info btn-sm ms-2" onclick="refreshAllGrades()" id="refreshAllBtn">
                             <i class="fas fa-sync-alt"></i> Refresh All
                         </button>
-
                     </div>
                 </div>
                 <div class="card-body">
@@ -159,8 +76,22 @@
                                             @php
                                                 $grade = $student->grades->first();
                                                 $finalGrade = $grade ? $grade->final_grade : null;
-                                                $status = $finalGrade ? ($finalGrade >= 75 ? 'Passed' : 'Failed') : 'Pending';
-                                                $statusClass = $finalGrade ? ($finalGrade >= 75 ? 'success' : 'danger') : 'warning';
+                                                $quarters = [];
+                                                if ($grade) {
+                                                    foreach (['quarter1', 'quarter2', 'quarter3', 'quarter4'] as $q) {
+                                                        if (!is_null($grade->$q)) {
+                                                            $quarters[] = $grade->$q;
+                                                        }
+                                                    }
+                                                }
+                                                if (count($quarters) > 0) {
+                                                    $average = array_sum($quarters) / count($quarters);
+                                                    $status = $average >= 75 ? 'Passed' : 'Failed';
+                                                    $statusClass = $average >= 75 ? 'success' : 'danger';
+                                                } else {
+                                                    $status = 'Pending';
+                                                    $statusClass = 'warning';
+                                                }
                                             @endphp
                                             <tr>
                                                 <td>
@@ -223,20 +154,25 @@
                                                     </span>
                                                 </td>
                                                 <td class="text-center">
-                                                    <span class="badge badge-{{ $statusClass }} status-badge" data-student="{{ $student->id }}">
+                                                    <span class="status-badge {{ $status === 'Passed' ? 'text-success' : ($status === 'Failed' ? 'text-danger' : ($status === 'Pending' ? 'text-warning' : '')) }} badge badge-{{ $statusClass }}" data-student="{{ $student->id }}">
                                                         {{ $status }}
                                                     </span>
                                                 </td>
                                                 <td class="text-center">
                                                     <a href="{{ route('teacher.subjects.grades.edit', [$subject, $student]) }}"
                                                        class="btn btn-sm btn-outline-primary" title="Edit Individual Grade">
-                                                        <i class="fas fa-edit"></i>
+                                                        Edit
                                                     </a>
                                                 </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
+                            </div>
+                            <div class="text-end mt-3">
+                                <button type="button" class="btn btn-success btn-sm" id="saveAllBtn">
+                                    <i class="fas fa-save"></i> Save All Grades
+                                </button>
                             </div>
                         </form>
                     @else
@@ -255,6 +191,57 @@
 
 @section('styles')
 <style>
+.dashboard-header {
+    background: linear-gradient(115deg, #f97316 65%, #3b82f6 35%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+.header-content {
+    display: flex;
+    align-items: center;
+}
+.dashboard-header i {
+    font-size: 2.5rem;
+    margin-right: 1.5rem;
+    opacity: 0.9;
+}
+.dashboard-header h1 {
+    margin: 0;
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+.dashboard-header p {
+    margin: 0.25rem 0 0 0;
+    opacity: 0.9;
+    font-size: 1rem;
+}
+.btn-light-blue {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    white-space: nowrap;
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-light-blue i {
+    font-size: 0.7rem;
+}
+.btn-light-blue:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    transform: translateY(-2px);
+}
 .border-left-primary {
     border-left: 0.25rem solid #4e73df !important;
 }
@@ -425,6 +412,24 @@
 .btn-sm:hover {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Align DataTables search box to the left in a flex row */
+.dataTables_filter {
+    text-align: left !important;
+    flex: 1;
+    margin-bottom: 0;
+}
+.dataTables_filter label {
+    width: 50%;
+    display: flex;
+    align-items: left;
+    gap: 0.5rem;
+    margin-bottom: 0;
+}
+.dataTables_filter input[type="search"] {
+    margin-left: 0 !important;
+    flex: 1;
 }
 </style>
 @endsection
@@ -706,14 +711,14 @@ $(document).ready(function() {
         ],
         "language": {
             "search": "Search students:",
-            "lengthMenu": "Show _MENU_ students per page",
-            "info": "Showing _START_ to _END_ of _TOTAL_ students",
-            "infoEmpty": "No students found",
-            "infoFiltered": "(filtered from _MAX_ total students)"
-        }
+            "infoEmpty": "",
+            "infoFiltered": ""
+        },
+        "lengthChange": false,
+        "dom": '<"d-flex justify-content-between align-items-center mb-2"f>t',
+        "paging": false,
+        "info": false
     });
-
-
 
     // Initialize tooltips for better UX
     $('[data-bs-toggle="tooltip"]').tooltip();

@@ -6,7 +6,10 @@
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-body d-flex justify-content-between align-items-center">
-                    <h1 class="h3 text-primary mb-0">Announcements</h1>
+                    <div>
+                        <h1 class="h3 text-primary mb-0">My Announcements</h1>
+                        <small class="text-muted">Manage your announcements</small>
+                    </div>
                     <a href="{{ route('principal.announcements.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i>Create New
                     </a>
@@ -68,7 +71,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center">No announcements found.</td>
+                                        <td colspan="4" class="text-center">You haven't created any announcements yet.</td>
                                     </tr>
                                 @endforelse
                             </tbody>

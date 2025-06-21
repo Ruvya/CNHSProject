@@ -14,7 +14,11 @@ class AnnouncementController extends Controller
      */
     public function index()
     {
-        $announcements = Announcement::latest()->get();
+        $principal = auth()->guard('principal')->user();
+        $announcements = Announcement::where('author_type', 'App\Models\Principal')
+            ->where('author_id', $principal->id)
+            ->latest()
+            ->get();
         return view('Principal.announcements.index', compact('announcements'));
     }
 
@@ -56,7 +60,10 @@ class AnnouncementController extends Controller
      */
     public function show(string $id)
     {
-        $announcement = Announcement::findOrFail($id);
+        $principal = auth()->guard('principal')->user();
+        $announcement = Announcement::where('author_type', 'App\Models\Principal')
+            ->where('author_id', $principal->id)
+            ->findOrFail($id);
         return view('Principal.announcements.show', compact('announcement'));
     }
 
@@ -65,7 +72,10 @@ class AnnouncementController extends Controller
      */
     public function edit(string $id)
     {
-        $announcement = Announcement::findOrFail($id);
+        $principal = auth()->guard('principal')->user();
+        $announcement = Announcement::where('author_type', 'App\Models\Principal')
+            ->where('author_id', $principal->id)
+            ->findOrFail($id);
         return view('Principal.announcements.edit', compact('announcement'));
     }
 
@@ -74,6 +84,13 @@ class AnnouncementController extends Controller
      */
     public function update(Request $request, Announcement $announcement)
     {
+        $principal = auth()->guard('principal')->user();
+        
+        // Verify the announcement belongs to this principal
+        if ($announcement->author_type !== 'App\Models\Principal' || $announcement->author_id !== $principal->id) {
+            abort(403, 'You do not have access to this announcement.');
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
@@ -96,6 +113,14 @@ class AnnouncementController extends Controller
     public function destroy(Announcement $announcement)
     {
         try {
+            $principal = auth()->guard('principal')->user();
+            
+            // Verify the announcement belongs to this principal
+            if ($announcement->author_type !== 'App\Models\Principal' || $announcement->author_id !== $principal->id) {
+                return redirect()->route('principal.announcements.index')
+                    ->with('error', 'You do not have access to this announcement.');
+            }
+
             // Check if the announcement exists
             if (!$announcement) {
                 return redirect()->route('principal.announcements.index')
