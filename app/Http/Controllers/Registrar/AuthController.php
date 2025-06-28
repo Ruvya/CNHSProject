@@ -25,6 +25,7 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
+            'role' => 'required|in:admin,teacher,student,registrar',
         ]);
 
         // Debug: Check if user exists and password is correct

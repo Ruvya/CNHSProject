@@ -53,8 +53,7 @@ try {
     // Create new registrar account
     echo "Creating new registrar account...\n";
     $registrar = \App\Models\Registrar::create([
-        'first_name' => 'Registrar',
-        'last_name' => 'User',
+        'name' => 'Registrar User',
         'email' => 'registrar@cnhs.edu.ph',
         'password' => \Illuminate\Support\Facades\Hash::make('password123'),
         'registrar_secret' => 'letmein',

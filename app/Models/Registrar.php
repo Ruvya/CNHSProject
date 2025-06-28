@@ -40,6 +40,4 @@ class Registrar extends Authenticatable
     {
         return $this->hasMany(Subject::class);
     }
-
-
 }

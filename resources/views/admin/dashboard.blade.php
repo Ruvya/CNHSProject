@@ -241,6 +241,43 @@
     </div>
 </div>
 
+<!-- Pass/Fail by School Year Chart -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-12">
+        <div class="card">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2 text-danger"></i>
+                    Pass/Fail by School Year
+                </h5>
+                <div class="d-flex flex-wrap gap-2">
+                    <select id="filterGradeLevel" class="form-select form-select-sm" style="min-width: 140px;">
+                        <option value="">All Grade Levels</option>
+                        @foreach(\App\Models\Student::distinct()->pluck('grade_level')->filter() as $grade)
+                            <option value="{{ $grade }}">{{ $grade }}</option>
+                        @endforeach
+                    </select>
+                    <select id="filterSection" class="form-select form-select-sm" style="min-width: 140px;">
+                        <option value="">All Sections</option>
+                        @foreach(\App\Models\Student::distinct()->pluck('section')->filter() as $section)
+                            <option value="{{ $section }}">{{ $section }}</option>
+                        @endforeach
+                    </select>
+                    <select id="filterSchoolYear" class="form-select form-select-sm" style="min-width: 140px;">
+                        <option value="">All School Years</option>
+                        @foreach(\App\Models\StudentYearlyRecord::distinct()->pluck('school_year')->sort()->reverse() as $sy)
+                            <option value="{{ $sy }}">{{ $sy }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="passFailChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- System Overview Section -->
 <div class="row g-4 mb-4">
     <div class="col-xl-8">
@@ -715,6 +752,90 @@ document.addEventListener('DOMContentLoaded', function() {
             cutout: '60%'
         }
     });
+
+    // Pass/Fail by School Year Chart
+    let passFailChart;
+    const passFailCtx = document.getElementById('passFailChart').getContext('2d');
+    const filterGradeLevel = document.getElementById('filterGradeLevel');
+    const filterSection = document.getElementById('filterSection');
+    const filterSchoolYear = document.getElementById('filterSchoolYear');
+
+    function fetchPassFailData() {
+        const params = new URLSearchParams();
+        if (filterGradeLevel.value) params.append('grade_level', filterGradeLevel.value);
+        if (filterSection.value) params.append('section', filterSection.value);
+        if (filterSchoolYear.value) params.append('school_year', filterSchoolYear.value);
+        fetch(`/admin/dashboard/pass-fail-stats?${params.toString()}`)
+            .then(res => res.json())
+            .then(res => {
+                const stats = res.data || {};
+                const years = Object.keys(stats);
+                const passed = years.map(y => stats[y].passed);
+                const failed = years.map(y => stats[y].failed);
+                renderPassFailChart(years, passed, failed);
+            });
+    }
+
+    function renderPassFailChart(labels, passedData, failedData) {
+        if (passFailChart) passFailChart.destroy();
+        passFailChart = new Chart(passFailCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Passed',
+                        data: passedData,
+                        backgroundColor: '#10b981', // Green
+                        borderColor: '#059669',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        borderSkipped: false
+                    },
+                    {
+                        label: 'Failed',
+                        data: failedData,
+                        backgroundColor: '#ef4444', // Red
+                        borderColor: '#dc2626',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'bottom' },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#374151',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, color: '#6b7280' },
+                        grid: { color: '#f3f4f6' }
+                    },
+                    x: {
+                        ticks: { color: '#6b7280' },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // Fetch data on load and when filters change
+    [filterGradeLevel, filterSection, filterSchoolYear].forEach(el => {
+        el.addEventListener('change', fetchPassFailData);
+    });
+    fetchPassFailData();
 });
 </script>
 @endpush

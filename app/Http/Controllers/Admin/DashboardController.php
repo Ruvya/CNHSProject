@@ -8,6 +8,7 @@ use App\Models\Subject;
 use App\Models\Teacher;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -163,5 +164,70 @@ class DashboardController extends Controller
                 'monthlyRegistrations' => []
             ]);
         }
+    }
+
+    /**
+     * API endpoint: Get pass/fail stats per school year, filterable by grade level, section, and school year
+     */
+    public function getPassFailStats(Request $request)
+    {
+        $gradeLevel = $request->input('grade_level');
+        $section = $request->input('section');
+        $schoolYear = $request->input('school_year');
+
+        // Build the query for students
+        $studentsQuery = \App\Models\Student::query();
+        if ($gradeLevel) {
+            $studentsQuery->where('grade_level', $gradeLevel);
+        }
+        if ($section) {
+            $studentsQuery->where('section', $section);
+        }
+        if ($schoolYear) {
+            $studentsQuery->whereHas('yearlyRecords', function($q) use ($schoolYear) {
+                $q->where('school_year', $schoolYear);
+            });
+        }
+
+        $students = $studentsQuery->with(['grades', 'yearlyRecords'])->get();
+
+        // Group by school year
+        $stats = [];
+        foreach ($students as $student) {
+            // Determine school years for this student
+            $years = $student->yearlyRecords->pluck('school_year')->unique();
+            foreach ($years as $year) {
+                if (!isset($stats[$year])) {
+                    $stats[$year] = ['passed' => 0, 'failed' => 0];
+                }
+                // Get grades for this year
+                $grades = $student->grades;
+                if ($schoolYear) {
+                    $grades = $grades->filter(function($grade) use ($year) {
+                        // Try to match by school_year if available in grade or subject
+                        if (isset($grade->school_year) && $grade->school_year) {
+                            return $grade->school_year == $year;
+                        }
+                        if ($grade->subject && isset($grade->subject->school_year)) {
+                            return $grade->subject->school_year == $year;
+                        }
+                        return true; // fallback if not available
+                    });
+                }
+                // Count pass/fail for this year
+                foreach ($grades as $grade) {
+                    if ($grade->final_grade !== null) {
+                        if ($grade->final_grade >= 75) {
+                            $stats[$year]['passed']++;
+                        } else {
+                            $stats[$year]['failed']++;
+                        }
+                    }
+                }
+            }
+        }
+        // Sort by school year
+        ksort($stats);
+        return response()->json(['data' => $stats]);
     }
 }

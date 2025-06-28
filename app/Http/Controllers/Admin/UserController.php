@@ -287,4 +287,21 @@ class UserController extends Controller
         $student->delete();
         return redirect()->route('admin.users')->with('success', 'Student deleted successfully.');
     }
+
+    /**
+     * Admin resets a student's password
+     */
+    public function resetStudentPassword(Request $request, Student $student)
+    {
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $student->password = \Hash::make($request->password);
+        $student->is_temporary_account = false;
+        $student->profile_completed = true;
+        $student->save();
+
+        return redirect()->back()->with('success', 'Password has been reset successfully. New password: ' . $request->password);
+    }
 }

@@ -117,27 +117,9 @@ class TeacherAssignmentController extends Controller
      */
     public function create(Request $request)
     {
-        $teacherId = $request->get('teacher_id');
-        $teacher = $teacherId ? Teacher::findOrFail($teacherId) : null;
-
-        $currentSchoolYear = $this->getCurrentSchoolYear();
-        $currentGradingPeriod = 'First Grading';
-
-        // Get available data
-        $teachers = Teacher::orderBy('name')->get();
-        $subjects = Subject::orderBy('name')->get();
-
-        // Get available grade levels
-        $gradeLevels = Subject::distinct()->pluck('grade_level')->sort()->values();
-
-        return view('registrar.teacher-assignments.create', compact(
-            'teacher',
-            'teachers',
-            'subjects',
-            'gradeLevels',
-            'currentSchoolYear',
-            'currentGradingPeriod'
-        ));
+        $teachers = \App\Models\Teacher::orderBy('name')->get();
+        $subjects = \App\Models\Subject::orderBy('name')->get();
+        return view('registrar.teacher-assignments.create', compact('teachers', 'subjects'));
     }
 
     /**

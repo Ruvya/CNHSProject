@@ -199,12 +199,10 @@
                 <div class="position-relative d-inline-block mb-3">
                     <img src="{{ Auth::guard('principal')->user()->profile_picture ? asset('storage/' . Auth::guard('principal')->user()->profile_picture) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::guard('principal')->user()->name) . '&size=90&background=ffffff&color=007bff&bold=true' }}" 
                          alt="{{ Auth::guard('principal')->user()->name }}" 
-                         class="profile-picture-sidebar shadow">
+                         class="profile-picture-sidebar shadow position-relative">
                     
-                    <!-- Online Status Badge -->
-                    <span class="position-absolute bottom-0 end-0 translate-middle p-2 bg-success border border-2 border-white rounded-circle">
-                        <span class="visually-hidden">Online</span>
-                    </span>
+                    <!-- Online Status Dot -->
+                    <span class="position-absolute bottom-0 end-0 translate-middle p-2 bg-success border border-2 border-white rounded-circle" style="width: 18px; height: 18px;"></span>
                 </div>
                 
                 <h6 class="mb-1 text-white fw-bold">{{ Auth::guard('principal')->user()->name }}</h6>

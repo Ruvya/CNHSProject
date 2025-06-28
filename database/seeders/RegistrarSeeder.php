@@ -20,10 +20,9 @@ class RegistrarSeeder extends Seeder
         // Delete existing registrar if exists
         DB::table('registrars')->where('email', 'registrar@cnhs.edu.ph')->delete();
 
-        // Insert new registrar with all required fields
+        // Insert new registrar with correct field names
         DB::table('registrars')->insert([
-            'first_name' => 'Registrar',
-            'last_name' => 'User',
+            'name' => 'Registrar User',
             'email' => 'registrar@cnhs.edu.ph',
             'password' => Hash::make('password123'),
             'registrar_secret' => 'letmein',

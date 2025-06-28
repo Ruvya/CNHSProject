@@ -38,11 +38,10 @@ try {
         echo "✅ Deleted existing registrar\n\n";
     }
 
-    // Create new registrar
+    // Create new registrar with correct field names
     echo "Creating new registrar account...\n";
     $registrar = Registrar::create([
-        'first_name' => 'Registrar',
-        'last_name' => 'User',
+        'name' => 'Registrar User',
         'email' => 'registrar@cnhs.edu.ph',
         'password' => Hash::make('password123'),
         'registrar_secret' => 'letmein',
@@ -65,8 +64,7 @@ try {
     }
     
     $alt_registrar = Registrar::create([
-        'first_name' => 'Test',
-        'last_name' => 'Registrar',
+        'name' => 'Test Registrar',
         'email' => 'registrar@example.com',
         'password' => Hash::make('registrar123'),
         'registrar_secret' => 'letmein',

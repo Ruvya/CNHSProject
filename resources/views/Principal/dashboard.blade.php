@@ -119,26 +119,26 @@
 <div class="row">
     <!-- Recent School Announcements -->
     <div class="col-lg-8 mb-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
+        <div class="card enhanced-announcements-card">
+            <div class="card-header enhanced-card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 card-title-enhanced">
                     <i class="fas fa-bullhorn me-2"></i>
                     School Announcements
                 </h5>
-                <a href="{{ route('principal.announcements.create') }}" class="btn btn-primary btn-sm">
+                <a href="{{ route('principal.announcements.create') }}" class="btn btn-enhanced-primary btn-sm">
                     <i class="fas fa-plus me-1"></i>New Announcement
                 </a>
             </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush">
+            <div class="card-body enhanced-card-body p-0">
+                <div class="list-group list-group-flush enhanced-list-group">
                     @if(isset($recentAnnouncements) && $recentAnnouncements->count() > 0)
                         @foreach($recentAnnouncements->where('status', 'active') as $announcement)
-                            <div class="list-group-item p-3 border-0">
+                            <div class="list-group-item enhanced-list-item p-3 border-0">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div class="flex-grow-1">
-                                        <h6 class="mb-1 text-primary">{{ $announcement->title ?? 'Untitled' }}</h6>
-                                        <p class="mb-2 text-muted">{{ Str::limit($announcement->content ?? '', 120) }}</p>
-                                        <small class="text-muted">
+                                        <h6 class="mb-1 announcement-title-enhanced">{{ $announcement->title ?? 'Untitled' }}</h6>
+                                        <p class="mb-2 announcement-content-enhanced">{{ Str::limit($announcement->content ?? '', 120) }}</p>
+                                        <small class="announcement-meta-enhanced">
                                             <i class="fas fa-calendar me-1"></i>
                                             @if($announcement->created_at)
                                                 {{ $announcement->created_at->diffForHumans() }}
@@ -147,14 +147,14 @@
                                             @endif
                                         </small>
                                     </div>
-                                    <span class="badge bg-{{ ($announcement->status ?? 'draft') === 'active' ? 'success' : 'warning' }} ms-3">
+                                    <span class="badge enhanced-badge bg-{{ ($announcement->status ?? 'draft') === 'active' ? 'success' : 'warning' }} ms-3">
                                         {{ ucfirst($announcement->status ?? 'draft') }}
                                     </span>
                                 </div>
                             </div>
                         @endforeach
                     @else
-                        <div class="list-group-item p-3 border-0 text-center">
+                        <div class="list-group-item enhanced-empty-state p-3 border-0 text-center">
                             <div class="text-muted">
                                 <i class="fas fa-bullhorn fa-2x mb-2 opacity-50"></i>
                                 <p class="mb-0">No announcements yet</p>
@@ -163,8 +163,8 @@
                         </div>
                     @endif
                 </div>
-                <div class="card-footer bg-light text-center">
-                    <a href="{{ route('principal.announcements.index') }}" class="btn btn-outline-primary btn-sm">
+                <div class="card-footer enhanced-card-footer bg-light text-center">
+                    <a href="{{ route('principal.announcements.index') }}" class="btn btn-enhanced-outline-primary btn-sm">
                         View All Announcements
                     </a>
                 </div>
@@ -175,22 +175,22 @@
     <!-- Quick Actions & Calendar -->
     <div class="col-lg-4 mb-4">
         <!-- Quick Actions -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
+        <div class="card enhanced-quick-actions-card mb-4">
+            <div class="card-header enhanced-card-header">
+                <h5 class="mb-0 card-title-enhanced">
                     <i class="fas fa-bolt me-2"></i>
                     Quick Actions
                 </h5>
             </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{{ route('principal.announcements.create') }}" class="btn btn-outline-primary">
+            <div class="card-body enhanced-card-body">
+                <div class="d-grid gap-3">
+                    <a href="{{ route('principal.announcements.create') }}" class="btn btn-enhanced-outline-primary enhanced-action-btn">
                         <i class="fas fa-bullhorn me-2"></i>Create Announcement
                     </a>
-                    <a href="{{ route('principal.teachers.index') }}" class="btn btn-outline-success">
+                    <a href="{{ route('principal.teachers.index') }}" class="btn btn-enhanced-outline-success enhanced-action-btn">
                         <i class="fas fa-users me-2"></i>Manage Teachers
                     </a>
-                    <a href="#" class="btn btn-outline-warning">
+                    <a href="#" class="btn btn-enhanced-outline-warning enhanced-action-btn">
                         <i class="fas fa-calendar-alt me-2"></i>School Calendar
                     </a>
                 </div>
@@ -198,19 +198,19 @@
         </div>
 
         <!-- Upcoming School Events -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
+        <div class="card enhanced-events-card">
+            <div class="card-header enhanced-card-header">
+                <h5 class="mb-0 card-title-enhanced">
                     <i class="fas fa-calendar-check me-2"></i>
                     Upcoming Events
                 </h5>
             </div>
-            <div class="card-body p-0">
-                <div id="upcoming-events-container">
+            <div class="card-body enhanced-card-body p-0">
+                <div id="upcoming-events-container" class="enhanced-events-container">
                     @include('Principal._upcoming_events_list', ['upcomingEvents' => $upcomingEvents])
                 </div>
-                <div class="text-center py-3">
-                    <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#calendarModal">
+                <div class="text-center py-3 enhanced-calendar-action">
+                    <button type="button" class="btn btn-enhanced-primary btn-lg enhanced-calendar-btn" data-bs-toggle="modal" data-bs-target="#calendarModal">
                         <i class="fas fa-calendar-alt me-2"></i>View Full Calendar
                     </button>
                 </div>
@@ -260,112 +260,128 @@
     </div>
   </div>
 </div>
+
 @endsection
 
 @section('styles')
 @parent
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 <style>
-    /* Dashboard specific styles */
+    /* Enhanced Color Scheme Variables */
+    :root {
+        --cnhs-primary-blue: #1E3A8A;
+        --cnhs-secondary-blue: #3B82F6;
+        --cnhs-accent-orange: #FF8C00;
+        --cnhs-gold: #FCD34D;
+        --cnhs-white: #FFFFFF;
+        --cnhs-light-gray: #F8FAFC;
+        --cnhs-medium-gray: #6B7280;
+        --cnhs-dark-gray: #374151;
+        --cnhs-success: #10B981;
+        --cnhs-warning: #F59E0B;
+        --cnhs-danger: #EF4444;
+        --cnhs-info: #06B6D4;
+        
+        /* Enhanced gradients */
+        --cnhs-gradient-primary: linear-gradient(135deg, var(--cnhs-primary-blue) 0%, var(--cnhs-secondary-blue) 100%);
+        --cnhs-gradient-orange: linear-gradient(135deg, var(--cnhs-accent-orange) 0%, var(--cnhs-gold) 100%);
+        --cnhs-gradient-success: linear-gradient(135deg, var(--cnhs-success) 0%, #059669 100%);
+        --cnhs-gradient-warning: linear-gradient(135deg, var(--cnhs-warning) 0%, #D97706 100%);
+        
+        /* Enhanced shadows */
+        --cnhs-shadow-sm: 0 2px 8px rgba(30, 58, 138, 0.08);
+        --cnhs-shadow-md: 0 8px 25px rgba(30, 58, 138, 0.12);
+        --cnhs-shadow-lg: 0 15px 35px rgba(30, 58, 138, 0.15);
+        --cnhs-shadow-xl: 0 25px 50px rgba(30, 58, 138, 0.20);
+    }
 
+    /* Enhanced Stats Cards */
     .stats-card {
-        background: white;
-        border: 1px solid #e0e6ed;
-        border-radius: 8px;
-        padding: 20px;
-        text-align: center;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
-        transition: none;
+        background: linear-gradient(145deg, var(--cnhs-white), var(--cnhs-light-gray));
+        border: 1px solid rgba(30, 58, 138, 0.08);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: var(--cnhs-shadow-md);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--cnhs-gradient-primary);
+        border-radius: 20px 20px 0 0;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: var(--cnhs-shadow-xl);
     }
 
     .stats-number {
-        font-size: 2rem;
-        font-weight: 600;
-        color: #2c5aa0;
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: var(--cnhs-gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         line-height: 1.2;
-        margin-bottom: 5px;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .stats-label {
-        color: #6b7280;
-        font-weight: 400;
-        font-size: 14px;
+        color: var(--cnhs-dark-gray);
+        font-weight: 600;
+        font-size: 0.95rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.8px;
     }
 
     .stats-icon {
-        opacity: 0.7;
-        font-size: 2rem;
-        color: #2c5aa0;
-        margin-bottom: 10px;
+        opacity: 0.8;
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
     }
 
-    /* Info cards */
-    .info-card {
-        background: white;
-        border: 1px solid #e0e6ed;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
+    .stats-card:hover .stats-icon {
+        opacity: 1;
+        transform: scale(1.1);
     }
 
-    .info-card-header {
-        background: #f8f9fa;
-        border-bottom: 1px solid #e0e6ed;
-        padding: 15px 20px;
-        font-weight: 500;
-        color: #495057;
-    }
-
-    .info-card-body {
-        padding: 20px;
-    }
-
-    /* List items */
-    .list-group-item {
-        border: 1px solid #e0e6ed;
-        padding: 12px 15px;
-        margin-bottom: 1px;
-        transition: background-color 0.2s ease;
-    }
-
-    .list-group-item:hover {
-        background-color: #f8f9fa;
-    }
-
-    /* Badges */
-    .badge {
-        font-size: 11px;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-weight: 500;
-    }
-
-    /* Progress bars */
-    .progress {
-        height: 8px;
-        border-radius: 4px;
-        background-color: #e9ecef;
-    }
-
-    .progress-bar {
-        border-radius: 4px;
-        background-color: #2c5aa0;
-    }
-
-    /* School header */
+    /* Enhanced School Header */
     .school-header {
-        background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-yellow) 100%);
-        border-radius: 16px;
-        padding: 2rem;
+        background: var(--cnhs-gradient-orange);
+        border-radius: 24px;
+        padding: 3rem;
         border: none;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        margin-bottom: 2rem;
+        box-shadow: var(--cnhs-shadow-lg);
+        margin-bottom: 2.5rem;
         position: relative;
         overflow: hidden;
-        color: var(--white);
+        color: var(--cnhs-white);
+    }
+
+    .school-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        animation: gridMove 30s linear infinite;
+    }
+
+    @keyframes gridMove {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(20px, 20px); }
     }
 
     .school-header::after {
@@ -375,165 +391,478 @@
         right: 0;
         width: 50%;
         height: 100%;
-        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
-        clip-path: polygon(100% 0, 100% 100%, 0 100%, 20% 0);
+        background: var(--cnhs-gradient-primary);
+        clip-path: polygon(100% 0, 100% 100%, 0 100%, 25% 0);
         opacity: 0.9;
         z-index: 1;
-
     }
 
     .school-header h1 {
-        font-size: 1.75rem;
-        margin-bottom: 10px;
-        font-weight: 600;
-        color: var(--white);
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+        font-weight: 800;
+        color: var(--cnhs-white);
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+        position: relative;
+        z-index: 2;
     }
 
     .school-header p {
-        font-size: 14px;
-        margin-bottom: 5px;
-        color: var(--white);
-    }
-
-    /* Quick action buttons */
-    .btn-outline-primary,
-    .btn-outline-success,
-    .btn-outline-info,
-    .btn-outline-warning {
-        border-radius: 4px;
-        font-size: 14px;
-        padding: 8px 16px;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        color: var(--cnhs-white);
         font-weight: 500;
-        transition: all 0.2s ease;
+        position: relative;
+        z-index: 2;
     }
 
-    .btn-outline-primary:hover {
-        background-color: #2c5aa0;
-        border-color: #2c5aa0;
+    .school-header small {
+        position: relative;
+        z-index: 2;
+        font-weight: 400;
     }
 
-    .btn-outline-success:hover {
-        background-color: #28a745;
-        border-color: #28a745;
+    /* Enhanced Card Styles */
+    .enhanced-announcements-card,
+    .enhanced-quick-actions-card,
+    .enhanced-events-card {
+        background: linear-gradient(145deg, var(--cnhs-white), var(--cnhs-light-gray));
+        border: none;
+        border-radius: 24px;
+        box-shadow: var(--cnhs-shadow-md);
+        transition: all 0.4s ease;
+        overflow: hidden;
+        position: relative;
     }
 
-    /* Card footer */
-    .card-footer {
-        background-color: #f8f9fa;
-        border-top: 1px solid #e0e6ed;
-        padding: 15px 20px;
+    .enhanced-announcements-card:hover,
+    .enhanced-quick-actions-card:hover,
+    .enhanced-events-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--cnhs-shadow-lg);
     }
 
-    /* Responsive */
-    @media (max-width: 768px) {
-        .school-header {
-            text-align: center;
-            padding: 15px;
-        }
-
-        .stats-card {
-            margin-bottom: 15px;
-        }
+    .enhanced-card-header {
+        background: var(--cnhs-gradient-primary);
+        color: var(--cnhs-white);
+        padding: 2rem;
+        border-bottom: none;
+        position: relative;
+        overflow: hidden;
     }
 
+    .enhanced-card-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="80" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="50" r="1.5" fill="rgba(255,255,255,0.08)"/></svg>');
+        background-size: 50px 50px;
+        animation: patternMove 20s linear infinite;
+    }
+
+    @keyframes patternMove {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(50px, 50px); }
+    }
+
+    .card-title-enhanced {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        position: relative;
+        z-index: 2;
+    }
+
+    .enhanced-card-body {
+        padding: 2rem;
+        background: var(--cnhs-white);
+    }
+
+    /* Enhanced List Items */
+    .enhanced-list-item {
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        margin: 0.5rem;
+        background: var(--cnhs-white);
+        border: 1px solid rgba(30, 58, 138, 0.05);
+    }
+
+    .enhanced-list-item:hover {
+        background: linear-gradient(135deg, rgba(30, 58, 138, 0.02), rgba(255, 140, 0, 0.02));
+        transform: translateX(8px);
+        box-shadow: var(--cnhs-shadow-sm);
+    }
+
+    .announcement-title-enhanced {
+        color: var(--cnhs-primary-blue);
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .announcement-content-enhanced {
+        color: var(--cnhs-dark-gray);
+        font-size: 1rem;
+        line-height: 1.6;
+        font-weight: 500;
+    }
+
+    .announcement-meta-enhanced {
+        color: var(--cnhs-medium-gray);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    /* Enhanced Badges */
+    .enhanced-badge {
+        padding: 0.6rem 1.2rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: var(--cnhs-shadow-sm);
+    }
+
+    /* Enhanced Buttons */
+    .btn-enhanced-primary {
+        background: var(--cnhs-gradient-primary);
+        border: none;
+        color: var(--cnhs-white);
+        padding: 0.8rem 1.8rem;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: var(--cnhs-shadow-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-enhanced-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--cnhs-shadow-md);
+        color: var(--cnhs-white);
+    }
+
+    .btn-enhanced-outline-primary {
+        color: var(--cnhs-primary-blue);
+        border: 2px solid var(--cnhs-primary-blue);
+        background: transparent;
+        padding: 0.8rem 1.8rem;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-enhanced-outline-primary:hover {
+        background: var(--cnhs-gradient-primary);
+        border-color: transparent;
+        color: var(--cnhs-white);
+        transform: translateY(-3px);
+        box-shadow: var(--cnhs-shadow-md);
+    }
+
+    .btn-enhanced-outline-success {
+        color: var(--cnhs-success);
+        border: 2px solid var(--cnhs-success);
+        background: transparent;
+        padding: 0.8rem 1.8rem;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-enhanced-outline-success:hover {
+        background: var(--cnhs-gradient-success);
+        border-color: transparent;
+        color: var(--cnhs-white);
+        transform: translateY(-3px);
+        box-shadow: var(--cnhs-shadow-md);
+    }
+
+    .btn-enhanced-outline-warning {
+        color: var(--cnhs-warning);
+        border: 2px solid var(--cnhs-warning);
+        background: transparent;
+        padding: 0.8rem 1.8rem;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-enhanced-outline-warning:hover {
+        background: var(--cnhs-gradient-warning);
+        border-color: transparent;
+        color: var(--cnhs-white);
+        transform: translateY(-3px);
+        box-shadow: var(--cnhs-shadow-md);
+    }
+
+    .enhanced-action-btn {
+        padding: 1.2rem 2rem;
+        font-size: 1rem;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .enhanced-action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .enhanced-action-btn:hover::before {
+        left: 100%;
+    }
+
+    /* Enhanced Calendar Button */
+    .enhanced-calendar-btn {
+        background: var(--cnhs-gradient-orange);
+        border: none;
+        color: var(--cnhs-white);
+        padding: 1.2rem 2.5rem;
+        border-radius: 30px;
+        font-weight: 700;
+        transition: all 0.4s ease;
+        box-shadow: var(--cnhs-shadow-md);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .enhanced-calendar-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .enhanced-calendar-btn:hover::before {
+        left: 100%;
+    }
+
+    .enhanced-calendar-btn:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: var(--cnhs-shadow-xl);
+        color: var(--cnhs-white);
+    }
+
+    /* Enhanced Card Footer */
+    .enhanced-card-footer {
+        background: linear-gradient(135deg, var(--cnhs-light-gray), #E2E8F0);
+        border-top: 1px solid rgba(30, 58, 138, 0.1);
+        padding: 1.5rem 2rem;
+    }
+
+    /* Enhanced Empty State */
+    .enhanced-empty-state {
+        padding: 3rem 2rem;
+        background: linear-gradient(135deg, rgba(30, 58, 138, 0.02), rgba(255, 140, 0, 0.02));
+        border-radius: 15px;
+        margin: 1rem;
+    }
+
+    /* Enhanced Events Container */
+    .enhanced-events-container {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .enhanced-events-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .enhanced-events-container::-webkit-scrollbar-track {
+        background: var(--cnhs-light-gray);
+        border-radius: 3px;
+    }
+
+    .enhanced-events-container::-webkit-scrollbar-thumb {
+        background: var(--cnhs-gradient-primary);
+        border-radius: 3px;
+    }
+
+    .enhanced-events-container::-webkit-scrollbar-thumb:hover {
+        background: var(--cnhs-primary-blue);
+    }
+
+    /* Enhanced Calendar Action */
+    .enhanced-calendar-action {
+        background: linear-gradient(135deg, rgba(30, 58, 138, 0.02), rgba(255, 140, 0, 0.02));
+        border-top: 1px solid rgba(30, 58, 138, 0.1);
+    }
+
+    /* Enhanced Progress Bars */
+    .progress {
+        height: 6px;
+        border-radius: 10px;
+        background: rgba(30, 58, 138, 0.1);
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        border-radius: 10px;
+        background: var(--cnhs-gradient-primary);
+        transition: width 0.6s ease;
+    }
+
+    .progress-bar.bg-success {
+        background: var(--cnhs-gradient-success);
+    }
+
+    .progress-bar.bg-warning {
+        background: var(--cnhs-gradient-warning);
+    }
+
+    .progress-bar.bg-info {
+        background: linear-gradient(135deg, var(--cnhs-info), #0891B2);
+    }
+
+    /* Enhanced Calendar Styles */
     #school-calendar {
         width: 100%;
         max-width: 900px;
         height: 80vh !important;
         min-height: 500px;
-        background: var(--white);
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        background: var(--cnhs-white);
+        border-radius: 15px;
+        box-shadow: var(--cnhs-shadow-md);
         margin: 0 auto;
-        border: 1px solid var(--gray-200);
-    }
-    .fc-toolbar-title {
-        font-size: 1.6rem;
-        font-weight: 600;
-        color: var(--primary-blue);
-    }
-    .fc-daygrid-event {
-        background: transparent !important;
-        color: var(--text-dark) !important;
-        border: none !important;
-        border-radius: 3px !important;
-        font-weight: 400;
-        padding: 1px 4px;
-        margin-bottom: 2px;
-        box-shadow: none;
-        white-space: normal;
-        word-wrap: break-word;
-        line-height: 1.3;
-        text-align: left;
-        display: flex;
-        align-items: flex-start;
-        min-height: auto;
-    }
-    .fc-event-time {
-        display: none;
-    }
-    .fc-event-title {
-        font-size: 0.8rem;
-        line-height: 1.2;
-        white-space: normal;
-        word-wrap: break-word;
-        flex-grow: 1;
-        background: var(--primary-blue) !important;
-        color: var(--accent-yellow) !important;
-        padding: 2px 5px;
-        border-radius: 3px;
-        display: block;
-        font-weight: 500;
-    }
-    .fc-daygrid-event .fc-event-main {
-        flex-grow: 1;
-        overflow: visible;
-    }
-    .fc-daygrid-event-dot {
-        border-color: var(--primary-blue) !important;
-    }
-    .fc-daygrid-day-frame {
-        min-height: 90px;
-    }
-    .fc .fc-button-primary {
-        background: var(--primary-blue);
-        border: 1px solid var(--primary-blue);
-        border-radius: 4px;
-        font-weight: 500;
-        color: var(--accent-yellow);
-    }
-    .fc .fc-button-primary:hover {
-        background: var(--primary-blue-dark);
-        border-color: var(--primary-blue-dark);
-        color: var(--accent-yellow);
-    }
-    .fc-col-header-cell-cushion {
-        font-weight: 600;
-        color: var(--text-dark);
-    }
-    .fc-daygrid-day-number {
-        font-weight: 500;
-        color: var(--text-dark);
-    }
-    .modal-xl {
-        max-width: 98vw;
-    }
-    .modal-body {
-        padding: 0 !important;
+        border: 1px solid rgba(30, 58, 138, 0.1);
+        padding: 1rem;
     }
 
-    /* Define system color variables if not already defined in a parent style section */
-    :root {
-        --primary-blue: #003399;
-        --primary-blue-dark: #1a237e;
-        --accent-yellow: #FFD600;
-        --accent-orange: #FF9800;
-        --white: #fff;
-        --gray-50: #f8fafc;
-        --gray-200: #e2e8f0;
-        --gray-400: #94a3b8;
-        --text-dark: #1e293b;
+    .fc-toolbar-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--cnhs-primary-blue);
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
     }
+
+    .fc-daygrid-event {
+        background: transparent !important;
+        color: var(--cnhs-dark-gray) !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-weight: 500;
+        padding: 2px 6px;
+        margin-bottom: 2px;
+        box-shadow: var(--cnhs-shadow-sm);
+        transition: all 0.3s ease;
+    }
+
+    .fc-daygrid-event:hover {
+        transform: scale(1.05);
+        box-shadow: var(--cnhs-shadow-md);
+    }
+
+    .fc-event-title {
+        font-size: 0.85rem;
+        line-height: 1.3;
+        background: var(--cnhs-gradient-primary) !important;
+        color: var(--cnhs-white) !important;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-weight: 600;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .fc .fc-button-primary {
+        background: var(--cnhs-gradient-primary);
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        color: var(--cnhs-white);
+        padding: 0.6rem 1.2rem;
+        transition: all 0.3s ease;
+    }
+
+    .fc .fc-button-primary:hover {
+        background: var(--cnhs-primary-blue);
+        transform: translateY(-2px);
+        box-shadow: var(--cnhs-shadow-md);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .school-header {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .school-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .stats-card {
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .stats-number {
+            font-size: 2rem;
+        }
+
+        .enhanced-card-header,
+        .enhanced-card-body {
+            padding: 1.5rem;
+        }
+
+        .enhanced-action-btn {
+            padding: 1rem 1.5rem;
+        }
+
+        .enhanced-calendar-btn {
+            padding: 1rem 2rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Animation for page load */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .stats-card,
+    .enhanced-announcements-card,
+    .enhanced-quick-actions-card,
+    .enhanced-events-card {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .stats-card:nth-child(1) { animation-delay: 0.1s; }
+    .stats-card:nth-child(2) { animation-delay: 0.2s; }
+    .stats-card:nth-child(3) { animation-delay: 0.3s; }
+    .stats-card:nth-child(4) { animation-delay: 0.4s; }
 </style>
 @endsection
 
