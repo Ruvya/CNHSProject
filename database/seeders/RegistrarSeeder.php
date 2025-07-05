@@ -22,9 +22,13 @@ class RegistrarSeeder extends Seeder
 
         // Insert new registrar with correct field names
         DB::table('registrars')->insert([
-            'name' => 'Registrar User',
+            'first_name' => 'CNHS',
+            'last_name' => 'Registrar',
             'email' => 'registrar@cnhs.edu.ph',
             'password' => Hash::make('password123'),
+            'phone' => '09123456789',
+            'address' => 'Camarines Norte High School',
+            'profile_picture' => null,
             'registrar_secret' => 'letmein',
             'created_at' => now(),
             'updated_at' => now(),

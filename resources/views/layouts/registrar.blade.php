@@ -502,7 +502,7 @@
 </head>
 <body class="registrar-theme">
     <div class="registrar-sidebar">
-        @include('layouts.shared.registrar-sidebar')
+        @include('layouts.shared.registrar-sidebar-safe')
     </div>
 
     <div class="content-wrapper">

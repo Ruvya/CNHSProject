@@ -12,16 +12,36 @@
         </div>
 
         <div class="dropdown">
-            <a href="#" class="header-profile" data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="profile-avatar">
-                    {{ strtoupper(substr(auth()->guard('registrar')->user()->first_name, 0, 1)) }}
-                </div>
-                <div class="d-none d-md-block">
-                    <div style="font-weight: 600;">{{ auth()->guard('registrar')->user()->first_name }} {{ auth()->guard('registrar')->user()->last_name }}</div>
-                    <div style="font-size: 0.875rem; opacity: 0.8;">Registrar</div>
-                </div>
-                <i class="fas fa-chevron-down ms-2" style="font-size: 0.8rem;"></i>
-            </a>
+            @if(auth()->guard('registrar')->check() && auth()->guard('registrar')->user())
+                @php
+                    $registrar = auth()->guard('registrar')->user();
+                    $firstName = $registrar->first_name ?? $registrar->name ?? 'Registrar';
+                    $lastName = $registrar->last_name ?? '';
+                    $fullName = trim($firstName . ' ' . $lastName);
+                    $initial = strtoupper(substr($firstName, 0, 1));
+                @endphp
+                <a href="#" class="header-profile" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="profile-avatar">
+                        {{ $initial }}
+                    </div>
+                    <div class="d-none d-md-block">
+                        <div style="font-weight: 600;">{{ $fullName }}</div>
+                        <div style="font-size: 0.875rem; opacity: 0.8;">Registrar</div>
+                    </div>
+                    <i class="fas fa-chevron-down ms-2" style="font-size: 0.8rem;"></i>
+                </a>
+            @else
+                <a href="#" class="header-profile" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="profile-avatar">
+                        R
+                    </div>
+                    <div class="d-none d-md-block">
+                        <div style="font-weight: 600;">Registrar</div>
+                        <div style="font-size: 0.875rem; opacity: 0.8;">Registrar</div>
+                    </div>
+                    <i class="fas fa-chevron-down ms-2" style="font-size: 0.8rem;"></i>
+                </a>
+            @endif
             <ul class="dropdown-menu dropdown-menu-end" style="border-radius: var(--border-radius); box-shadow: var(--box-shadow-lg); border: none; padding: 0.5rem 0;">
                 <li><a class="dropdown-item" href="{{ route('registrar.profile') }}"><i class="fas fa-user-circle me-2"></i>Profile</a></li>
                 <li><a class="dropdown-item" href="#"><i class="fas fa-cogs me-2"></i>Settings</a></li>

@@ -1,8 +1,29 @@
 <!-- resources/views/layouts/shared/registrar-sidebar.blade.php -->
 <div class="sidebar-content">
     <div class="profile">
-        <img src="{{ auth()->guard('registrar')->user()->profile_picture ? asset('storage/' . auth()->guard('registrar')->user()->profile_picture) : asset('images/cnhs.png') }}" alt="Profile Picture">
-        <h2>{{ auth()->guard('registrar')->user()->first_name }}</h2>
+        @if(auth()->guard('registrar')->check() && auth()->guard('registrar')->user())
+            @php
+                $registrar = auth()->guard('registrar')->user();
+                $profilePicture = (isset($registrar->profile_picture) && $registrar->profile_picture)
+                    ? asset('storage/' . $registrar->profile_picture)
+                    : asset('images/cnhs.png');
+
+                // Try different name properties with fallbacks
+                $displayName = 'Registrar';
+                if (isset($registrar->first_name) && $registrar->first_name) {
+                    $displayName = $registrar->first_name;
+                } elseif (isset($registrar->name) && $registrar->name) {
+                    $displayName = $registrar->name;
+                } elseif (method_exists($registrar, 'getDisplayNameAttribute')) {
+                    $displayName = $registrar->display_name;
+                }
+            @endphp
+            <img src="{{ $profilePicture }}" alt="Profile Picture" onerror="this.src='{{ asset('images/cnhs.png') }}'">
+            <h2>{{ $displayName }}</h2>
+        @else
+            <img src="{{ asset('images/cnhs.png') }}" alt="Profile Picture">
+            <h2>Registrar</h2>
+        @endif
         <p>Registrar</p>
     </div>
     <ul class="menu">
@@ -13,9 +34,15 @@
             </a>
         </li>
         <li>
-            <a href="{{ route('registrar.students.index') }}" class="{{ request()->routeIs('registrar.students*') ? 'active' : '' }}">
+            <a href="{{ route('registrar.students.index') }}" class="{{ request()->routeIs('registrar.students*') && !request()->routeIs('registrar.students.yearly-records*') ? 'active' : '' }}">
                 <i class="fas fa-user-graduate"></i>
                 <span>Student Records</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('registrar.yearly-records.index') }}" class="{{ request()->routeIs('registrar.yearly-records*') || request()->routeIs('registrar.students.yearly-records*') || request()->routeIs('registrar.teachers.yearly-records*') ? 'active' : '' }}">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Yearly Records</span>
             </a>
         </li>
         <li>
@@ -25,9 +52,9 @@
             </a>
         </li>
         <li>
-            <a href="{{ route('registrar.teacher-assignments.index') }}" class="{{ request()->routeIs('registrar.teacher-assignments*') ? 'active' : '' }}">
+            <a href="{{ route('registrar.subject-assignments.index') }}" class="{{ request()->routeIs('registrar.subject-assignments*') ? 'active' : '' }}">
                 <i class="fas fa-chalkboard-teacher"></i>
-                <span>Teacher Assignment</span>
+                <span>Subject Assignment</span>
             </a>
         </li>
         <li>

@@ -145,6 +145,42 @@
             transition: transform 0.3s ease;
         }
 
+        /* Header */
+        .admin-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            box-shadow: var(--box-shadow);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .admin-header .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .admin-header .logo i {
+            font-size: 2rem;
+        }
+
+        .content-wrapper {
+            margin-left: 250px;
+            padding: 20px;
+            padding-top: 80px; /* Adjust for header height */
+            transition: margin-left 0.3s ease;
+        }
+
         .sidebar-content {
             padding-top: var(--header-height);
         }
@@ -676,47 +712,17 @@
 
     <!-- Sidebar -->
     <div class="admin-sidebar" id="adminSidebar">
-        <div class="sidebar-content">
-            <div class="profile">
-                <img src="{{ asset('images/logo.png') }}" alt="Profile Picture">
-                <h2>Administrator</h2>
-                <p>Admin</p>
-            </div>
-            <ul class="menu">
-                <li>
-                    <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                        <i class="fas fa-home"></i> Dashboard
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('admin.credentials.generate') }}" class="{{ request()->routeIs('admin.credentials*') ? 'active' : '' }}">
-                        <i class="fas fa-key"></i> Student Credentials
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('admin.users.students.index') }}" class="{{ request()->routeIs('admin.users.students*') ? 'active' : '' }}">
-                        <i class="fas fa-user-graduate"></i> Student Accounts
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('admin.users') }}" class="{{ request()->routeIs('admin.users') || request()->routeIs('admin.users.teachers*') ? 'active' : '' }}">
-                        <i class="fas fa-chalkboard-teacher"></i> Teacher Management
-                    </a>
-                </li>
-
-                <li>
-                    <a href="{{ route('admin.subjects.index') }}" class="{{ request()->routeIs('admin.subjects*') ? 'active' : '' }}">
-                        <i class="fas fa-book"></i> Subjects
-                    </a>
-                </li>
-            </ul>
-        </div>
+        @include('layouts.shared.admin-sidebar')
     </div>
 
-    <!-- Main Content -->
-    <main class="admin-main">
-        @yield('content')
-    </main>
+    <!-- Content Wrapper -->
+    <div class="content-wrapper">
+        @include('layouts.shared.admin-header')
+
+        <main class="main-content-area py-4">
+            @yield('content')
+        </main>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>

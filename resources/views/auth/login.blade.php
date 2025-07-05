@@ -151,16 +151,7 @@
             font-size: 0.98rem;
             border-radius: 10px;
         }
-        .forgot-password-link {
-            color: #FF8C00;
-            font-weight: 600;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-        .forgot-password-link:hover {
-            color: #1E3A8A;
-            text-decoration: underline;
-        }
+
         .back-link {
             position: absolute;
             top: 1rem;
@@ -244,56 +235,7 @@
                 @endif
 
                 <!-- Section: Login Credentials -->
-                <form method="POST" action="{{ route('login') }}" id="loginForm" onsubmit="
-                    const formData = new FormData(this);
-                    const role = document.querySelector('input[name=role]:checked').value;
-                    console.log('=== FORM SUBMITTING ===', {
-                        role: role,
-                        action: this.action,
-                        method: this.method,
-                        student_id: formData.get('student_id'),
-                        email: formData.get('email'),
-                        username: formData.get('username'),
-                        password: formData.get('password') ? '***filled***' : 'empty',
-                        all_form_data: Object.fromEntries(formData)
-                    });
-
-                    if (role === 'admin') {
-                        const usernameField = document.getElementById('username-input');
-                        console.log('Admin username field value:', usernameField.value);
-                        console.log('Admin username field visible:', usernameField.offsetParent !== null);
-                        if (!usernameField.value) {
-                            alert('Please enter your Admin Username');
-                            return false;
-                        }
-                        // Ensure form action is set to admin login
-                        this.action = '/admin/login';
-                        console.log('Admin form action confirmed:', this.action);
-                    }
-
-                    if (role === 'student') {
-                        const studentIdField = document.getElementById('student-id-input');
-                        console.log('Student ID field value:', studentIdField.value);
-                        console.log('Student ID field visible:', studentIdField.offsetParent !== null);
-                        if (!studentIdField.value) {
-                            alert('Please enter your Student ID');
-                            return false;
-                        }
-                    }
-
-                    if (role === 'registrar') {
-                        const emailField = document.getElementById('registrar-email-input');
-                        console.log('Registrar email field value:', emailField.value);
-                        console.log('Registrar email field visible:', emailField.offsetParent !== null);
-                        console.log('Registrar email field disabled:', emailField.disabled);
-                        console.log('Registrar email field name:', emailField.name);
-                        if (!emailField.value) {
-                            alert('Please enter your email address');
-                            return false;
-                        }
-                    }
-                    return true;
-                ">
+                <form method="POST" action="{{ route('login') }}" id="loginForm">
                     @csrf
                     <!-- Section: Select Role (moved inside form) -->
                     <div class="mb-2 mt-3">
@@ -424,14 +366,12 @@
                             <span class="text-danger">{{ $message }}</span>
                         @enderror
                     </div>
-                    <div class="mb-2 text-end">
-                        <a href="#" class="forgot-password-link" style="font-size: 0.98rem;">Forgot Password?</a>
-                    </div>
+
                     <button type="submit" class="btn btn-primary btn-login mb-2 mt-2">
                         <i class='bx bx-log-in'></i> Login
                     </button>
                     <div class="register-link" style="font-size: 0.98rem; margin-top: 0.7rem;">
-                        <p>Don't have an account? <a href="{{ route('register.teacher') }}">Register as a Teacher</a></p>
+                        <p>Need an account? Contact your administrator for account creation.</p>
                     </div>
                 </form>
             </div>
@@ -514,7 +454,7 @@
                         usernameInput.value = '';
                     }
                     passwordInput.placeholder = 'Admin Password';
-                    form.action = "{{ route('login') }}";
+                    form.action = "{{ route('admin.login.post') }}";
                     console.log('Admin form action set to:', form.action);
                 } else if (this.value === 'teacher') {
                     emailContainer.style.display = 'block';
@@ -563,7 +503,7 @@
             const adminRadio = document.querySelector('input[name="role"][value="admin"]');
             if (adminRadio && adminRadio.checked) {
                 const form = document.getElementById('loginForm');
-                form.action = "{{ route('login') }}";
+                form.action = "{{ route('admin.login.post') }}";
 
                 // Ensure admin fields are visible and others are hidden
                 const usernameContainer = document.getElementById('username-container');
@@ -601,23 +541,60 @@
                 console.log('Initial admin setup complete. Form action:', form.action);
             }
 
-            // Add click event listener to login button for debugging
-            const loginButton = document.querySelector('.btn-login');
-            if (loginButton) {
-                loginButton.addEventListener('click', function(e) {
-                    console.log('Login button clicked');
+            // Add form submission handler for debugging
+            const form = document.getElementById('loginForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    console.log('Form submitting...');
                     const selectedRole = document.querySelector('input[name="role"]:checked');
-                    console.log('Selected role:', selectedRole ? selectedRole.value : 'none');
-                    const form = document.getElementById('loginForm');
-                    console.log('Form action:', form.action);
+                    const password = document.querySelector('input[name="password"]').value;
 
-                    // Check if required fields are filled
-                    if (selectedRole && selectedRole.value === 'admin') {
-                        const username = document.getElementById('username-input').value;
-                        const password = document.querySelector('input[name="password"]').value;
-                        console.log('Username filled:', !!username);
-                        console.log('Password filled:', !!password);
+                    if (!selectedRole) {
+                        e.preventDefault();
+                        alert('Please select a role');
+                        return false;
                     }
+
+                    if (!password) {
+                        e.preventDefault();
+                        alert('Please enter your password');
+                        return false;
+                    }
+
+                    // Role-specific validation
+                    if (selectedRole.value === 'registrar') {
+                        const email = document.getElementById('registrar-email-input').value;
+                        if (!email) {
+                            e.preventDefault();
+                            alert('Please enter your email address');
+                            return false;
+                        }
+                        console.log('Registrar login attempt:', { email: email, hasPassword: !!password });
+                    } else if (selectedRole.value === 'admin') {
+                        const username = document.getElementById('username-input').value;
+                        if (!username) {
+                            e.preventDefault();
+                            alert('Please enter your username');
+                            return false;
+                        }
+                    } else if (selectedRole.value === 'teacher') {
+                        const email = document.getElementById('email-input').value;
+                        if (!email) {
+                            e.preventDefault();
+                            alert('Please enter your email address');
+                            return false;
+                        }
+                    } else if (selectedRole.value === 'student') {
+                        const studentId = document.getElementById('student-id-input').value;
+                        if (!studentId) {
+                            e.preventDefault();
+                            alert('Please enter your student ID');
+                            return false;
+                        }
+                    }
+
+                    console.log('Form validation passed, submitting...');
+                    return true;
                 });
             }
         });

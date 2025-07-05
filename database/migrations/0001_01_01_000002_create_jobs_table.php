@@ -44,13 +44,7 @@ return new class extends Migration
             $table->timestamp('failed_at')->useCurrent();
         });
 
-        Schema::create('students', function (Blueprint $table) {
-            $table->increments('student_id'); // This makes student_id auto-increment and primary key
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('phone')->nullable();
-            $table->timestamps();
-        });
+
     }
 
     /**
@@ -61,6 +55,5 @@ return new class extends Migration
         Schema::dropIfExists('jobs');
         Schema::dropIfExists('job_batches');
         Schema::dropIfExists('failed_jobs');
-        Schema::dropIfExists('students');
     }
 };

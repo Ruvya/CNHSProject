@@ -62,13 +62,13 @@
                         <div class="step-item">
                             <div class="step-number">1</div>
                             <div class="step-content">
-                                <strong>Self Registration:</strong> Faculty visit <code>{{ url('/register') }}</code>
+                                <strong>Admin Creation:</strong> Teachers are created by administrators through the admin panel
                             </div>
                         </div>
                         <div class="step-item">
                             <div class="step-number">2</div>
                             <div class="step-content">
-                                <strong>Role Selection:</strong> They select "Teacher" during account creation
+                                <strong>Account Assignment:</strong> Credentials are provided to teachers by the administration
                             </div>
                         </div>
                         <div class="step-item">

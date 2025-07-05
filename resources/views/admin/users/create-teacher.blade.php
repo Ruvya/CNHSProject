@@ -172,6 +172,22 @@
                         <li><strong>Active:</strong> Teacher can log in and access the system</li>
                         <li><strong>Inactive:</strong> Teacher account is disabled</li>
                     </ul>
+
+                    <div class="alert alert-info mt-3">
+                        <h6 class="text-info"><i class="fas fa-envelope"></i> CNHS Automatic Email & Password Flow</h6>
+                        <p class="small mb-0">
+                            When you create a teacher account, login credentials will be automatically sent to their email address with CNHS branding.
+                            The email includes their username, temporary password, login link, and security instructions.
+                        </p>
+                        <p class="small mb-0 mt-1">
+                            <strong>Password Change Flow:</strong> When teachers first log in, they will be automatically redirected to change their password before accessing the dashboard.
+                        </p>
+                        <p class="small mb-0 mt-2">
+                            <a href="{{ route('admin.users.email-test') }}" class="text-info">
+                                <i class="fas fa-cog"></i> Test Email Configuration
+                            </a>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

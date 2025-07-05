@@ -117,9 +117,14 @@ class TeacherAssignmentController extends Controller
      */
     public function create(Request $request)
     {
-        $teachers = \App\Models\Teacher::orderBy('name')->get();
-        $subjects = \App\Models\Subject::orderBy('name')->get();
-        return view('registrar.teacher-assignments.create', compact('teachers', 'subjects'));
+        $teachers = Teacher::where('status', 'active')->orderBy('name')->get();
+        $subjects = Subject::orderBy('name')->get();
+
+        // Get current school year and grading period
+        $currentSchoolYear = $this->getCurrentSchoolYear();
+        $currentGradingPeriod = $this->getCurrentGradingPeriod();
+
+        return view('registrar.teacher-assignments.create', compact('teachers', 'subjects', 'currentSchoolYear', 'currentGradingPeriod'));
     }
 
     /**
@@ -375,6 +380,25 @@ class TeacherAssignmentController extends Controller
             return $currentYear . '-' . ($currentYear + 1);
         } else {
             return ($currentYear - 1) . '-' . $currentYear;
+        }
+    }
+
+    /**
+     * Get current grading period
+     */
+    private function getCurrentGradingPeriod(): string
+    {
+        $currentMonth = date('n');
+
+        // Determine grading period based on month
+        if ($currentMonth >= 6 && $currentMonth <= 8) {
+            return 'First Grading';
+        } elseif ($currentMonth >= 9 && $currentMonth <= 11) {
+            return 'Second Grading';
+        } elseif ($currentMonth == 12 || $currentMonth <= 2) {
+            return 'Third Grading';
+        } else {
+            return 'Fourth Grading';
         }
     }
 }

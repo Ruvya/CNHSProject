@@ -22,12 +22,32 @@
                 </a></li>
             </ul>
         </div>
+        <a href="{{ route('admin.users.email-test') }}" class="btn btn-info">
+            <i class="fas fa-envelope-open-text me-2"></i>Test Email Configuration
+        </a>
     </div>
 </div>
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
             {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('email_success'))
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fas fa-envelope-check me-2"></i>
+            <strong>Email Sent Successfully!</strong> {{ session('email_success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('email_warning'))
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Email Issue:</strong> {{ session('email_warning') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif

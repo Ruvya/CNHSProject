@@ -405,6 +405,12 @@
                             <strong>Note:</strong> This student has not completed their profile yet. They need to log in and complete their information.
                         </div>
                     @endif
+
+                    <!-- Password Reset Button -->
+                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                        <i class="fas fa-key me-2"></i>Reset Password
+                    </button>
+
                     <button class="btn btn-info btn-sm" onclick="window.print()">
                         <i class="fas fa-print me-2"></i>Print Profile
                     </button>
@@ -418,6 +424,46 @@
                     </form>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Password Reset Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resetPasswordModalLabel">
+                    <i class="fas fa-key me-2"></i>Reset Student Password
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('admin.users.students.reset-password', $student) }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Student:</strong> {{ $student->full_name }} ({{ $student->student_id }})
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required minlength="8">
+                        <div class="form-text">Password must be at least 8 characters long.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password_confirmation" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-key me-2"></i>Reset Password
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

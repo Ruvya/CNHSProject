@@ -46,7 +46,8 @@ class DashboardController extends Controller
 
         // Recent activity (last 30 days)
         $recentStudents = Student::where('created_at', '>=', now()->subDays(30))->count();
-        $recentTeachers = Teacher::where('created_at', '>=', now()->subDays(30))->count();
+        $recentTeachersCount = Teacher::where('created_at', '>=', now()->subDays(30))->count();
+        $recentTeachers = Teacher::where('created_at', '>=', now()->subDays(30))->orderBy('created_at', 'desc')->get();
 
         // Calculate growth percentages
         $previousMonthStudents = Student::where('created_at', '>=', now()->subDays(60))
@@ -59,8 +60,8 @@ class DashboardController extends Controller
             : ($recentStudents > 0 ? 100 : 0);
 
         $teacherGrowth = $previousMonthTeachers > 0
-            ? round((($recentTeachers - $previousMonthTeachers) / $previousMonthTeachers) * 100, 1)
-            : ($recentTeachers > 0 ? 100 : 0);
+            ? round((($recentTeachersCount - $previousMonthTeachers) / $previousMonthTeachers) * 100, 1)
+            : ($recentTeachersCount > 0 ? 100 : 0);
 
         // Chart data for users by role
         $usersByRole = [
@@ -134,6 +135,7 @@ class DashboardController extends Controller
                 'studentsByStrand',
                 'recentStudents',
                 'recentTeachers',
+                'recentTeachersCount',
                 'studentGrowth',
                 'teacherGrowth',
                 'recentActivities',
@@ -156,7 +158,8 @@ class DashboardController extends Controller
                 'studentsByGender' => collect(),
                 'studentsByStrand' => collect(),
                 'recentStudents' => 0,
-                'recentTeachers' => 0,
+                'recentTeachers' => collect(),
+                'recentTeachersCount' => 0,
                 'studentGrowth' => 0,
                 'teacherGrowth' => 0,
                 'recentActivities' => collect(),

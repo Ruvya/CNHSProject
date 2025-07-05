@@ -251,7 +251,7 @@
                     <h3>{{ date('Y') }}</h3>
                     <p>Current Year</p>
                     <span class="stat-change">
-                        <a href="{{ route('registrar.students.records') }}" class="text-primary">View Records</a>
+                        <a href="{{ route('registrar.yearly-records.index') }}" class="text-primary">View Records</a>
                     </span>
                 </div>
             </div>
@@ -264,9 +264,10 @@
             <div class="action-group-card">
                 <div class="action-group-header"><i class="fas fa-bolt"></i><h6>Quick Actions</h6></div>
                 <div class="action-group-body">
+                    <a href="{{ route('registrar.yearly-records.index') }}" class="action-item"><i class="fas fa-calendar-alt"></i><span>Yearly Records</span></a>
                     <a href="{{ route('registrar.students.upload') }}" class="action-item"><i class="fas fa-upload"></i><span>Upload Students</span></a>
                     <a href="{{ route('registrar.students.create') }}" class="action-item"><i class="fas fa-user-plus"></i><span>Generate Credentials</span></a>
-                    <a href="{{ route('registrar.teacher-assignments.index') }}" class="action-item"><i class="fas fa-user-tie"></i><span>Assign Teachers</span></a>
+                    <a href="{{ route('registrar.subject-assignments.index') }}" class="action-item"><i class="fas fa-user-tie"></i><span>Assign Subjects to Teachers</span></a>
                     <a href="{{ route('registrar.student-subject-assignments.index') }}" class="action-item"><i class="fas fa-user-graduate"></i><span>Assign Subjects to Students</span></a>
                 </div>
             </div>

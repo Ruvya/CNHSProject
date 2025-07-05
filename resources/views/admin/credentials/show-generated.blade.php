@@ -88,46 +88,7 @@
     @endforeach
 </div>
 
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-info-circle me-2 text-info"></i>
-                    Instructions for Students
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6>Login Steps:</h6>
-                        <ol class="mb-3">
-                            <li>Go to the student portal login page</li>
-                            <li>Select "Student" as the role</li>
-                            <li>Enter the provided Student ID</li>
-                            <li>Enter the provided Password</li>
-                            <li>Click "Login"</li>
-                        </ol>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>After First Login:</h6>
-                        <ol class="mb-3">
-                            <li>Complete your profile information</li>
-                            <li>Change your password for security</li>
-                            <li>Add your personal details</li>
-                            <li>Upload a profile picture (optional)</li>
-                        </ol>
-                    </div>
-                </div>
 
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Important:</strong> These credentials are for first-time login only. Students should update their profile and change their password after logging in.
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Hidden div for printing -->
 <div id="printableCredentials" class="d-none">
@@ -149,15 +110,7 @@
     </div>
     @endforeach
 
-    <div class="print-instructions">
-        <h4>Login Instructions:</h4>
-        <ol>
-            <li>Go to the student portal login page</li>
-            <li>Select "Student" as the role</li>
-            <li>Enter your Student ID and Password</li>
-            <li>Complete your profile after first login</li>
-        </ol>
-    </div>
+
 </div>
 @endsection
 
@@ -215,10 +168,7 @@
         page-break-inside: avoid;
     }
 
-    .print-instructions {
-        margin-top: 2rem;
-        page-break-before: auto;
-    }
+
 }
 </style>
 @endsection
@@ -252,11 +202,7 @@ function copyAllCredentials() {
         text += "\n";
     });
 
-    text += "Login Instructions:\n";
-    text += "1. Go to the student portal login page\n";
-    text += "2. Select 'Student' as the role\n";
-    text += "3. Enter your Student ID and Password\n";
-    text += "4. Complete your profile after first login\n";
+
 
     navigator.clipboard.writeText(text).then(function() {
         alert('All credentials copied to clipboard!');

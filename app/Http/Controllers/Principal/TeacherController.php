@@ -15,18 +15,18 @@ class TeacherController extends Controller
         return view('Principal.teachers.index', compact('teachers'));
     }
 
-    // Principal cannot create teacher accounts - teachers register themselves
+    // Principal cannot create teacher accounts - teachers are created by administrators
     public function create()
     {
         return redirect()->route('principal.teachers.index')
-            ->with('info', 'Teachers must register their own accounts. You can only manage existing teacher information.');
+            ->with('info', 'Teacher accounts are created by administrators. You can only manage existing teacher information.');
     }
 
-    // Principal cannot create teacher accounts - teachers register themselves
+    // Principal cannot create teacher accounts - teachers are created by administrators
     public function store(Request $request)
     {
         return redirect()->route('principal.teachers.index')
-            ->with('error', 'Teachers must register their own accounts. You can only manage existing teacher information.');
+            ->with('error', 'Teacher accounts are created by administrators. You can only manage existing teacher information.');
     }
 
     public function edit(Teacher $teacher)
