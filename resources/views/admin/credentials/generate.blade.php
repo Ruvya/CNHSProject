@@ -71,7 +71,7 @@
                                        value="{{ old('notes') }}"
                                        maxlength="500"
                                        placeholder="e.g., Grade 11 batch, New students">
-                                <div class="form-text">Add a note to help identify these credentials</div>
+
                                 @error('notes')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -90,50 +90,7 @@
         </div>
     </div>
 
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-info-circle me-2 text-info"></i>
-                    How It Works
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="step-list">
-                    <div class="step-item">
-                        <div class="step-number">1</div>
-                        <div class="step-content">
-                            <strong>Generate Credentials</strong>
-                            <p class="text-muted mb-0">System creates unique Student IDs and secure passwords</p>
-                        </div>
-                    </div>
 
-                    <div class="step-item">
-                        <div class="step-number">2</div>
-                        <div class="step-content">
-                            <strong>Share with Students</strong>
-                            <p class="text-muted mb-0">Provide the generated credentials to students</p>
-                        </div>
-                    </div>
-
-                    <div class="step-item">
-                        <div class="step-number">3</div>
-                        <div class="step-content">
-                            <strong>First Login</strong>
-                            <p class="text-muted mb-0">Students use credentials to log in for the first time</p>
-                        </div>
-                    </div>
-
-                    <div class="step-item">
-                        <div class="step-number">4</div>
-                        <div class="step-content">
-                            <strong>Complete Profile</strong>
-                            <p class="text-muted mb-0">Students can then update their profile information</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <div class="card mt-3">
             <div class="card-header">
@@ -171,63 +128,7 @@
 </div>
 @endsection
 
-@section('styles')
-<style>
-.step-list {
-    position: relative;
-}
 
-.step-item {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 1.5rem;
-    position: relative;
-}
-
-.step-item:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    left: 15px;
-    top: 35px;
-    width: 2px;
-    height: calc(100% + 0.5rem);
-    background-color: #e9ecef;
-}
-
-.step-number {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background-color: #007bff;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 0.875rem;
-    margin-right: 1rem;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 1;
-}
-
-.step-content {
-    flex: 1;
-    padding-top: 0.25rem;
-}
-
-.step-content strong {
-    display: block;
-    margin-bottom: 0.25rem;
-    color: #495057;
-}
-
-.step-content p {
-    font-size: 0.875rem;
-    line-height: 1.4;
-}
-</style>
-@endsection
 
 @section('scripts')
 <script>

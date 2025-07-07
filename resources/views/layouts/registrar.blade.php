@@ -8,6 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    @include('layouts.shared.dashboard-styles')
     <style>
         :root {
             --primary-color: #2563eb;
@@ -197,7 +198,6 @@
         .menu i {
             margin-right: 10px;
             width: 20px;
-            text-align: center;
         }
 
         /* Mobile Sidebar Toggle */
@@ -246,6 +246,42 @@
             display: flex;
             gap: 1rem;
             margin-top: 1rem;
+        }
+
+        /* Pagination Styles */
+        .pagination {
+            margin-top: 2rem;
+            justify-content: center;
+        }
+
+        .pagination .page-link {
+            border-radius: 8px !important;
+            margin: 0 4px;
+            color: var(--primary-color);
+            border-color: #dee2e6;
+            font-weight: 500;
+        }
+
+        .pagination .page-link:hover {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
+
+        .pagination .page-link svg {
+            width: 1rem;
+            height: 1rem;
         }
 
         /* Cards */
@@ -447,136 +483,41 @@
         .bg-warning { background-color: var(--warning-color) !important; }
         .bg-danger { background-color: var(--danger-color) !important; }
         .bg-info { background-color: var(--info-color) !important; }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .content-wrapper {
+            margin-left: 250px;
+            padding: 20px;
+            padding-top: 80px; /* Adjust for header height */
+            transition: margin-left 0.3s ease;
+        }
     </style>
-    @yield('styles')
+    @stack('styles')
 </head>
-<body>
-    <!-- Header -->
-    <header class="registrar-header">
-        <button class="sidebar-toggle" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </button>
-
-        <a href="{{ route('registrar.dashboard') }}" class="logo">
-            <i class="fas fa-graduation-cap"></i>
-            <span>CNHS Registrar</span>
-        </a>
-
-        <div class="header-actions">
-            <div class="header-search">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search...">
-            </div>
-
-            <div class="dropdown">
-                <a href="#" class="header-profile" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div class="profile-avatar">
-                        {{ strtoupper(substr(auth()->guard('registrar')->user()->first_name, 0, 1)) }}
-                    </div>
-                    <div class="d-none d-md-block">
-                        <div style="font-weight: 600;">{{ auth()->guard('registrar')->user()->first_name }} {{ auth()->guard('registrar')->user()->last_name }}</div>
-                        <div style="font-size: 0.875rem; opacity: 0.8;">Registrar</div>
-                    </div>
-                    <i class="fas fa-chevron-down ms-2"></i>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="{{ route('registrar.profile') }}"><i class="fas fa-user me-2"></i>Profile</a></li>
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <form method="POST" action="{{ route('registrar.logout') }}" style="margin: 0;">
-                            @csrf
-                            <button type="submit" class="dropdown-item text-danger">
-                                <i class="fas fa-sign-out-alt me-2"></i>Logout
-                            </button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </header>
-
-    <!-- Sidebar -->
-    <div class="registrar-sidebar" id="registrarSidebar">
-        <div class="sidebar-content">
-            <div class="profile">
-                <img src="{{ auth()->guard('registrar')->user()->profile_picture ? asset('storage/' . auth()->guard('registrar')->user()->profile_picture) : asset('images/logo.png') }}" alt="Profile Picture">
-                <h2>{{ auth()->guard('registrar')->user()->first_name }}</h2>
-                <p>Registrar</p>
-            </div>
-            <ul class="menu">
-                <li>
-                    <a href="{{ route('registrar.dashboard') }}" class="{{ request()->routeIs('registrar.dashboard') ? 'active' : '' }}">
-                        <i class="fas fa-home"></i> Dashboard
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('registrar.students.index') }}" class="{{ request()->routeIs('registrar.students*') ? 'active' : '' }}">
-                        <i class="fas fa-user-graduate"></i> Student Records
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('registrar.subjects.index') }}" class="{{ request()->routeIs('registrar.subjects*') ? 'active' : '' }}">
-                        <i class="fas fa-book"></i> Subjects
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('registrar.teacher-assignments.index') }}" class="{{ request()->routeIs('registrar.teacher-assignments*') ? 'active' : '' }}">
-                        <i class="fas fa-chalkboard-teacher"></i> Teacher Assignment
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('registrar.automatic-subject-assignment.index') }}" class="{{ request()->routeIs('registrar.automatic-subject-assignment*') ? 'active' : '' }}">
-                        <i class="fas fa-magic"></i> Automatic Subject Assignment
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('registrar.student-subject-assignments.index') }}" class="{{ request()->routeIs('registrar.student-subject-assignments*') ? 'active' : '' }}">
-                        <i class="fas fa-user-graduate"></i> Manual Subject Assignment
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('registrar.profile') }}" class="{{ request()->routeIs('registrar.profile') ? 'active' : '' }}">
-                        <i class="fas fa-user"></i> Profile
-                    </a>
-                </li>
-            </ul>
-        </div>
+<body class="registrar-theme">
+    <div class="registrar-sidebar">
+        @include('layouts.shared.registrar-sidebar-safe')
     </div>
 
-    <!-- Main Content -->
-    <main class="registrar-main">
-        @yield('content')
-    </main>
+    <div class="content-wrapper">
+        @include('layouts.shared.registrar-header')
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <main class="main-content-area py-4">
+            @yield('content')
+        </main>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
-    <script>
-        // Mobile sidebar toggle
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const registrarSidebar = document.getElementById('registrarSidebar');
-
-            if (sidebarToggle && registrarSidebar) {
-                sidebarToggle.addEventListener('click', function() {
-                    registrarSidebar.classList.toggle('show');
-                });
-
-                // Close sidebar when clicking outside on mobile
-                document.addEventListener('click', function(event) {
-                    if (window.innerWidth <= 768) {
-                        if (!registrarSidebar.contains(event.target) && !sidebarToggle.contains(event.target)) {
-                            registrarSidebar.classList.remove('show');
-                        }
-                    }
-                });
-            }
-        });
-    </script>
-
     @stack('scripts')
 </body>
 </html>

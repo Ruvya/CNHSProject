@@ -2,1025 +2,424 @@
 
 @section('title', 'My Subjects')
 
+@section('styles')
+<style>
+    /* Modern Dashboard Styles */
+    .main-content {
+        padding: 2rem;
+        background: #f8fafc;
+        min-height: calc(100vh - 80px);
+        position: relative;
+        overflow-x: hidden;
+        margin-left: 250px;
+    }
+   
+ 
+
+
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(to right, #FFA726, #FF7043);
+        border-radius: 16px;
+        padding: 2rem;
+        border: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        color: white;
+        
+    }
+    .page-header::before{
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        clip-path: polygon(100% 0, 100% 100%, 0 100%, 20% 0);
+        opacity: 0.9;
+        z-index: 1;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: white;
+    }
+
+    .page-header p {
+        opacity: 0.9;
+        margin-bottom: 0;
+        color: white;
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stats-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: rgba(37, 99, 235, 0.1);
+        margin-bottom: 1rem;
+    }
+
+    .stats-icon i {
+        font-size: 1.5rem;
+        color: #2563eb;
+    }
+
+    .stats-number {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1e3a8a;
+        margin-bottom: 0.25rem;
+    }
+
+    .stats-label {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    /* Subjects Table */
+    .subjects-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+    }
+
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e3a8a;
+        margin: 0;
+    }
+
+    .form-select {
+        border-color: #e5e7eb;
+        border-radius: 8px;
+        padding: 0.5rem 2.5rem 0.5rem 1rem;
+        font-size: 0.875rem;
+        max-width: 200px;
+    }
+
+    .table {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    .table th {
+        background: #f8fafc;
+        color: #4b5563;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 1rem 1.5rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .table td {
+        padding: 1rem 1.5rem;
+        color: #4b5563;
+        vertical-align: middle;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .badge-active {
+        background-color: #ecfdf5;
+        color: #059669;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        background-color: #f3f4f6;
+        color: #4b5563;
+        border: none;
+    }
+
+    .btn-action:hover {
+        background-color: #e5e7eb;
+        color: #1e3a8a;
+    }
+
+    .btn-action i {
+        font-size: 1rem;
+    }
+
+    /* Modal Styles */
+    .modal-content {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e3a8a;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #9ca3af;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: #374151;
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: #6b7280;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      
+
+        .page-header {
+            padding: 1.5rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .card-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .form-select {
+            max-width: 100%;
+        }
+
+        .table-responsive {
+            margin: 0 -1rem;
+        }
+    }
+</style>
+@endsection
+
 @section('content')
-<div class="subjects-container">
-    <!-- Modern Header Section -->
-    <div class="subjects-header">
-        <div class="header-content">
-            <div class="header-text">
-                <h1 class="page-title">My Subjects</h1>
-                <p class="page-subtitle">Subjects automatically assigned based on your track and strand</p>
-            </div>
-            <div class="header-badge">
-                <div class="assignment-badge">
-                    <span class="badge-number">{{ $totalAssigned }}</span>
-                    <span class="badge-text">Subjects Assigned</span>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1>My Subjects</h1>
+            <p>View and manage your enrolled subjects for the current semester</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="d-flex justify-content-end align-items-center">
+                <div class="me-3">
+                    <i class="fas fa-book fa-3x opacity-25"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-white">Total</div>
+                    <div class="opacity-75">{{ $totalSubjects ?? 0 }} Subjects</div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Assignment Status -->
-    @if(isset($assignmentStatus))
-        <div class="alert alert-{{ $assignmentStatus['color'] }} mb-4">
-            <div class="d-flex align-items-center">
-                <i class="fas fa-info-circle me-2"></i>
-                <div>{{ $assignmentStatus['message'] }}</div>
-            </div>
-        </div>
-    @endif
-
-    <!-- Clean Statistics Dashboard -->
-    <div class="stats-dashboard">
-        <div class="stats-grid">
-            <div class="stat-card stat-primary">
-                <div class="stat-icon">
-                    <i class="fas fa-book"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">{{ $totalAssigned }}</div>
-                    <div class="stat-label">Total Subjects</div>
-                </div>
-            </div>
-
-
-
-            <div class="stat-card stat-info">
-                <div class="stat-icon">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">{{ $subjectsWithTeachers }}</div>
-                    <div class="stat-label">With Teacher</div>
-                </div>
-            </div>
-
-            <div class="stat-card stat-warning">
-                <div class="stat-icon">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">{{ $student->grade_level }}</div>
-                    <div class="stat-label">Grade Level</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modern Subjects Section -->
-    <div class="subjects-section">
-        <div class="section-header">
-            <h2 class="section-title">
-                <i class="fas fa-clipboard-list"></i>
-                My Assigned Subjects
-            </h2>
-            <p class="section-subtitle">Click on any subject to view detailed information</p>
-        </div>
-
-        @if($assignedSubjects->isEmpty())
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <i class="fas fa-book-open"></i>
-                </div>
-                <h3 class="empty-title">No Subjects Assigned Yet</h3>
-                <p class="empty-description">
-                    @if(!$student->isReadyForSubjectAssignment())
-                        Your track, strand, or grade level information is incomplete.
-                        Please contact the Registrar's office to update your information.
-                    @else
-                        Subjects will be automatically assigned based on your track and strand.
-                        Please contact the Registrar's office if you don't see your subjects.
-                    @endif
-                </p>
-                <a href="{{ route('student.dashboard') }}" class="btn-empty-action">
-                    <i class="fas fa-home"></i>
-                    Go to Dashboard
-                </a>
-            </div>
-        @else
-            <!-- Core Subjects Section -->
-            @if(isset($coreSubjects) && $coreSubjects->count() > 0)
-                <div class="subject-category mb-4">
-                    <h3 class="category-title">
-                        <i class="fas fa-star text-warning"></i>
-                        Core Subjects ({{ $coreSubjects->count() }})
-                        <small class="text-muted">- Required for all students</small>
-                    </h3>
-                    <div class="subjects-grid">
-                        @foreach($coreSubjects as $subject)
-                            <div class="subject-card core-subject" onclick="window.location.href='{{ route('student.subjects.show', $subject->id) }}'">
-                                <div class="subject-header">
-                                    <div class="subject-icon-wrapper">
-                                        <i class="fas fa-star subject-icon"></i>
-                                    </div>
-                                    <div class="subject-badge">
-                                        <span class="badge badge-core">Core</span>
-                                    </div>
-                                </div>
-                                <div class="subject-content">
-                                    <h4 class="subject-title">{{ $subject->name }}</h4>
-                                    <p class="subject-code">{{ $subject->code }}</p>
-                                    <div class="subject-details">
-                                        @if($subject->teacher)
-                                            <div class="teacher-info">
-                                                <i class="fas fa-user-tie"></i>
-                                                <span>{{ $subject->teacher->name }}</span>
-                                            </div>
-                                        @else
-                                            <div class="teacher-info no-teacher">
-                                                <i class="fas fa-user-times"></i>
-                                                <span>No teacher assigned</span>
-                                            </div>
-                                        @endif
-                                        <div class="subject-meta">
-                                            <span class="meta-item">
-                                                <i class="fas fa-layer-group"></i>
-                                                {{ $subject->grade_level }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-
-            <!-- Applied Subjects Section -->
-            @if(isset($appliedSubjects) && $appliedSubjects->count() > 0)
-                <div class="subject-category mb-4">
-                    <h3 class="category-title">
-                        <i class="fas fa-tools text-info"></i>
-                        Applied Subjects ({{ $appliedSubjects->count() }})
-                        <small class="text-muted">- Track-specific subjects for {{ $student->track }}</small>
-                    </h3>
-                    <div class="subjects-grid">
-                        @foreach($appliedSubjects as $subject)
-                            <div class="subject-card applied-subject" onclick="window.location.href='{{ route('student.subjects.show', $subject->id) }}'">
-                                <div class="subject-header">
-                                    <div class="subject-icon-wrapper">
-                                        <i class="fas fa-tools subject-icon"></i>
-                                    </div>
-                                    <div class="subject-badge">
-                                        <span class="badge badge-applied">Applied</span>
-                                    </div>
-                                </div>
-                                <div class="subject-content">
-                                    <h4 class="subject-title">{{ $subject->name }}</h4>
-                                    <p class="subject-code">{{ $subject->code }}</p>
-                                    <div class="subject-details">
-                                        @if($subject->teacher)
-                                            <div class="teacher-info">
-                                                <i class="fas fa-user-tie"></i>
-                                                <span>{{ $subject->teacher->name }}</span>
-                                            </div>
-                                        @else
-                                            <div class="teacher-info no-teacher">
-                                                <i class="fas fa-user-times"></i>
-                                                <span>No teacher assigned</span>
-                                            </div>
-                                        @endif
-                                        <div class="subject-meta">
-                                            <span class="meta-item">
-                                                <i class="fas fa-layer-group"></i>
-                                                {{ $subject->grade_level }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-
-            <!-- Specialized Subjects Section -->
-            @if(isset($specializedSubjects) && $specializedSubjects->count() > 0)
-                <div class="subject-category mb-4">
-                    <h3 class="category-title">
-                        <i class="fas fa-microscope text-purple"></i>
-                        Specialized Subjects ({{ $specializedSubjects->count() }})
-                        <small class="text-muted">- Strand-specific subjects for {{ $student->strand }}</small>
-                    </h3>
-                    <div class="subjects-grid">
-                        @foreach($specializedSubjects as $subject)
-                            <div class="subject-card specialized-subject" onclick="window.location.href='{{ route('student.subjects.show', $subject->id) }}'">
-                                <div class="subject-header">
-                                    <div class="subject-icon-wrapper">
-                                        <i class="fas fa-microscope subject-icon"></i>
-                                    </div>
-                                    <div class="subject-badge">
-                                        <span class="badge badge-specialized">Specialized</span>
-                                    </div>
-                                </div>
-                                <div class="subject-content">
-                                    <h4 class="subject-title">{{ $subject->name }}</h4>
-                                    <p class="subject-code">{{ $subject->code }}</p>
-                                    <div class="subject-details">
-                                        @if($subject->teacher)
-                                            <div class="teacher-info">
-                                                <i class="fas fa-user-tie"></i>
-                                                <span>{{ $subject->teacher->name }}</span>
-                                            </div>
-                                        @else
-                                            <div class="teacher-info no-teacher">
-                                                <i class="fas fa-user-times"></i>
-                                                <span>No teacher assigned</span>
-                                            </div>
-                                        @endif
-                                        <div class="subject-meta">
-                                            <span class="meta-item">
-                                                <i class="fas fa-layer-group"></i>
-                                                {{ $subject->grade_level }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-
-            <!-- Track Subjects Section (Legacy) -->
-            @if(isset($trackSubjects) && $trackSubjects->count() > 0)
-                <div class="subject-category mb-4">
-                    <h3 class="category-title">
-                        <i class="fas fa-road text-info"></i>
-                        Track Subjects ({{ $trackSubjects->count() }})
-                        <small class="text-muted">- Specific to {{ $student->track }}</small>
-                    </h3>
-                    <div class="subjects-grid">
-                        @foreach($trackSubjects as $subject)
-                            <div class="subject-card track-subject" onclick="window.location.href='{{ route('student.subjects.show', $subject->id) }}'">
-                                <div class="subject-header">
-                                    <div class="subject-icon-wrapper">
-                                        <i class="fas fa-road subject-icon"></i>
-                                    </div>
-                                    <div class="subject-badge">
-                                        <span class="badge badge-track">Track</span>
-                                    </div>
-                                </div>
-                                <div class="subject-content">
-                                    <h4 class="subject-title">{{ $subject->name }}</h4>
-                                    <p class="subject-code">{{ $subject->code }}</p>
-                                    <div class="subject-details">
-                                        @if($subject->teacher)
-                                            <div class="teacher-info">
-                                                <i class="fas fa-user-tie"></i>
-                                                <span>{{ $subject->teacher->name }}</span>
-                                            </div>
-                                        @else
-                                            <div class="teacher-info no-teacher">
-                                                <i class="fas fa-user-times"></i>
-                                                <span>No teacher assigned</span>
-                                            </div>
-                                        @endif
-                                        <div class="subject-meta">
-                                            <span class="meta-item">
-                                                <i class="fas fa-layer-group"></i>
-                                                {{ $subject->grade_level }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-
-            <!-- Strand Subjects Section -->
-            @if(isset($strandSubjects) && $strandSubjects->count() > 0)
-                <div class="subject-category mb-4">
-                    <h3 class="category-title">
-                        <i class="fas fa-graduation-cap text-success"></i>
-                        Strand Subjects ({{ $strandSubjects->count() }})
-                        <small class="text-muted">- Specific to {{ $student->strand }}</small>
-                    </h3>
-                    <div class="subjects-grid">
-                        @foreach($strandSubjects as $subject)
-                            <div class="subject-card strand-subject" onclick="window.location.href='{{ route('student.subjects.show', $subject->id) }}'">
-                                <div class="subject-header">
-                                    <div class="subject-icon-wrapper">
-                                        <i class="fas fa-graduation-cap subject-icon"></i>
-                                    </div>
-                                    <div class="subject-badge">
-                                        <span class="badge badge-strand">Strand</span>
-                                    </div>
-                                </div>
-                                <div class="subject-content">
-                                    <h4 class="subject-title">{{ $subject->name }}</h4>
-                                    <p class="subject-code">{{ $subject->code }}</p>
-                                    <div class="subject-details">
-                                        @if($subject->teacher)
-                                            <div class="teacher-info">
-                                                <i class="fas fa-user-tie"></i>
-                                                <span>{{ $subject->teacher->name }}</span>
-                                            </div>
-                                        @else
-                                            <div class="teacher-info no-teacher">
-                                                <i class="fas fa-user-times"></i>
-                                                <span>No teacher assigned</span>
-                                            </div>
-                                        @endif
-                                        <div class="subject-meta">
-                                            <span class="meta-item">
-                                                <i class="fas fa-layer-group"></i>
-                                                {{ $subject->grade_level }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-
-            <!-- All Subjects (Fallback) -->
-            @if((!isset($coreSubjects) || $coreSubjects->count() == 0) &&
-                (!isset($trackSubjects) || $trackSubjects->count() == 0) &&
-                (!isset($strandSubjects) || $strandSubjects->count() == 0) &&
-                $assignedSubjects->count() > 0)
-                <div class="subjects-grid">
-                    @foreach($assignedSubjects as $subject)
-                        <div class="subject-card" onclick="window.location.href='{{ route('student.subjects.show', $subject->id) }}'">
-                            <div class="subject-header">
-                                <div class="subject-icon-wrapper">
-                                    <i class="fas fa-book subject-icon"></i>
-                                </div>
-                                <div class="subject-status">
-                                    @if($subject->teacher)
-                                        <span class="status-badge status-active">Active</span>
-                                    @else
-                                        <span class="status-badge status-pending">Pending</span>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <div class="subject-content">
-                                <h3 class="subject-name">{{ $subject->name ?? $subject->subject_name }}</h3>
-                                <p class="subject-code">{{ $subject->code ?? $subject->subject_code }}</p>
-
-                                @if($subject->description)
-                                    <p class="subject-description">
-                                        {{ Str::limit($subject->description, 100) }}
-                                    </p>
-                                @endif
-                            </div>
-
-                            <div class="subject-meta">
-                                <div class="meta-item">
-                                    <i class="fas fa-layer-group"></i>
-                                    <span>{{ $subject->grade_level }}</span>
-                                </div>
-                                <div class="meta-item">
-                                    <i class="fas fa-tag"></i>
-                                    <span>{{ $subject->strand ?? 'General' }}</span>
-                                </div>
-                            </div>
-
-                            <div class="subject-teacher">
-                                @if($subject->teacher)
-                                    <div class="teacher-info">
-                                        <i class="fas fa-user-tie teacher-icon"></i>
-                                        <div class="teacher-details">
-                                            <span class="teacher-label">Teacher</span>
-                                            <span class="teacher-name">{{ $subject->teacher->name }}</span>
-                                        </div>
-                                    </div>
-                                @else
-                                    <div class="teacher-info teacher-pending">
-                                        <i class="fas fa-user-clock teacher-icon"></i>
-                                        <div class="teacher-details">
-                                            <span class="teacher-label">Teacher</span>
-                                            <span class="teacher-name">To Be Assigned</span>
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-
-                            <div class="subject-action">
-                                <button class="btn-view-details">
-                                    <i class="fas fa-arrow-right"></i>
-                                    View Details
-                                </button>
-                            </div>
-                        </div>
-                @endforeach
-            </div>
-            @endif
-        @endif
     </div>
 </div>
 
-<style>
-/* Admin Color Variables */
-:root {
-    --primary-color: #2563eb;
-    --primary-dark: #1d4ed8;
-    --secondary-color: #64748b;
-    --success-color: #10b981;
-    --warning-color: #f59e0b;
-    --danger-color: #ef4444;
-    --info-color: #06b6d4;
-    --dark-color: #1e293b;
-    --light-color: #f8fafc;
-    --border-radius: 12px;
-    --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-/* Modern Container Styling */
-.subjects-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-    background-color: #f1f5f9;
-    min-height: 100vh;
-}
-
-/* Header Section */
-.subjects-header {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    border-radius: var(--border-radius);
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: var(--box-shadow-lg);
-}
-
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.page-title {
-    color: white;
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.page-subtitle {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1.1rem;
-    margin: 0.5rem 0 0 0;
-    font-weight: 300;
-}
-
-.assignment-badge {
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 1rem 1.5rem;
-    text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.badge-number {
-    display: block;
-    color: white;
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.badge-text {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-/* Statistics Dashboard */
-.stats-dashboard {
-    margin-bottom: 2rem;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-}
-
-.stat-card {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    box-shadow: var(--box-shadow);
-    transition: transform 0.2s, box-shadow 0.2s;
-    border-left: 4px solid var(--primary-color);
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--box-shadow-lg);
-}
-
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-}
-
-.stat-primary .stat-icon { background: var(--primary-color); }
-.stat-success .stat-icon { background: var(--success-color); }
-.stat-info .stat-icon { background: var(--info-color); }
-.stat-warning .stat-icon { background: var(--warning-color); }
-
-.stat-number {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--dark-color);
-    line-height: 1;
-}
-
-.stat-label {
-    color: var(--secondary-color);
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-top: 0.25rem;
-}
-
-/* Section Header */
-.section-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.section-title {
-    color: var(--dark-color);
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.section-title i {
-    color: var(--primary-color);
-}
-
-.section-subtitle {
-    color: var(--secondary-color);
-    font-size: 1.1rem;
-    margin: 0;
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: white;
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-}
-
-.empty-icon {
-    width: 100px;
-    height: 100px;
-    margin: 0 auto 2rem;
-    background: var(--primary-color);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    color: white;
-}
-
-.empty-title {
-    color: var(--dark-color);
-    font-size: 1.8rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-}
-
-.empty-description {
-    color: var(--secondary-color);
-    font-size: 1.1rem;
-    margin-bottom: 2rem;
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.btn-empty-action {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: var(--primary-color);
-    color: white;
-    padding: 0.75rem 2rem;
-    border-radius: var(--border-radius);
-    text-decoration: none;
-    font-weight: 500;
-    transition: transform 0.2s;
-}
-
-.btn-empty-action:hover {
-    transform: translateY(-1px);
-    color: white;
-    background: var(--primary-dark);
-}
-
-/* Subjects Grid */
-.subjects-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 2rem;
-}
-
-/* Subject Cards */
-.subject-card {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    box-shadow: var(--box-shadow);
-    transition: all 0.2s ease;
-    cursor: pointer;
-    border: none;
-    position: relative;
-    overflow: hidden;
-}
-
-.subject-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--primary-color);
-}
-
-.subject-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--box-shadow-lg);
-}
-
-.subject-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.subject-icon-wrapper {
-    width: 50px;
-    height: 50px;
-    background: var(--primary-color);
-    border-radius: var(--border-radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.subject-icon {
-    color: white;
-    font-size: 1.5rem;
-}
-
-.status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.status-active {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--success-color);
-}
-
-.status-pending {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--danger-color);
-}
-
-.subject-content {
-    margin-bottom: 1rem;
-}
-
-.subject-name {
-    color: var(--dark-color);
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    line-height: 1.3;
-}
-
-.subject-code {
-    color: var(--primary-color);
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-}
-
-.subject-description {
-    color: var(--secondary-color);
-    font-size: 0.9rem;
-    line-height: 1.5;
-    margin: 0;
-}
-
-.subject-meta {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-}
-
-.meta-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--secondary-color);
-    font-size: 0.9rem;
-}
-
-.meta-item i {
-    color: var(--primary-color);
-}
-
-.subject-teacher {
-    background: var(--light-color);
-    border-radius: var(--border-radius);
-    padding: 1rem;
-    margin-bottom: 1rem;
-}
-
-.teacher-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.teacher-icon {
-    color: var(--success-color);
-    font-size: 1.2rem;
-}
-
-.teacher-pending .teacher-icon {
-    color: var(--warning-color);
-}
-
-.teacher-details {
-    display: flex;
-    flex-direction: column;
-}
-
-.teacher-label {
-    color: var(--secondary-color);
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.teacher-name {
-    color: var(--dark-color);
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.subject-action {
-    text-align: center;
-}
-
-.btn-view-details {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 0.75rem 2rem;
-    border-radius: var(--border-radius);
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    width: 100%;
-    justify-content: center;
-}
-
-.btn-view-details:hover {
-    transform: translateY(-1px);
-    background: var(--primary-dark);
-    box-shadow: var(--box-shadow);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .subjects-container {
-        padding: 1rem;
-    }
-
-    .page-title {
-        font-size: 2rem;
-    }
-
-    .header-content {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-    }
-
-    .subjects-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-
-    .subject-meta {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .stat-card {
-        flex-direction: column;
-        text-align: center;
-        gap: 0.75rem;
-    }
-
-    .stat-icon {
-        width: 50px;
-        height: 50px;
-    }
-
-    .stat-number {
-        font-size: 1.5rem;
-    }
-}
-
-/* Subject Category Styles */
-.subject-category {
-    margin-bottom: 2rem;
-}
-
-.category-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: #2c3e50;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.category-title i {
-    font-size: 1.2rem;
-}
-
-.category-title small {
-    font-size: 0.9rem;
-    font-weight: 400;
-    margin-left: 0.5rem;
-}
-
-/* Subject Type Specific Styles */
-.core-subject {
-    border-left: 4px solid #f39c12;
-}
-
-.core-subject:hover {
-    border-left-color: #e67e22;
-}
-
-.applied-subject {
-    border-left: 4px solid #3498db;
-}
-
-.applied-subject:hover {
-    border-left-color: #2980b9;
-}
-
-.specialized-subject {
-    border-left: 4px solid #9b59b6;
-}
-
-.specialized-subject:hover {
-    border-left-color: #8e44ad;
-}
-
-.track-subject {
-    border-left: 4px solid #17a2b8;
-}
-
-.track-subject:hover {
-    border-left-color: #138496;
-}
-
-.strand-subject {
-    border-left: 4px solid #27ae60;
-}
-
-.strand-subject:hover {
-    border-left-color: #229954;
-}
-
-/* Badge Styles */
-.badge-core {
-    background: linear-gradient(135deg, #f39c12, #e67e22);
-    color: white;
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-weight: 500;
-}
-
-.badge-applied {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-    color: white;
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-weight: 500;
-}
-
-.badge-specialized {
-    background: linear-gradient(135deg, #9b59b6, #8e44ad);
-    color: white;
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-weight: 500;
-}
-
-.badge-track {
-    background: linear-gradient(135deg, #17a2b8, #138496);
-    color: white;
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-weight: 500;
-}
-
-.badge-strand {
-    background: linear-gradient(135deg, #27ae60, #229954);
-    color: white;
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-weight: 500;
-}
-
-/* Alert Styles */
-.alert {
-    border-radius: 12px;
-    border: none;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.alert-success {
-    background: linear-gradient(135deg, #d4edda, #c3e6cb);
-    color: #155724;
-}
-
-.alert-warning {
-    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-    color: #856404;
-}
-
-.alert-info {
-    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
-    color: #0c5460;
-}
-
-/* Subject Title and Code Styles */
-.subject-title {
-    color: var(--dark-color);
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    line-height: 1.3;
-}
-
-.subject-badge {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.no-teacher {
-    color: #e74c3c;
-}
-</style>
+<!-- Stats Overview -->
+<div class="stats-grid">
+    <div class="stats-card">
+        <div class="stats-icon">
+            <i class="fas fa-book"></i>
+        </div>
+        <div class="stats-number">{{ $totalSubjects ?? 0 }}</div>
+        <div class="stats-label">Total Subjects</div>
+    </div>
+
+    <div class="stats-card">
+        <div class="stats-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stats-number">{{ $totalHours ?? 0 }}</div>
+        <div class="stats-label">Weekly Hours</div>
+    </div>
+
+    <div class="stats-card">
+        <div class="stats-icon">
+            <i class="fas fa-graduation-cap"></i>
+        </div>
+        <div class="stats-number">{{ $gradeLevel ?? '12' }}</div>
+        <div class="stats-label">Grade Level</div>
+    </div>
+
+    <div class="stats-card">
+        <div class="stats-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stats-number">{{ number_format($averageGrade ?? 0, 2) }}</div>
+        <div class="stats-label">Average Grade</div>
+    </div>
+</div>
+
+<!-- Subjects List -->
+<div class="subjects-card">
+    <div class="card-header">
+        <h2>
+            <i class="fas fa-book-open me-2"></i>
+            Enrolled Subjects
+        </h2>
+        <select class="form-select">
+            <option value="all">All Subjects</option>
+            <option value="core">Core Subjects</option>
+            <option value="major">Major Subjects</option>
+            <option value="elective">Electives</option>
+        </select>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Subject Code</th>
+                    <th>Subject Name</th>
+                    <th>Teacher</th>
+                    <th>Schedule</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($subjects ?? [] as $subject)
+                <tr>
+                    <td>{{ $subject->code }}</td>
+                    <td>{{ $subject->name }}</td>
+                    <td>{{ $subject->teacher->name ?? 'TBA' }}</td>
+                    <td>{{ $subject->schedule ?? 'TBA' }}</td>
+                    <td>
+                        <span class="badge badge-active">Enrolled</span>
+                    </td>
+                    <td>
+                        <button class="btn-action" data-bs-toggle="modal" data-bs-target="#subjectModal">
+                            <i class="fas fa-eye"></i>
+                            View
+                        </button>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <i class="fas fa-book"></i>
+                            <h3>No Subjects Found</h3>
+                            <p>You are not enrolled in any subjects for this semester.</p>
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Subject Details Modal -->
+<div class="modal fade" id="subjectModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Subject Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Subject details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animation for stats cards
+        const cards = document.querySelectorAll('.stats-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.4s ease-out';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+</script>
 @endsection

@@ -85,10 +85,24 @@ class StudentsImport implements ToCollection, WithHeadingRow, WithChunkReading, 
             'civil_status' => 'nullable|in:Single,Married,Divorced,Widowed',
             'track' => 'nullable|string|max:100',
             'strand' => 'nullable|string|max:100',
+        ], [
+            'email.email' => 'The email field must be a valid email address or left empty',
+            'gender.in' => 'The gender field must be exactly "Male" or "Female" (case-sensitive). Accepted variations: male, m, female, f, man, woman, boy, girl, lalaki, babae. Leave empty if unknown.',
+            'civil_status.in' => 'The civil status must be one of: Single, Married, Divorced, Widowed',
         ]);
 
         if ($validator->fails()) {
             $errors = $validator->errors()->all();
+
+            // Log the problematic data for debugging
+            \Log::warning("Student validation failed", [
+                'row_number' => $rowNumber,
+                'student_data' => $studentData,
+                'validation_errors' => $errors,
+                'gender_value' => $studentData['gender'] ?? 'NOT_SET',
+                'email_value' => $studentData['email'] ?? 'NOT_SET'
+            ]);
+
             throw new \Exception("Validation failed: " . implode(', ', $errors));
         }
 
@@ -133,12 +147,12 @@ class StudentsImport implements ToCollection, WithHeadingRow, WithChunkReading, 
             'first_name' => $this->getColumnValue($row, ['first_name', 'first-name', 'firstname', 'fname']),
             'middle_name' => $this->getColumnValue($row, ['middle_name', 'middle-name', 'middlename', 'mname']),
             'last_name' => $this->getColumnValue($row, ['last_name', 'last-name', 'lastname', 'lname']),
-            'email' => $this->getColumnValue($row, ['email', 'email_address', 'email-address']),
+            'email' => $this->cleanEmail($this->getColumnValue($row, ['email', 'email_address', 'email-address'])),
             'grade_level' => $this->getColumnValue($row, ['grade_level', 'grade-level', 'gradelevel', 'grade']),
             'section' => $this->getColumnValue($row, ['section']),
             'track' => $this->getColumnValue($row, ['track']),
             'strand' => $this->getColumnValue($row, ['strand']),
-            'gender' => $this->getColumnValue($row, ['gender', 'sex']),
+            'gender' => $this->cleanGender($this->getColumnValue($row, ['gender', 'sex'])),
             'date_of_birth' => $this->parseDate($this->getColumnValue($row, ['date_of_birth', 'date-of-birth', 'dateofbirth', 'dob', 'birthdate'])),
             'place_of_birth' => $this->getColumnValue($row, ['place_of_birth', 'place-of-birth', 'placeofbirth', 'birthplace']),
             'nationality' => $this->getColumnValue($row, ['nationality']),
@@ -292,6 +306,88 @@ class StudentsImport implements ToCollection, WithHeadingRow, WithChunkReading, 
             return date('Y-m-d', $timestamp);
         }
 
+        return null;
+    }
+
+    /**
+     * Clean and validate email address
+     */
+    protected function cleanEmail($email)
+    {
+        if (empty($email)) {
+            return null; // Return null for empty emails (they're nullable)
+        }
+
+        $email = trim(strtolower($email));
+
+        // Basic email validation
+        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $email;
+        }
+
+        // If email is invalid, return null instead of invalid email
+        return null;
+    }
+
+    /**
+     * Clean and standardize gender values
+     */
+    protected function cleanGender($gender)
+    {
+        // Log the original value for debugging
+        \Log::info('Processing gender value', [
+            'original_value' => $gender,
+            'is_empty' => empty($gender),
+            'type' => gettype($gender)
+        ]);
+
+        if (empty($gender)) {
+            \Log::info('Gender is empty, returning null');
+            return null; // Return null for empty gender (it's nullable)
+        }
+
+        $gender = trim($gender);
+        $genderLower = strtolower($gender);
+
+        \Log::info('Cleaned gender value', [
+            'trimmed_value' => $gender,
+            'lowercase_value' => $genderLower
+        ]);
+
+        // Map common gender variations to standard values
+        $genderMap = [
+            'male' => 'Male',
+            'm' => 'Male',
+            'man' => 'Male',
+            'boy' => 'Male',
+            'lalaki' => 'Male',
+            'female' => 'Female',
+            'f' => 'Female',
+            'woman' => 'Female',
+            'girl' => 'Female',
+            'babae' => 'Female',
+        ];
+
+        if (isset($genderMap[$genderLower])) {
+            $result = $genderMap[$genderLower];
+            \Log::info('Gender mapped successfully', [
+                'input' => $gender,
+                'output' => $result
+            ]);
+            return $result;
+        }
+
+        // If it's already in correct format, return as is
+        if (in_array($gender, ['Male', 'Female'])) {
+            \Log::info('Gender already in correct format', ['value' => $gender]);
+            return $gender;
+        }
+
+        // If gender doesn't match any known pattern, return null
+        \Log::warning('Gender value not recognized, returning null', [
+            'input' => $gender,
+            'available_mappings' => array_keys($genderMap)
+        ]);
         return null;
     }
 

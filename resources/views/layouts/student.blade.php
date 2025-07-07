@@ -5,12 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="CNHS Student Portal">
     <meta name="theme-color" content="#4CAF50">
-    <link rel="icon" href="{{ asset('images/log.png') }}" type="image/png">
-    <title>@yield('title') - CNHS</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="{{ asset('images/CNHS.png') }}" type="image/png">
+    <title>@yield('title', 'Student Dashboard') - CNHS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{{ asset('css/student-styles.css') }}" rel="stylesheet">
+    @include('layouts.shared.dashboard-styles')
     <style>
         /* General Styles */
+        :root {
+        --primary-orange: #ff6b35;
+        --primary-orange-light: #ff8c5a;
+        --primary-yellow: #ffd23f;
+        --primary-blue: #007bff;
+        --primary-blue-light: #4dabf7;
+        --success-color: #28a745;
+        --info-color: #17a2b8;
+        --white: #ffffff;
+        --gray-50: #f8f9fa;
+        --gray-200: #e9ecef;
+        --gray-400: #6c757d;
+        --text-dark: #212529;
+    }
+        span{
+            color: #0d47a1 !important;
+            font-weight: 600;
+            font-size: 1.25rem;
+            letter-spacing: 0.5px;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -26,6 +50,7 @@
         /* Container */
         .container {
             display: flex;
+            
         }
 
         /* Header */
@@ -37,9 +62,10 @@
             padding: 1rem 2rem;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             position: fixed;
-            width: 100%;
+            width: 80%;
             z-index: 1000;
             height: 70px;
+            margin-left: 20%;
         }
 
         .header-left {
@@ -75,7 +101,7 @@
             position: absolute;
             top: -8px;
             right: -8px;
-            background-color: #dc3545;
+            background-color:blue;
             color: white;
             border-radius: 50%;
             padding: 0.2rem 0.5rem;
@@ -102,29 +128,31 @@
 
         /* Sidebar */
         .sidebar {
-            width: 250px;
-            background-color: #012970;
-            color: white;
-            padding: 20px;
             position: fixed;
+            top: 0;
+            left: 0;
             height: 100vh;
-            padding-top: 90px;
-            overflow-y: auto;
+            width: 280px;
+            background: #012970 !important;
+            color: #fff;
+            padding-top: 1rem;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            background: b#012970 !important;
         }
 
         .profile {
             text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
+            padding: 2rem 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .profile-pic {
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            margin-bottom: 10px;
-            object-fit: cover;
+            margin-bottom: 1rem;
+            border: 3px solid rgba(255, 255, 255, 0.2);
         }
 
         .name {
@@ -148,39 +176,34 @@
         }
 
         .menu a {
-            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
-            display: block;
-            padding: 10px;
             border-radius: 5px;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
         }
 
         .menu a:hover, .menu a.active {
-            background-color: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
         }
-
         .menu i {
-            margin-right: 10px;
             width: 20px;
-            text-align: center;
+            margin-right: 0.75rem;
         }
 
         /* Main Content */
         .main-content {
-            flex-grow: 1;
-            margin-left: 250px;
-            padding: 90px 2rem 2rem;
+            margin-left: 280px;
+            padding: calc(70px + 2rem) 2rem 2rem;
+            min-height: 100vh;
         }
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                padding-top: 20px;
-            }
+          
 
             .main-content {
                 margin-left: 0;
@@ -189,16 +212,28 @@
             .header-right .user-name {
                 display: none;
             }
+
         }
+
+        /* Student-specific overrides */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        @yield('styles')
     </style>
-    @yield('styles')
 </head>
-<body>
+<body class="student-theme">
     <!-- Header -->
     <header class="header">
-        <div class="header-left">
-            <img src="{{ asset('images/log.png') }}" alt="CNHS Logo" class="logo">
-            <h1>CNHS Student Portal</h1>
+    <div class="header-left">
+    <a class="navbar-brand" href="{{ route('principal.index') }}">
+                <img src="{{ asset('images/CNHS.png') }}" alt="CNHS Logo" height="40">
+                <span>CNHS PORTAL</span>
+            </a>
         </div>
         <div class="header-right">
             <div class="notification-bell">

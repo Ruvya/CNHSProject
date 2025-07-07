@@ -13,10 +13,20 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
-            $table->string('strand')->nullable();
+
+            // Teaching Assignment
+            $table->string('subject')->nullable(); // Primary subject
+            $table->string('strand')->nullable(); // STEM, HUMSS, GAS, etc.
+            $table->string('department')->nullable(); // Academic department
+
+            // Contact Information
             $table->string('contact_number')->nullable();
-            $table->string('address')->nullable();
+            $table->text('address')->nullable();
+
+            // Profile
+            $table->string('profile_picture')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
+
             $table->rememberToken();
             $table->timestamps();
         });

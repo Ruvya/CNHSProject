@@ -8,6 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    @include('layouts.shared.dashboard-styles')
     <style>
         :root {
             --primary-color: #2563eb;
@@ -34,9 +35,10 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             color: #334155;
             line-height: 1.6;
+            min-height: 100vh;
         }
 
         /* Header */
@@ -143,6 +145,42 @@
             transition: transform 0.3s ease;
         }
 
+        /* Header */
+        .admin-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            box-shadow: var(--box-shadow);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .admin-header .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .admin-header .logo i {
+            font-size: 2rem;
+        }
+
+        .content-wrapper {
+            margin-left: 250px;
+            padding: 20px;
+            padding-top: 80px; /* Adjust for header height */
+            transition: margin-left 0.3s ease;
+        }
+
         .sidebar-content {
             padding-top: var(--header-height);
         }
@@ -223,6 +261,8 @@
             margin-top: var(--header-height);
             padding: 2rem;
             min-height: calc(100vh - var(--header-height));
+            background: #ffffff;
+            position: relative;
         }
 
         /* Page Header */
@@ -597,9 +637,34 @@
             padding: 0.5rem 0.75rem;
             border-radius: 6px;
         }
+
+        /* Ensure clean backgrounds for all admin content */
+        .container, .container-fluid, .row, .col, [class*="col-"] {
+            background: transparent !important;
+        }
+
+        .table {
+            background: #ffffff;
+        }
+
+        .modal-content {
+            background: #ffffff;
+        }
+
+        /* Remove any potential background images from all elements */
+        * {
+            background-image: none !important;
+        }
+
+        /* Exception: Keep necessary background images for icons and UI elements */
+        .fas, .far, .fab, .fal, .fad, [class*="fa-"] {
+            background-image: initial !important;
+        }
+
+        @yield('styles')
     </style>
 </head>
-<body>
+<body class="admin-theme">
     <!-- Header -->
     <header class="admin-header">
         <button class="sidebar-toggle" id="sidebarToggle">
@@ -647,47 +712,17 @@
 
     <!-- Sidebar -->
     <div class="admin-sidebar" id="adminSidebar">
-        <div class="sidebar-content">
-            <div class="profile">
-                <img src="{{ asset('images/logo.png') }}" alt="Profile Picture">
-                <h2>Administrator</h2>
-                <p>Admin</p>
-            </div>
-            <ul class="menu">
-                <li>
-                    <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                        <i class="fas fa-home"></i> Dashboard
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('admin.credentials.generate') }}" class="{{ request()->routeIs('admin.credentials*') ? 'active' : '' }}">
-                        <i class="fas fa-key"></i> Student Credentials
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('admin.users.students.index') }}" class="{{ request()->routeIs('admin.users.students*') ? 'active' : '' }}">
-                        <i class="fas fa-user-graduate"></i> Student Accounts
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('admin.users') }}" class="{{ request()->routeIs('admin.users') || request()->routeIs('admin.users.teachers*') ? 'active' : '' }}">
-                        <i class="fas fa-chalkboard-teacher"></i> Teacher Management
-                    </a>
-                </li>
-
-                <li>
-                    <a href="{{ route('admin.subjects.index') }}" class="{{ request()->routeIs('admin.subjects*') ? 'active' : '' }}">
-                        <i class="fas fa-book"></i> Subjects
-                    </a>
-                </li>
-            </ul>
-        </div>
+        @include('layouts.shared.admin-sidebar')
     </div>
 
-    <!-- Main Content -->
-    <main class="admin-main">
-        @yield('content')
-    </main>
+    <!-- Content Wrapper -->
+    <div class="content-wrapper">
+        @include('layouts.shared.admin-header')
+
+        <main class="main-content-area py-4">
+            @yield('content')
+        </main>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>

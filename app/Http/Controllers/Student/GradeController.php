@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Grade;
+use Illuminate\Http\Request;
 
 class GradeController extends Controller
 {
@@ -163,6 +164,118 @@ class GradeController extends Controller
         return response()->json([
             'success' => true,
             'grades' => $updatedGrades,
+            'last_refresh' => now()->format('M d, Y h:i A')
+        ]);
+    }
+
+    /**
+     * Fetch grades based on grade level and school year filters via AJAX.
+     */
+    public function fetchGradesByFilters(Request $request)
+    {
+        $student = Auth::guard('student')->user();
+        $gradeLevel = $request->input('grade_level');
+        $schoolYear = $request->input('school_year');
+
+        $query = Grade::where('student_id', $student->id);
+
+        if ($gradeLevel) {
+            $query->whereHas('subject', function ($q) use ($gradeLevel) {
+                $q->where('grade_level', $gradeLevel);
+            });
+        }
+
+        if ($schoolYear) {
+            // Assuming 'school_year' might be a column in the grades table or subject table
+            // If it's in the subjects table, you'd do: 
+            $query->whereHas('subject', function ($q) use ($schoolYear) {
+                $q->where('school_year', $schoolYear);
+            });
+
+            // If 'school_year' is directly in the grades table
+            // $query->where('school_year', $schoolYear);
+        }
+
+        $filteredGrades = $query->with('subject.teacher')->get();
+
+        // Re-calculate statistics for the filtered grades
+        $filteredSubjectGrades = collect();
+        foreach ($filteredGrades as $gradeRecord) {
+            $subject = $gradeRecord->subject;
+            $filteredSubjectGrades->push((object) [
+                'subject' => $subject,
+                'quarter1' => $gradeRecord->quarter1 ?? null,
+                'quarter2' => $gradeRecord->quarter2 ?? null,
+                'quarter3' => $gradeRecord->quarter3 ?? null,
+                'quarter4' => $gradeRecord->quarter4 ?? null,
+                'final_grade' => $gradeRecord->final_grade ?? null,
+                'remarks' => $gradeRecord->remarks ?? null,
+                'is_enrolled' => $student->subjects()->where('subject_id', $subject->id)->exists(),
+                'status' => $gradeRecord ? $gradeRecord->status : 'Incomplete',
+                'status_color' => $gradeRecord ? $gradeRecord->status_color : 'warning',
+                'last_updated' => $gradeRecord ? $gradeRecord->updated_at : null,
+            ]);
+        }
+
+        $generalAverageFiltered = null;
+        $highestGradeFiltered = null;
+        $totalSubjectsFiltered = $filteredSubjectGrades->count();
+        $enrolledSubjectsFiltered = $filteredSubjectGrades->where('is_enrolled', true)->count();
+        $quarterAveragesFiltered = [];
+
+        if ($filteredSubjectGrades->isNotEmpty()) {
+            foreach ($filteredSubjectGrades as $grade) {
+                $quarters = array_filter([
+                    $grade->quarter1,
+                    $grade->quarter2,
+                    $grade->quarter3,
+                    $grade->quarter4
+                ]);
+                if (!empty($quarters)) {
+                    $quarterAveragesFiltered[] = array_sum($quarters) / count($quarters);
+                }
+            }
+            if (!empty($quarterAveragesFiltered)) {
+                $generalAverageFiltered = round(array_sum($quarterAveragesFiltered) / count($quarterAveragesFiltered), 2);
+            }
+
+            $finalGradesFiltered = $filteredSubjectGrades->pluck('final_grade')->filter();
+            if ($finalGradesFiltered->isNotEmpty()) {
+                $highestGradeFiltered = round($finalGradesFiltered->max(), 2);
+            }
+        }
+
+        // Prepare quarter grades for chart
+        $quarterGradesData = [
+            'first' => round($filteredSubjectGrades->pluck('quarter1')->filter()->avg() ?? 0, 2),
+            'second' => round($filteredSubjectGrades->pluck('quarter2')->filter()->avg() ?? 0, 2),
+            'third' => round($filteredSubjectGrades->pluck('quarter3')->filter()->avg() ?? 0, 2),
+            'fourth' => round($filteredSubjectGrades->pluck('quarter4')->filter()->avg() ?? 0, 2)
+        ];
+
+        return response()->json([
+            'success' => true,
+            'grades' => $filteredSubjectGrades->map(function($item) {
+                return [
+                    'subject_id' => $item->subject->id,
+                    'subject_name' => $item->subject->name,
+                    'subject_code' => $item->subject->code,
+                    'teacher_name' => $item->subject->teacher->name ?? 'No teacher assigned',
+                    'is_enrolled' => $item->is_enrolled,
+                    'quarter1' => $item->quarter1,
+                    'quarter2' => $item->quarter2,
+                    'quarter3' => $item->quarter3,
+                    'quarter4' => $item->quarter4,
+                    'final_grade' => $item->final_grade,
+                    'status' => $item->status,
+                    'status_color' => $item->status_color,
+                ];
+            }),
+            'total_subjects' => $totalSubjectsFiltered,
+            'enrolled_subjects' => $enrolledSubjectsFiltered,
+            'general_average' => $generalAverageFiltered,
+            'highest_grade' => $highestGradeFiltered,
+            'quarter_grades_data' => $quarterGradesData,
             'last_refresh' => now()->format('M d, Y h:i A')
         ]);
     }

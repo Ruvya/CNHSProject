@@ -6,7 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Teacher;
 use App\Models\Student;
+use App\Mail\TeacherCredentialsMail;
+use App\Services\TeacherEmailService;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -46,6 +50,13 @@ class UserController extends Controller
             'selectedGradeLevel',
             'studentsByGrade'
         ));
+    }
+
+    // Dedicated teacher management index
+    public function indexTeachers()
+    {
+        $teachers = Teacher::orderBy('name')->get();
+        return view('admin.users.teachers-index', compact('teachers'));
     }
 
     /**
@@ -131,16 +142,63 @@ class UserController extends Controller
             'status' => 'required|in:active,inactive',
         ]);
 
+        // Store the plain password before hashing for email
+        $plainPassword = $validated['password'];
+
+        // Hash the password for database storage
         $validated['password'] = Hash::make($validated['password']);
 
-        Teacher::create($validated);
+        // Create the teacher
+        $teacher = Teacher::create($validated);
 
-        return redirect()->route('admin.users')->with('success', 'Teacher created successfully.');
+        // Send credentials email using the email service
+        $emailService = new TeacherEmailService();
+        $emailResult = $emailService->sendCredentialsEmail($teacher, $plainPassword, route('login'));
+
+        if ($emailResult['success']) {
+            return redirect()->route('admin.users')
+                ->with('success', 'Teacher account created successfully!')
+                ->with('email_success', 'Login credentials have been sent to ' . $teacher->email . '. The teacher should receive the email within a few minutes.');
+        } else {
+            return redirect()->route('admin.users')
+                ->with('success', 'Teacher account created successfully!')
+                ->with('email_warning', 'However, there was an issue sending the credentials email to ' . $teacher->email . '. Please provide the login details manually. Error: ' . $emailResult['message']);
+        }
     }
 
     public function editTeacher(Teacher $teacher)
     {
         return view('admin.users.edit-teacher', compact('teacher'));
+    }
+
+    /**
+     * Show email configuration test page
+     */
+    public function showEmailTest()
+    {
+        $emailService = new TeacherEmailService();
+        $configStatus = $emailService->getEmailConfigurationStatus();
+
+        return view('admin.users.email-test', compact('configStatus'));
+    }
+
+    /**
+     * Test email configuration
+     */
+    public function testEmailConfiguration(Request $request)
+    {
+        $request->validate([
+            'test_email' => 'required|email'
+        ]);
+
+        $emailService = new TeacherEmailService();
+        $result = $emailService->testEmailConfiguration($request->test_email);
+
+        if ($result['success']) {
+            return redirect()->back()->with('email_success', $result['message']);
+        } else {
+            return redirect()->back()->with('email_warning', $result['message']);
+        }
     }
 
     public function updateTeacher(Request $request, Teacher $teacher)
@@ -286,5 +344,22 @@ class UserController extends Controller
     {
         $student->delete();
         return redirect()->route('admin.users')->with('success', 'Student deleted successfully.');
+    }
+
+    /**
+     * Admin resets a student's password
+     */
+    public function resetStudentPassword(Request $request, Student $student)
+    {
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $student->password = \Hash::make($request->password);
+        $student->is_temporary_account = false;
+        $student->profile_completed = true;
+        $student->save();
+
+        return redirect()->back()->with('success', 'Password has been reset successfully. New password: ' . $request->password);
     }
 }

@@ -13,9 +13,13 @@ class Registrar extends Authenticatable
     protected $guard = 'registrar';
 
     protected $fillable = [
+        'first_name',
+        'last_name',
         'name',
         'email',
         'password',
+        'phone',
+        'address',
         'profile_picture',
         'registrar_secret',
     ];
@@ -30,7 +34,18 @@ class Registrar extends Authenticatable
      */
     public function getFullNameAttribute()
     {
-        return $this->name;
+        if ($this->first_name && $this->last_name) {
+            return $this->first_name . ' ' . $this->last_name;
+        }
+        return $this->name ?? 'Registrar';
+    }
+
+    /**
+     * Get the display name attribute.
+     */
+    public function getDisplayNameAttribute()
+    {
+        return $this->first_name ?? $this->name ?? 'Registrar';
     }
 
     /**
@@ -40,6 +55,4 @@ class Registrar extends Authenticatable
     {
         return $this->hasMany(Subject::class);
     }
-
-
 }

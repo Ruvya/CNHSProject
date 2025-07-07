@@ -9,82 +9,100 @@
     <style>
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
+            background: #f3f6fb;
             font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .login-container {
-            max-width: 400px;
-            margin: 40px auto;
-            padding: 2.5rem 2rem;
-            background: rgba(255,255,255,0.97);
+            max-width: 420px;
+            margin: 24px auto;
+            padding: 1.5rem 1.2rem 1.2rem 1.2rem;
+            background: #fff;
             border-radius: 18px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-            transition: box-shadow 0.3s;
+            box-shadow: 0 8px 32px 0 rgba(30, 58, 138, 0.10), 0 2px 8px rgba(255, 140, 0, 0.08);
+            border: 2.5px solid #1E3A8A;
             position: relative;
-        }
-        .login-container:hover {
-            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.18);
         }
         .login-header {
             text-align: center;
             margin-bottom: 2.2rem;
         }
         .login-header h1 {
-            font-size: 2rem;
-            color: #2d3a4a;
-            font-weight: 700;
+            font-size: 2.3rem;
+            color: #1E3A8A;
+            font-weight: 900;
             margin-bottom: 0.5rem;
-            letter-spacing: 1px;
+            letter-spacing: -0.01em;
+            position: relative;
+        }
+        .login-header h1::after {
+            content: '';
+            display: block;
+            margin: 0.7rem auto 0 auto;
+            width: 80px;
+            height: 5px;
+            background: #FF8C00;
+            border-radius: 3px;
         }
         .login-header p {
             color: #6b7280;
-            font-size: 1rem;
+            font-size: 1.08rem;
         }
         .form-control {
             padding: 14px;
-            border-radius: 7px;
-            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
             font-size: 1rem;
             background: #f9fafb;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         .form-control:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 2px #6366f133;
+            border-color: #1E3A8A;
+            box-shadow: 0 0 0 2px #1E3A8A22;
             background: #fff;
         }
         .input-group-text {
             background: transparent;
             border: none;
-            color: #6366f1;
+            color: #1E3A8A;
             font-size: 1.2rem;
         }
         .input-group {
-            border-radius: 7px;
+            border-radius: 10px;
             overflow: hidden;
-            border: 1px solid #d1d5db;
+            border: 2px solid #e5e7eb;
             margin-bottom: 1rem;
             background: #f9fafb;
         }
         .btn-login {
             padding: 14px;
-            border-radius: 7px;
-            background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
+            border-radius: 10px;
+            background: #FF8C00;
             border: none;
             width: 100%;
             color: #fff;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 1.1rem;
-            box-shadow: 0 2px 8px 0 #6366f122;
-            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px 0 #ff8c0022;
+            transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
             margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-login i {
+            font-size: 1.2rem;
         }
         .btn-login:hover {
-            background: linear-gradient(90deg, #4f46e5 0%, #2563eb 100%);
-            box-shadow: 0 4px 16px 0 #6366f133;
+            background: #1E3A8A;
+            color: #fff;
+            box-shadow: 0 4px 16px 0 #1e3a8a22;
+            transform: translateY(-2px) scale(1.03);
         }
         .role-selector {
             display: flex;
@@ -100,18 +118,21 @@
             text-align: center;
             padding: 10px 0;
             border: 2px solid #e5e7eb;
-            border-radius: 7px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s, box-shadow 0.2s;
             background: #f3f4f6;
-            color: #374151;
-            font-weight: 500;
+            color: #1E3A8A;
+            font-weight: 600;
             font-size: 1rem;
+            box-shadow: 0 2px 8px rgba(30,58,138,0.04);
         }
         .role-option:hover, .role-option.active {
-            border-color: #6366f1;
-            background: #eef2ff;
-            color: #3730a3;
+            border-color: #FF8C00;
+            background: #fff7ed;
+            color: #FF8C00;
+            box-shadow: 0 4px 16px #ff8c0033;
+            transform: scale(1.04);
         }
         .role-option input[type="radio"] {
             display: none;
@@ -122,23 +143,15 @@
             font-size: 1rem;
         }
         .register-link a {
-            color: #6366f1;
+            color: #1E3A8A;
             text-decoration: underline;
-            font-weight: 500;
+            font-weight: 600;
         }
         .alert {
             font-size: 0.98rem;
-            border-radius: 7px;
+            border-radius: 10px;
         }
-        @media (max-width: 500px) {
-            .login-container {
-                padding: 1.2rem 0.5rem;
-                max-width: 98vw;
-            }
-            .login-header h1 {
-                font-size: 1.3rem;
-            }
-        }
+
         .back-link {
             position: absolute;
             top: 1rem;
@@ -151,247 +164,217 @@
             transition: color 0.2s;
         }
         .back-link:hover {
-            color: #4b5563;
+            color: #1E3A8A;
         }
         .back-link i {
             font-size: 1.2rem;
         }
+        @media (max-width: 500px) {
+            .login-container {
+                padding: 1.2rem 0.5rem;
+                max-width: 98vw;
+            }
+            .login-header h1 {
+                font-size: 1.3rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="login-container">
-            <a href="{{ route('principal.index') }}" class="back-link">
-                <i class='bx bx-arrow-back'></i>
-                Back to Website
-            </a>
-            <div class="login-header">
-                <h1>Welcome to CNHS</h1>
-                <p class="text-muted">Please login to continue</p>
+    <!-- Remove extra white background: only keep the card white -->
+    <div class="d-flex justify-content-center align-items-center min-vh-100" style="background: #f3f6fb;">
+        <div class="card shadow-lg border-0 position-relative" style="max-width: 420px; width: 100%; margin: 40px 0;">
+            <!-- Back to Landing Page Arrow -->
+            
+            <div class="login-container">
+            <div class="d-flex justify-content-start" style="max-width: 349px; margin: 24px auto 0 auto;">
+                <a href="/" title="Back to Home" style="text-decoration: none; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: #fff; border-radius: 50%; border: 2px solid #1E3A8A; box-shadow: 0 2px 8px rgba(30,58,138,0.10); font-size: 1.3rem; color: #1E3A8A; font-weight: bold;">
+                    &#8592;
+                </a>
             </div>
-
-            @if($errors->any())
-                <div class="alert alert-danger mb-3">
-                    <ul class="mb-0">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+                <!-- School Logo -->
+                <div class="text-center mb-3">
+                    <img src="{{ asset('images/CNHS.png') }}" alt="CNHS Logo" style="width: 90px; height: 90px; object-fit: contain; margin-bottom: 1rem;">
                 </div>
-            @endif
-
-            @if(session('error'))
-                <div class="alert alert-danger mb-3">
-                    {{ session('error') }}
+                <div class="login-header">
+                    <h1>Welcome to CNHS</h1>
+                    <p class="text-muted">Please login to continue</p>
                 </div>
-            @endif
 
-            @if(session('info'))
-                <div class="alert alert-info mb-3">
-                    <i class="fas fa-info-circle me-2"></i>{{ session('info') }}
-                    <div class="mt-2">
-                        <a href="{{ route('registrar.login') }}" class="btn btn-sm btn-primary">
-                            <i class="fas fa-sign-in-alt me-1"></i>Go to Registrar Login
-                        </a>
+                @if($errors->any())
+                    <div class="alert alert-danger mb-3">
+                        <ul class="mb-0">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
                     </div>
-                </div>
-            @endif
+                @endif
 
-            @if(session('message'))
-                <div class="alert alert-warning mb-3">
-                    <i class="fas fa-exclamation-triangle me-2"></i>{{ session('message') }}
-                </div>
-            @endif
+                @if(session('error'))
+                    <div class="alert alert-danger mb-3">
+                        {{ session('error') }}
+                    </div>
+                @endif
 
-            <form method="POST" action="{{ route('login') }}" id="loginForm" onsubmit="
-                const formData = new FormData(this);
-                const role = document.querySelector('input[name=role]:checked').value;
-                console.log('=== FORM SUBMITTING ===', {
-                    role: role,
-                    action: this.action,
-                    method: this.method,
-                    student_id: formData.get('student_id'),
-                    email: formData.get('email'),
-                    username: formData.get('username'),
-                    password: formData.get('password') ? '***filled***' : 'empty',
-                    all_form_data: Object.fromEntries(formData)
-                });
+                @if(session('info'))
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle me-2"></i>{{ session('info') }}
+                        <div class="mt-2">
+                            <a href="{{ route('registrar.login') }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-sign-in-alt me-1"></i>Go to Registrar Login
+                            </a>
+                        </div>
+                    </div>
+                @endif
 
-                if (role === 'admin') {
-                    const usernameField = document.getElementById('username-input');
-                    console.log('Admin username field value:', usernameField.value);
-                    console.log('Admin username field visible:', usernameField.offsetParent !== null);
-                    if (!usernameField.value) {
-                        alert('Please enter your Admin Username');
-                        return false;
-                    }
-                    // Ensure form action is set to admin login
-                    this.action = '/admin/login';
-                    console.log('Admin form action confirmed:', this.action);
-                }
+                @if(session('message'))
+                    <div class="alert alert-warning mb-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>{{ session('message') }}
+                    </div>
+                @endif
 
-                if (role === 'student') {
-                    const studentIdField = document.getElementById('student-id-input');
-                    console.log('Student ID field value:', studentIdField.value);
-                    console.log('Student ID field visible:', studentIdField.offsetParent !== null);
-                    if (!studentIdField.value) {
-                        alert('Please enter your Student ID');
-                        return false;
-                    }
-                }
-
-                if (role === 'registrar') {
-                    const emailField = document.getElementById('registrar-email-input');
-                    console.log('Registrar email field value:', emailField.value);
-                    console.log('Registrar email field visible:', emailField.offsetParent !== null);
-                    console.log('Registrar email field disabled:', emailField.disabled);
-                    console.log('Registrar email field name:', emailField.name);
-                    if (!emailField.value) {
-                        alert('Please enter your email address');
-                        return false;
-                    }
-                }
-                return true;
-            ">
-                @csrf
-
-                <div class="role-selector mb-4">
-                    <label class="role-option active">
-                        <input type="radio" name="role" value="admin" required checked>
-                        <i class='bx bxs-user'></i>
-                        <div>Admin</div>
-                    </label>
-                    <label class="role-option">
-                        <input type="radio" name="role" value="teacher" required>
-                        <i class='bx bxs-user-detail'></i>
-                        <div>Teacher</div>
-                    </label>
-                    <label class="role-option">
-                        <input type="radio" name="role" value="student" required>
-                        <i class='bx bxs-user-detail'></i>
-                        <div>Student</div>
-                    </label>
-                    <label class="role-option">
-                        <input type="radio" name="role" value="registrar" required>
-                        <i class='bx bxs-user-detail'></i>
-                        <div>Registrar</div>
-                    </label>
-                    <label class="role-option">
-                        <input type="radio" name="role" value="principal" required>
-                        <i class='bx bxs-user-badge'></i>
-                        <div>Principal</div>
-                    </label>
-                </div>
-
-                <!-- Admin Username Field -->
-                <div class="mb-3" id="username-container">
-                    <div class="input-group">
-                        <span class="input-group-text">
+                <!-- Section: Login Credentials -->
+                <form method="POST" action="{{ route('login') }}" id="loginForm">
+                    @csrf
+                    <!-- Section: Select Role (moved inside form) -->
+                    <div class="mb-2 mt-3">
+                        <label class="form-label text-uppercase fw-bold" style="color: #1E3A8A; font-size: 1.02rem; letter-spacing: 0.5px;">Select Role</label>
+                    </div>
+                    <div class="role-selector mb-4">
+                        <label class="role-option active">
+                            <input type="radio" name="role" value="admin" required checked>
                             <i class='bx bxs-user'></i>
-                        </span>
-                        <input type="text" class="form-control @error('username') is-invalid @enderror"
-                               name="username"
-                               id="username-input"
-                               placeholder="Admin Username"
-                               value="{{ old('username') }}"
-                               required>
+                            <div>Admin</div>
+                        </label>
+                        <label class="role-option">
+                            <input type="radio" name="role" value="teacher" required>
+                            <i class='bx bxs-user-detail'></i>
+                            <div>Teacher</div>
+                        </label>
+                        <label class="role-option">
+                            <input type="radio" name="role" value="student" required>
+                            <i class='bx bxs-user-detail'></i>
+                            <div>Student</div>
+                        </label>
+                        <label class="role-option">
+                            <input type="radio" name="role" value="registrar" required>
+                            <i class='bx bxs-user-detail'></i>
+                            <div>Registrar</div>
+                        </label>
+                        <label class="role-option">
+                            <input type="radio" name="role" value="principal" required>
+                            <i class='bx bxs-user-badge'></i>
+                            <div>Principal</div>
+                        </label>
                     </div>
-                    @error('username')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-
-                <!-- Teacher Email Field -->
-                <div class="mb-3" id="email-container" style="display: none;">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class='bx bxs-envelope'></i>
-                        </span>
-                        <input type="email" class="form-control" name="email" id="email-input" placeholder="Teacher Email Address">
+                    <!-- Divider -->
+                    <div style="height: 1.5px; background: #e5e7eb; margin: 1.5rem 0 1.5rem 0; border-radius: 2px;"></div>
+                    <div class="mb-2">
+                        <label class="form-label text-uppercase fw-bold" style="color: #1E3A8A; font-size: 1.02rem; letter-spacing: 0.5px;">Login Credentials</label>
                     </div>
-                    @error('email')
-                        <span class="text-danger">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <!-- Registrar Email Field -->
-                <div class="mb-3" id="registrar-email-container" style="display: none;">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class='bx bxs-envelope'></i>
-                        </span>
-                        <input type="email" class="form-control @error('email') is-invalid @enderror"
-                               name="email"
-                               id="registrar-email-input"
-                               placeholder="Registrar Email Address"
-                               value="{{ old('email') }}">
+                    <!-- Admin Username Field -->
+                    <div class="mb-3" id="username-container">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class='bx bxs-user'></i>
+                            </span>
+                            <input type="text" class="form-control @error('username') is-invalid @enderror"
+                                   name="username"
+                                   id="username-input"
+                                   placeholder="Admin Username"
+                                   value="{{ old('username') }}"
+                                   required>
+                        </div>
+                        @error('username')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                        @enderror
                     </div>
-                    @error('email')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-
-                <!-- Student Username Field (was Student ID) -->
-                <div class="mb-3" id="student-id-container" style="display: none;">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class='bx bxs-id-card'></i>
-                        </span>
-                        <input type="text" class="form-control" name="student_id" id="student-id-input" placeholder="Student ID" required>
+                    <!-- Teacher Email Field -->
+                    <div class="mb-3" id="email-container" style="display: none;">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class='bx bxs-envelope'></i>
+                            </span>
+                            <input type="email" class="form-control" name="email" id="email-input" placeholder="Teacher Email Address">
+                        </div>
+                        @error('email')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
                     </div>
-                    @error('student_id')
-                        <span class="text-danger">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <!-- Registrar Secret Code Field REMOVED - No longer needed -->
-
-                <!-- Principal Email Field -->
-                <div class="mb-3" id="principal-email-container" style="display: none;">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class='bx bxs-envelope'></i>
-                        </span>
-                        <input type="email" class="form-control @error('email') is-invalid @enderror"
-                               name="email"
-                               id="principal-email-input"
-                               placeholder="Principal Email Address"
-                               value="{{ old('email') }}">
+                    <!-- Registrar Email Field -->
+                    <div class="mb-3" id="registrar-email-container" style="display: none;">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class='bx bxs-envelope'></i>
+                            </span>
+                            <input type="email" class="form-control @error('email') is-invalid @enderror"
+                                   name="email"
+                                   id="registrar-email-input"
+                                   placeholder="Registrar Email Address"
+                                   value="{{ old('email') }}">
+                        </div>
+                        @error('email')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                        @enderror
                     </div>
-                    @error('email')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-
-                <div class="mb-3">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class='bx bxs-lock-alt'></i>
-                        </span>
-                        <input type="password" class="form-control" name="password" placeholder="Password" required>
-                        <span class="input-group-text" style="cursor: pointer" onclick="togglePassword(this)">
-                            <i class='bx bxs-show'></i>
-                        </span>
+                    <!-- Student Username Field (was Student ID) -->
+                    <div class="mb-3" id="student-id-container" style="display: none;">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class='bx bxs-id-card'></i>
+                            </span>
+                            <input type="text" class="form-control" name="student_id" id="student-id-input" placeholder="Student ID" required>
+                        </div>
+                        @error('student_id')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
                     </div>
-                    @error('password')
-                        <span class="text-danger">{{ $message }}</span>
-                    @enderror
-                </div>
+                    <!-- Principal Email Field -->
+                    <div class="mb-3" id="principal-email-container" style="display: none;">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class='bx bxs-envelope'></i>
+                            </span>
+                            <input type="email" class="form-control @error('email') is-invalid @enderror"
+                                   name="email"
+                                   id="principal-email-input"
+                                   placeholder="Principal Email Address"
+                                   value="{{ old('email') }}">
+                        </div>
+                        @error('email')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                        @enderror
+                    </div>
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class='bx bxs-lock-alt'></i>
+                            </span>
+                            <input type="password" class="form-control" name="password" placeholder="Password" required>
+                            <span class="input-group-text" style="cursor: pointer" onclick="togglePassword(this)">
+                                <i class='bx bxs-show'></i>
+                            </span>
+                        </div>
+                        @error('password')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
+                    </div>
 
-                <button type="submit" class="btn btn-primary btn-login mb-3">
-                    Login
-                </button>
-
-                <div class="register-link">
-                    <p>Don't have an account? <a href="{{ route('register') }}">Register</a></p>
-                </div>
-            </form>
+                    <button type="submit" class="btn btn-primary btn-login mb-2 mt-2">
+                        <i class='bx bx-log-in'></i> Login
+                    </button>
+                    <div class="register-link" style="font-size: 0.98rem; margin-top: 0.7rem;">
+                        <p>Need an account? Contact your administrator for account creation.</p>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -471,7 +454,7 @@
                         usernameInput.value = '';
                     }
                     passwordInput.placeholder = 'Admin Password';
-                    form.action = "{{ route('login') }}";
+                    form.action = "{{ route('admin.login.post') }}";
                     console.log('Admin form action set to:', form.action);
                 } else if (this.value === 'teacher') {
                     emailContainer.style.display = 'block';
@@ -520,7 +503,7 @@
             const adminRadio = document.querySelector('input[name="role"][value="admin"]');
             if (adminRadio && adminRadio.checked) {
                 const form = document.getElementById('loginForm');
-                form.action = "{{ route('login') }}";
+                form.action = "{{ route('admin.login.post') }}";
 
                 // Ensure admin fields are visible and others are hidden
                 const usernameContainer = document.getElementById('username-container');
@@ -558,23 +541,60 @@
                 console.log('Initial admin setup complete. Form action:', form.action);
             }
 
-            // Add click event listener to login button for debugging
-            const loginButton = document.querySelector('.btn-login');
-            if (loginButton) {
-                loginButton.addEventListener('click', function(e) {
-                    console.log('Login button clicked');
+            // Add form submission handler for debugging
+            const form = document.getElementById('loginForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    console.log('Form submitting...');
                     const selectedRole = document.querySelector('input[name="role"]:checked');
-                    console.log('Selected role:', selectedRole ? selectedRole.value : 'none');
-                    const form = document.getElementById('loginForm');
-                    console.log('Form action:', form.action);
+                    const password = document.querySelector('input[name="password"]').value;
 
-                    // Check if required fields are filled
-                    if (selectedRole && selectedRole.value === 'admin') {
-                        const username = document.getElementById('username-input').value;
-                        const password = document.querySelector('input[name="password"]').value;
-                        console.log('Username filled:', !!username);
-                        console.log('Password filled:', !!password);
+                    if (!selectedRole) {
+                        e.preventDefault();
+                        alert('Please select a role');
+                        return false;
                     }
+
+                    if (!password) {
+                        e.preventDefault();
+                        alert('Please enter your password');
+                        return false;
+                    }
+
+                    // Role-specific validation
+                    if (selectedRole.value === 'registrar') {
+                        const email = document.getElementById('registrar-email-input').value;
+                        if (!email) {
+                            e.preventDefault();
+                            alert('Please enter your email address');
+                            return false;
+                        }
+                        console.log('Registrar login attempt:', { email: email, hasPassword: !!password });
+                    } else if (selectedRole.value === 'admin') {
+                        const username = document.getElementById('username-input').value;
+                        if (!username) {
+                            e.preventDefault();
+                            alert('Please enter your username');
+                            return false;
+                        }
+                    } else if (selectedRole.value === 'teacher') {
+                        const email = document.getElementById('email-input').value;
+                        if (!email) {
+                            e.preventDefault();
+                            alert('Please enter your email address');
+                            return false;
+                        }
+                    } else if (selectedRole.value === 'student') {
+                        const studentId = document.getElementById('student-id-input').value;
+                        if (!studentId) {
+                            e.preventDefault();
+                            alert('Please enter your student ID');
+                            return false;
+                        }
+                    }
+
+                    console.log('Form validation passed, submitting...');
+                    return true;
                 });
             }
         });

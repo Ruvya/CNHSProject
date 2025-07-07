@@ -27,30 +27,64 @@ class DashboardController extends Controller
         $studentsByGrade = Student::select('grade_level', DB::raw('count(*) as count'))
             ->groupBy('grade_level')
             ->orderBy('grade_level')
-            ->get();
+            ->get()
+            ->map(function($item) {
+                return [
+                    'grade_level' => $item->grade_level ? "Grade {$item->grade_level}" : 'Not Set',
+                    'count' => (int)$item->count
+                ];
+            });
 
         $studentsByTrack = Student::select('track', DB::raw('count(*) as count'))
             ->whereNotNull('track')
+            ->where('track', '!=', '')
             ->groupBy('track')
-            ->get();
+            ->orderBy('count', 'desc')
+            ->get()
+            ->map(function($item) {
+                return [
+                    'track' => $item->track,
+                    'count' => (int)$item->count
+                ];
+            });
 
         $studentsByStrand = Student::select('strand', DB::raw('count(*) as count'))
             ->whereNotNull('strand')
             ->where('strand', '!=', '')
             ->groupBy('strand')
             ->orderBy('count', 'desc')
-            ->get();
+            ->get()
+            ->map(function($item) {
+                return [
+                    'strand' => $item->strand,
+                    'count' => (int)$item->count
+                ];
+            });
 
         // Subject Analytics
         $subjectsByGrade = Subject::select('grade_level', DB::raw('count(*) as count'))
             ->groupBy('grade_level')
             ->orderBy('grade_level')
-            ->get();
+            ->get()
+            ->map(function($item) {
+                return [
+                    'grade_level' => $item->grade_level ? "Grade {$item->grade_level}" : 'Not Set',
+                    'count' => (int)$item->count
+                ];
+            });
 
         $subjectsByTrack = Subject::select('track', DB::raw('count(*) as count'))
             ->whereNotNull('track')
+            ->where('track', '!=', '')
             ->groupBy('track')
-            ->get();
+            ->orderBy('count', 'desc')
+            ->get()
+            ->map(function($item) {
+                return [
+                    'track' => $item->track,
+                    'count' => (int)$item->count
+                ];
+            });
 
         // Recent Activities
         $recentSubjects = Subject::with(['teacher', 'registrar'])
@@ -81,6 +115,23 @@ class DashboardController extends Controller
             'assignment_rate' => $totalSubjects > 0 ? round(($assignedSubjects / $totalSubjects) * 100, 1) : 0
         ];
 
+        // New data for charts
+        $studentsByGradeLevel = Student::select('grade_level', DB::raw('count(*) as count'))
+            ->groupBy('grade_level')
+            ->orderBy('grade_level')
+            ->get()
+            ->map(function($item) {
+                return [
+                    'grade_level' => $item->grade_level ? "Grade {$item->grade_level}" : 'Not Set',
+                    'count' => (int)$item->count
+                ];
+            });
+
+        $subjectsByTrack = Subject::whereNotNull('track')
+            ->select('track', DB::raw('count(*) as total'))
+            ->groupBy('track')
+            ->pluck('total', 'track');
+
         return view('registrar.dashboard', compact(
             'totalStudents',
             'totalSubjects',
@@ -99,6 +150,7 @@ class DashboardController extends Controller
             'recentStudentsCount',
             'recentSubjectsCount',
             'assignmentStats',
+            'studentsByGradeLevel',
             'registrar'
         ));
     }

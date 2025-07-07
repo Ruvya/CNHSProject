@@ -576,6 +576,7 @@ class ComposerStaticInit88970a0117c062eed55fa8728fc43833
     );
 
     public static $classMap = array (
+        'App\\Console\\Commands\\ClearSubjectsData' => __DIR__ . '/../..' . '/app/Console/Commands/ClearSubjectsData.php',
         'App\\Console\\Commands\\FixDatabase' => __DIR__ . '/../..' . '/app/Console/Commands/FixDatabase.php',
         'App\\Console\\Commands\\MarkMigrationsAsRun' => __DIR__ . '/../..' . '/app/Console/Commands/MarkMigrationsAsRun.php',
         'App\\Console\\Commands\\ResetAdminPassword' => __DIR__ . '/../..' . '/app/Console/Commands/ResetAdminPassword.php',
@@ -594,7 +595,9 @@ class ComposerStaticInit88970a0117c062eed55fa8728fc43833
         'App\\Http\\Controllers\\Principal\\AnnouncementController' => __DIR__ . '/../..' . '/app/Http/Controllers/Principal/AnnouncementController.php',
         'App\\Http\\Controllers\\Principal\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/Principal/AuthController.php',
         'App\\Http\\Controllers\\Principal\\DashboardController' => __DIR__ . '/../..' . '/app/Http/Controllers/Principal/DashboardController.php',
+        'App\\Http\\Controllers\\Principal\\EventController' => __DIR__ . '/../..' . '/app/Http/Controllers/Principal/EventController.php',
         'App\\Http\\Controllers\\Principal\\PagesController' => __DIR__ . '/../..' . '/app/Http/Controllers/Principal/PagesController.php',
+        'App\\Http\\Controllers\\Principal\\ProfileController' => __DIR__ . '/../..' . '/app/Http/Controllers/Principal/ProfileController.php',
         'App\\Http\\Controllers\\Principal\\TeacherController' => __DIR__ . '/../..' . '/app/Http/Controllers/Principal/TeacherController.php',
         'App\\Http\\Controllers\\RegisterController' => __DIR__ . '/../..' . '/app/Http/Controllers/RegisterController.php',
         'App\\Http\\Controllers\\Registrar\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/Registrar/AuthController.php',
@@ -603,6 +606,10 @@ class ComposerStaticInit88970a0117c062eed55fa8728fc43833
         'App\\Http\\Controllers\\Registrar\\ProfileController' => __DIR__ . '/../..' . '/app/Http/Controllers/Registrar/ProfileController.php',
         'App\\Http\\Controllers\\Registrar\\StudentController' => __DIR__ . '/../..' . '/app/Http/Controllers/Registrar/StudentController.php',
         'App\\Http\\Controllers\\Registrar\\StudentSubjectAssignmentController' => __DIR__ . '/../..' . '/app/Http/Controllers/Registrar/StudentSubjectAssignmentController.php',
+
+
+        'App\\Http\\Controllers\\Registrar\\StudentYearlyRecordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Registrar/StudentYearlyRecordController.php',
+
         'App\\Http\\Controllers\\Registrar\\SubjectController' => __DIR__ . '/../..' . '/app/Http/Controllers/Registrar/SubjectController.php',
         'App\\Http\\Controllers\\Registrar\\TeacherAssignmentController' => __DIR__ . '/../..' . '/app/Http/Controllers/Registrar/TeacherAssignmentController.php',
         'App\\Http\\Controllers\\Student\\AnnouncementController' => __DIR__ . '/../..' . '/app/Http/Controllers/Student/AnnouncementController.php',
@@ -623,11 +630,16 @@ class ComposerStaticInit88970a0117c062eed55fa8728fc43833
         'App\\Imports\\StudentsImport' => __DIR__ . '/../..' . '/app/Imports/StudentsImport.php',
         'App\\Models\\Admin' => __DIR__ . '/../..' . '/app/Models/Admin.php',
         'App\\Models\\Announcement' => __DIR__ . '/../..' . '/app/Models/Announcement.php',
+        'App\\Models\\Event' => __DIR__ . '/../..' . '/app/Models/Event.php',
         'App\\Models\\Grade' => __DIR__ . '/../..' . '/app/Models/Grade.php',
         'App\\Models\\Principal' => __DIR__ . '/../..' . '/app/Models/Principal.php',
         'App\\Models\\Registrar' => __DIR__ . '/../..' . '/app/Models/Registrar.php',
         'App\\Models\\Section' => __DIR__ . '/../..' . '/app/Models/Section.php',
         'App\\Models\\Student' => __DIR__ . '/../..' . '/app/Models/Student.php',
+
+
+        'App\\Models\\StudentYearlyRecord' => __DIR__ . '/../..' . '/app/Models/StudentYearlyRecord.php',
+
         'App\\Models\\Subject' => __DIR__ . '/../..' . '/app/Models/Subject.php',
         'App\\Models\\Teacher' => __DIR__ . '/../..' . '/app/Models/Teacher.php',
         'App\\Models\\TeacherAssignment' => __DIR__ . '/../..' . '/app/Models/TeacherAssignment.php',

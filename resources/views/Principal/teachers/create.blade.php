@@ -1,4 +1,4 @@
-@extends('PRINCIPAL.layouts.admin')
+@extends('Principal.layouts.admin')
 
 @section('title', 'Add New Teacher')
 
@@ -33,10 +33,10 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="phone" class="form-label">Phone</label>
-                            <input type="text" class="form-control @error('phone') is-invalid @enderror" 
-                                id="phone" name="phone" value="{{ old('phone') }}" required>
-                            @error('phone')
+                            <label for="contact_number" class="form-label">Contact Number</label>
+                            <input type="text" class="form-control @error('contact_number') is-invalid @enderror"
+                                id="contact_number" name="contact_number" value="{{ old('contact_number') }}" required>
+                            @error('contact_number')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -50,16 +50,44 @@
                             @enderror
                         </div>
 
-                        <div class="mb-3">
-                            <label for="subject_specialty" class="form-label">Subject Specialty</label>
-                            <input type="text" class="form-control @error('subject_specialty') is-invalid @enderror" 
-                                id="subject_specialty" name="subject_specialty" value="{{ old('subject_specialty') }}" required>
-                            @error('subject_specialty')
+                            <div class="mb-3">
+                            <label for="grade-level" class="form-label">Grade level</label>
+                            <input type="number" class="form-control @error('grade-level') is-invalid @enderror"
+                                id="grade-level" name="grade-level" value="{{ old('grade-level', $teacher->grade_level) }}" required>
+                            @error('grade-level')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
-                     
+
+                        <div class="mb-3">
+                            <label for="strand" class="form-label">Strand (Optional)</label>
+                            <select class="form-control @error('strand') is-invalid @enderror" id="strand" name="strand">
+                                <option value="">Select Strand</option>
+                                <option value="STEM" {{ old('strand') === 'STEM' ? 'selected' : '' }}>STEM</option>
+                                <option value="ABM" {{ old('strand') === 'ABM' ? 'selected' : '' }}>ABM</option>
+                                <option value="HUMSS" {{ old('strand') === 'HUMSS' ? 'selected' : '' }}>HUMSS</option>
+                                <option value="GAS" {{ old('strand') === 'GAS' ? 'selected' : '' }}>GAS</option>
+                                <option value="TVL-HE" {{ old('strand') === 'TVL-HE' ? 'selected' : '' }}>TVL - Home Economics</option>
+                                <option value="TVL-ICT" {{ old('strand') === 'TVL-ICT' ? 'selected' : '' }}>TVL - ICT</option>
+                                <option value="TVL-IA" {{ old('strand') === 'TVL-IA' ? 'selected' : '' }}>TVL - Industrial Arts</option>
+                                <option value="TVL-AFA" {{ old('strand') === 'TVL-AFA' ? 'selected' : '' }}>TVL - Agri-Fishery Arts</option>
+                            </select>
+                            @error('strand')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-control @error('status') is-invalid @enderror" id="status" name="status" required>
+                                <option value="active" {{ old('status') === 'active' ? 'selected' : '' }}>Active</option>
+                                <option value="inactive" {{ old('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                            </select>
+                            @error('status')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
 
                         <div class="d-flex justify-content-between">
                             <a href="{{ route('principal.teachers.index') }}" class="btn btn-secondary">Cancel</a>

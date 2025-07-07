@@ -117,27 +117,14 @@ class TeacherAssignmentController extends Controller
      */
     public function create(Request $request)
     {
-        $teacherId = $request->get('teacher_id');
-        $teacher = $teacherId ? Teacher::findOrFail($teacherId) : null;
-
-        $currentSchoolYear = $this->getCurrentSchoolYear();
-        $currentGradingPeriod = 'First Grading';
-
-        // Get available data
-        $teachers = Teacher::orderBy('name')->get();
+        $teachers = Teacher::where('status', 'active')->orderBy('name')->get();
         $subjects = Subject::orderBy('name')->get();
 
-        // Get available grade levels
-        $gradeLevels = Subject::distinct()->pluck('grade_level')->sort()->values();
+        // Get current school year and grading period
+        $currentSchoolYear = $this->getCurrentSchoolYear();
+        $currentGradingPeriod = $this->getCurrentGradingPeriod();
 
-        return view('registrar.teacher-assignments.create', compact(
-            'teacher',
-            'teachers',
-            'subjects',
-            'gradeLevels',
-            'currentSchoolYear',
-            'currentGradingPeriod'
-        ));
+        return view('registrar.teacher-assignments.create', compact('teachers', 'subjects', 'currentSchoolYear', 'currentGradingPeriod'));
     }
 
     /**
@@ -171,22 +158,17 @@ class TeacherAssignmentController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            $request->validate([
-                'teacher_id' => 'required|exists:teachers,id',
-                'subject_id' => 'required|exists:subjects,id',
-                'school_year' => 'required|string',
-                'grading_period' => 'required|string',
-                'schedule' => 'nullable|array',
-                'schedule.*.day' => 'required_with:schedule|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
-                'schedule.*.start_time' => 'required_with:schedule|date_format:H:i',
-                'schedule.*.end_time' => 'required_with:schedule|date_format:H:i|after:schedule.*.start_time',
-                'notes' => 'nullable|string|max:500'
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return back()->withErrors($e->errors())->withInput()
-                ->with('error', 'Please check the form for errors and try again.');
-        }
+        $validated = $request->validate([
+            'teacher_id' => 'required|exists:teachers,id',
+            'subject_id' => 'required|exists:subjects,id',
+            'school_year' => 'required|string',
+            'grading_period' => 'required|string',
+            'schedule' => 'nullable|array',
+            'schedule.*.day' => 'nullable|string|max:255',
+            'schedule.*.start_time' => 'nullable|date_format:H:i',
+            'schedule.*.end_time' => 'nullable|date_format:H:i|after:schedule.*.start_time',
+            'notes' => 'nullable|string|max:500'
+        ]);
 
         try {
             // Check if assignment already exists
@@ -398,6 +380,25 @@ class TeacherAssignmentController extends Controller
             return $currentYear . '-' . ($currentYear + 1);
         } else {
             return ($currentYear - 1) . '-' . $currentYear;
+        }
+    }
+
+    /**
+     * Get current grading period
+     */
+    private function getCurrentGradingPeriod(): string
+    {
+        $currentMonth = date('n');
+
+        // Determine grading period based on month
+        if ($currentMonth >= 6 && $currentMonth <= 8) {
+            return 'First Grading';
+        } elseif ($currentMonth >= 9 && $currentMonth <= 11) {
+            return 'Second Grading';
+        } elseif ($currentMonth == 12 || $currentMonth <= 2) {
+            return 'Third Grading';
+        } else {
+            return 'Fourth Grading';
         }
     }
 }

@@ -776,4 +776,192 @@ class StudentController extends Controller
 
         return null;
     }
+
+    /**
+     * Show yearly student records overview
+     */
+    public function yearlyRecords()
+    {
+        // Get all years that have student records
+        $years = Student::selectRaw('YEAR(created_at) as year, COUNT(*) as count')
+            ->groupBy('year')
+            ->orderBy('year', 'desc')
+            ->get();
+
+        // Get current year statistics
+        $currentYear = date('Y');
+        $currentYearStats = [
+            'total_students' => Student::whereYear('created_at', $currentYear)->count(),
+            'grade_11' => Student::whereYear('created_at', $currentYear)->where('grade_level', 'Grade 11')->count(),
+            'grade_12' => Student::whereYear('created_at', $currentYear)->where('grade_level', 'Grade 12')->count(),
+            'academic_track' => Student::whereYear('created_at', $currentYear)->where('track', 'Academic')->count(),
+            'tvl_track' => Student::whereYear('created_at', $currentYear)->where('track', 'TVL')->count(),
+        ];
+
+        // Get recent activity
+        $recentStudents = Student::whereYear('created_at', $currentYear)
+            ->latest()
+            ->take(10)
+            ->get();
+
+        return view('registrar.students.yearly-records', compact(
+            'years',
+            'currentYear',
+            'currentYearStats',
+            'recentStudents'
+        ));
+    }
+
+    /**
+     * Show students for a specific year
+     */
+    public function showYearlyRecords($year)
+    {
+        // Validate year
+        if (!is_numeric($year) || $year < 2020 || $year > date('Y') + 1) {
+            return redirect()->route('registrar.students.records')
+                ->with('error', 'Invalid year specified.');
+        }
+
+        // Get students for the specified year
+        $students = Student::whereYear('created_at', $year)
+            ->with(['subjects'])
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->paginate(50);
+
+        // Get statistics for this year
+        $yearStats = [
+            'total_students' => Student::whereYear('created_at', $year)->count(),
+            'grade_11' => Student::whereYear('created_at', $year)->where('grade_level', 'Grade 11')->count(),
+            'grade_12' => Student::whereYear('created_at', $year)->where('grade_level', 'Grade 12')->count(),
+            'academic_track' => Student::whereYear('created_at', $year)->where('track', 'Academic')->count(),
+            'tvl_track' => Student::whereYear('created_at', $year)->where('track', 'TVL')->count(),
+            'male_students' => Student::whereYear('created_at', $year)->where('gender', 'Male')->count(),
+            'female_students' => Student::whereYear('created_at', $year)->where('gender', 'Female')->count(),
+        ];
+
+        // Get track and strand breakdown
+        $trackBreakdown = Student::whereYear('created_at', $year)
+            ->selectRaw('track, strand, COUNT(*) as count')
+            ->groupBy('track', 'strand')
+            ->orderBy('track')
+            ->orderBy('strand')
+            ->get();
+
+        return view('registrar.students.yearly-records-detail', compact(
+            'students',
+            'year',
+            'yearStats',
+            'trackBreakdown'
+        ));
+    }
+
+    /**
+     * Archive students for a specific year
+     */
+    public function archiveYear($year)
+    {
+        try {
+            // Validate year
+            if (!is_numeric($year) || $year < 2020 || $year >= date('Y')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot archive current year or invalid year.'
+                ]);
+            }
+
+            // Count students to be archived
+            $studentCount = Student::whereYear('created_at', $year)->count();
+
+            if ($studentCount === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No students found for year ' . $year
+                ]);
+            }
+
+            // Add archived flag to students (you might want to create an archived_students table instead)
+            Student::whereYear('created_at', $year)
+                ->update([
+                    'archived' => true,
+                    'archived_at' => now(),
+                    'archived_by' => auth()->guard('registrar')->id()
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully archived {$studentCount} students from year {$year}."
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error archiving year: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error archiving students: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Export yearly records to Excel
+     */
+    public function exportYearlyRecords($year)
+    {
+        try {
+            // Validate year
+            if (!is_numeric($year) || $year < 2020 || $year > date('Y') + 1) {
+                return redirect()->route('registrar.students.records')
+                    ->with('error', 'Invalid year specified.');
+            }
+
+            // Get students for the year
+            $students = Student::whereYear('created_at', $year)
+                ->orderBy('last_name')
+                ->orderBy('first_name')
+                ->get();
+
+            if ($students->isEmpty()) {
+                return redirect()->route('registrar.students.records')
+                    ->with('error', 'No students found for year ' . $year);
+            }
+
+            // Create export data
+            $exportData = [];
+            foreach ($students as $student) {
+                $exportData[] = [
+                    'Student ID' => $student->student_id,
+                    'Last Name' => $student->last_name,
+                    'First Name' => $student->first_name,
+                    'Middle Name' => $student->middle_name,
+                    'Email' => $student->email,
+                    'Grade Level' => $student->grade_level,
+                    'Track' => $student->track,
+                    'Strand' => $student->strand,
+                    'Gender' => $student->gender,
+                    'Date of Birth' => $student->date_of_birth,
+                    'Contact Number' => $student->contact_number,
+                    'Address' => $student->address,
+                    'Parent Name' => $student->parent_name,
+                    'Parent Contact' => $student->parent_contact,
+                    'Enrollment Date' => $student->created_at->format('Y-m-d'),
+                ];
+            }
+
+            // Create Excel export
+            $export = new StudentTemplateExport(
+                array_keys($exportData[0]),
+                $exportData
+            );
+
+            $filename = "student_records_{$year}_" . date('Y-m-d_H-i-s') . '.xlsx';
+
+            return Excel::download($export, $filename);
+
+        } catch (\Exception $e) {
+            \Log::error('Error exporting yearly records: ' . $e->getMessage());
+            return redirect()->route('registrar.students.records')
+                ->with('error', 'Error exporting records: ' . $e->getMessage());
+        }
+    }
 }

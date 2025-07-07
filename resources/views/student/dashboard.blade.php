@@ -5,15 +5,16 @@
 @section('styles')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
+ 
     /* Modern Dashboard Styles - Clean White Background */
     .main-content {
-       
         padding: 2rem !important;
         background: #ffffff !important;
-        min-height: calc(100vh - 80px) !important;
         position: relative;
         overflow-x: hidden;
-        margin-left: 250px !important;
+        margin: 0 auto !important;
+        max-width: 1200px !important;
+        width: 90% !important;
     }
 
     /* Subtle background pattern */
@@ -30,62 +31,76 @@
             radial-gradient(circle at 40% 40%, rgba(37, 99, 235, 0.01) 0%, transparent 50%);
         pointer-events: none;
         z-index: 1;
-        
     }
 
-    /* Welcome Section */
+    /* Welcome Section with Blue Wave Pattern */
     .welcome-section {
-        margin-top: 3%;
-        background: #ffffff;
-        border-radius: 25px;
-        padding: 2.5rem;
-        margin-bottom: 2rem;
-        box-shadow:
-            0 4px 20px rgba(37, 99, 235, 0.08),
-            0 1px 3px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-yellow) 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
         position: relative;
-        z-index: 2;
-        border: 1px solid rgba(37, 99, 235, 0.1);
+        overflow: hidden;
+        color: var(--white);
     }
+
+    /* Blue Wave Pattern Overlay */
+    .welcome-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
+        clip-path: polygon(100% 0, 100% 100%, 0 100%, 20% 0);
+        opacity: 0.9;
+        z-index: 1;
+    }
+
+ 
 
     .welcome-text h1 {
-        font-size: 2.5rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 0.5rem;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 0.25rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
     }
-
-    .date-time {
-        font-size: 1.1rem;
-        color: #6b7280;
-        font-weight: 500;
+   
+    .welcome-text h1 span#greeting {
+        opacity: 0.9;
+      color: white !important;
+        font-size:40px;
     }
+   
+  
 
     /* Quick Stats */
     .quick-stats {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
         position: relative;
         z-index: 2;
     }
 
     .stat-card {
         background: #ffffff;
-        padding: 2rem;
-        border-radius: 20px;
-        box-shadow:
-            0 4px 20px rgba(37, 99, 235, 0.08),
-            0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
         border: 1px solid rgba(37, 99, 235, 0.1);
         display: flex;
         align-items: center;
-        gap: 1.5rem;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        gap: 1rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
     }
@@ -96,46 +111,44 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 4px;
+        height: 3px;
         background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        border-radius: 20px 20px 0 0;
+        border-radius: 12px 12px 0 0;
     }
 
     .stat-card:hover {
-        transform: translateY(-8px);
-        box-shadow:
-            0 8px 30px rgba(37, 99, 235, 0.15),
-            0 2px 8px rgba(0, 0, 0, 0.1);
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
     }
 
     .stat-card i {
-        font-size: 2.5rem;
+        font-size: 1.75rem;
         background: linear-gradient(135deg, #2563eb, #1d4ed8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        padding: 1rem;
+        padding: 0.75rem;
         background-color: rgba(37, 99, 235, 0.1);
-        border-radius: 15px;
-        width: 70px;
-        height: 70px;
+        border-radius: 10px;
+        width: 32px;
+        height: 50px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
     .stat-info h3 {
-        font-size: 0.95rem;
+        font-size: 0.85rem;
         color: #6b7280;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.25rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
 
     .stat-info p {
-        font-size: 1.8rem;
-        font-weight: 700;
+        font-size: 1.1rem;
+        font-weight: 600;
         background: linear-gradient(135deg, #2563eb, #1d4ed8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -146,28 +159,24 @@
     /* Dashboard Grid */
     .dashboard-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        gap: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
         position: relative;
         z-index: 2;
     }
 
     .grid-item {
         background: #ffffff;
-        padding: 2rem;
-        border-radius: 20px;
-        box-shadow:
-            0 4px 20px rgba(37, 99, 235, 0.08),
-            0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
         border: 1px solid rgba(37, 99, 235, 0.1);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .grid-item:hover {
-        transform: translateY(-5px);
-        box-shadow:
-            0 8px 30px rgba(37, 99, 235, 0.15),
-            0 2px 8px rgba(0, 0, 0, 0.1);
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
     }
 
     .grid-item h2 {
@@ -175,56 +184,56 @@
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        font-size: 1.4rem;
+        font-size: 1.2rem;
         font-weight: 700;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
 
     .grid-item h2 i {
-        font-size: 1.2rem;
+        font-size: 1rem;
         background: linear-gradient(135deg, #2563eb, #1d4ed8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
 
-    /* Specific Component Styles */
+    /* List Items */
     .subjects-list, .announcements-list, .activities-list, .grades-list {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
-        max-height: 300px;
+        gap: 0.75rem;
+        max-height: 280px;
         overflow-y: auto;
     }
 
     .subject-item, .announcement-item, .activity-item, .grade-item {
         display: flex;
         align-items: center;
-        gap: 1rem;
-        padding: 1rem;
+        gap: 0.75rem;
+        padding: 0.75rem;
         background: #f8fafc;
-        border-radius: 15px;
+        border-radius: 10px;
         border: 1px solid rgba(37, 99, 235, 0.08);
         transition: all 0.3s ease;
     }
 
     .subject-item:hover, .announcement-item:hover, .activity-item:hover, .grade-item:hover {
         background: #f1f5f9;
-        transform: translateX(5px);
+        transform: translateX(4px);
         border-color: rgba(37, 99, 235, 0.15);
     }
 
     .item-icon {
-        width: 45px;
-        height: 45px;
-        border-radius: 12px;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.2rem;
+        font-size: 1rem;
         color: white;
         flex-shrink: 0;
     }
@@ -240,17 +249,17 @@
     }
 
     .item-title {
-        font-size: 1rem;
+        font-size: 0.9rem;
         font-weight: 600;
         color: #1f2937;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.15rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
     .item-subtitle {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         color: #6b7280;
         white-space: nowrap;
         overflow: hidden;
@@ -258,81 +267,110 @@
     }
 
     .item-meta {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         color: #9ca3af;
         text-align: right;
         flex-shrink: 0;
     }
 
-    /* Chart Container */
-    .chart-container {
-        height: 300px;
-        position: relative;
-    }
-
     /* Empty State */
     .empty-state {
         text-align: center;
-        padding: 2rem;
+        padding: 1.5rem;
         color: #6b7280;
     }
 
     .empty-state i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
         opacity: 0.5;
     }
 
     .empty-state h3 {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
         color: #374151;
     }
 
     .empty-state p {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         opacity: 0.8;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .quick-action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.75rem;
+        background: rgba(37, 99, 235, 0.1);
+        border-radius: 10px;
+        text-decoration: none;
+        color: #2563eb;
+        transition: all 0.3s ease;
+    }
+
+    .quick-action-btn i {
+        font-size: 1.25rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .quick-action-btn span {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .quick-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
     }
 
     /* Responsive Design */
     @media (max-width: 1024px) {
         .main-content {
-            margin-left: 0 !important;
+            width: 95% !important;
             padding: 1rem !important;
         }
 
         .dashboard-grid {
             grid-template-columns: 1fr;
-            gap: 1.5rem;
+            gap: 1rem;
         }
 
         .quick-stats {
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         }
     }
 
     @media (max-width: 768px) {
         .welcome-text h1 {
-            font-size: 2rem;
+            font-size: 1.75rem;
         }
 
         .stat-card {
-            padding: 1.5rem;
+            padding: 1rem;
         }
 
         .stat-card i {
-            width: 60px;
-            height: 60px;
-            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
         }
 
         .grid-item {
-            padding: 1.5rem;
+            padding: 1rem;
         }
 
         .quick-stats {
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
         }
     }
 
@@ -342,7 +380,7 @@
         }
 
         .welcome-section {
-            padding: 1.5rem;
+            padding: 1rem;
         }
 
         .welcome-text h1 {
@@ -357,36 +395,20 @@
             grid-template-columns: 1fr;
         }
     }
-
-    /* Animations */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .stat-card, .grid-item {
-        animation: fadeInUp 0.6s ease-out forwards;
-    }
-
-    .stat-card:nth-child(1) { animation-delay: 0.1s; }
-    .stat-card:nth-child(2) { animation-delay: 0.2s; }
-    .stat-card:nth-child(3) { animation-delay: 0.3s; }
-    .stat-card:nth-child(4) { animation-delay: 0.4s; }
 </style>
 @endsection
 
 @section('content')
+
+
 <!-- Welcome Section -->
 <div class="welcome-section">
     <div class="welcome-text">
-        <h1><span id="greeting">Good morning</span>, {{ $student ? $student->first_name . ' ' . $student->last_name : 'Guest' }}!</h1>
-        <p class="date-time" id="currentDateTime">Loading...</p>
+        <h1>
+            <span id="greeting">Good morning</span>
+            {{ optional($student)->first_name . ' ' . optional($student)->last_name ?? 'Guest' }}!
+        </h1>
+        <p>Calingcaguing National High School</p>
     </div>
 </div>
 
@@ -396,28 +418,28 @@
         <i class="fas fa-graduation-cap"></i>
         <div class="stat-info">
             <h3>Current Grade</h3>
-            <p>{{ $student ? $student->grade_level : 'N/A' }}</p>
+            <p>{{ optional($student)->grade_level ?? 'N/A' }}</p>
         </div>
     </div>
     <div class="stat-card">
         <i class="fas fa-book"></i>
         <div class="stat-info">
             <h3>Enrolled Subjects</h3>
-            <p>{{ $totalSubjects }} Active</p>
+            <p>{{ $totalSubjects ?? 0 }} Active</p>
         </div>
     </div>
     <div class="stat-card">
         <i class="fas fa-chart-line"></i>
         <div class="stat-info">
             <h3>Average Grade</h3>
-            <p>{{ $gradeStats['general_average'] ? number_format($gradeStats['general_average'], 1) : 'N/A' }}</p>
+            <p>{{ isset($gradeStats['general_average']) ? number_format($gradeStats['general_average'], 1) : 'N/A' }}</p>
         </div>
     </div>
     <div class="stat-card">
         <i class="fas fa-star"></i>
         <div class="stat-info">
             <h3>Highest Grade</h3>
-            <p>{{ $gradeStats['highest'] ? number_format($gradeStats['highest'], 1) : 'N/A' }}</p>
+            <p>{{ isset($gradeStats['highest']) ? number_format($gradeStats['highest'], 1) : 'N/A' }}</p>
         </div>
     </div>
 </div>
@@ -427,7 +449,7 @@
     <!-- Enrolled Subjects -->
     <div class="grid-item">
         <h2><i class="fas fa-book"></i> My Subjects</h2>
-        @if($enrolledSubjects->count() > 0)
+        @if(isset($enrolledSubjects) && $enrolledSubjects->count() > 0)
             <div class="subjects-list">
                 @foreach($enrolledSubjects->take(5) as $subject)
                 <div class="subject-item">
@@ -435,11 +457,11 @@
                         <i class="fas fa-book-open"></i>
                     </div>
                     <div class="item-content">
-                        <div class="item-title">{{ $subject->name }}</div>
-                        <div class="item-subtitle">{{ $subject->teacher ? $subject->teacher->name : 'No teacher assigned' }}</div>
+                        <div class="item-title">{{ $subject->name ?? 'Untitled Subject' }}</div>
+                        <div class="item-subtitle">{{ optional($subject->teacher)->name ?? 'No teacher assigned' }}</div>
                     </div>
                     <div class="item-meta">
-                        {{ $subject->track }} - {{ $subject->strand }}
+                        {{ $subject->track ?? 'No Track' }} - {{ $subject->strand ?? 'No Strand' }}
                     </div>
                 </div>
                 @endforeach
@@ -463,7 +485,7 @@
     <!-- Recent Announcements -->
     <div class="grid-item">
         <h2><i class="fas fa-bullhorn"></i> Recent Announcements</h2>
-        @if($recentAnnouncements->count() > 0)
+        @if(isset($recentAnnouncements) && $recentAnnouncements->count() > 0)
             <div class="announcements-list">
                 @foreach($recentAnnouncements as $announcement)
                 <div class="announcement-item">
@@ -471,11 +493,11 @@
                         <i class="fas fa-bullhorn"></i>
                     </div>
                     <div class="item-content">
-                        <div class="item-title">{{ $announcement->title }}</div>
-                        <div class="item-subtitle">{{ Str::limit($announcement->content, 60) }}</div>
+                        <div class="item-title">{{ $announcement->title ?? 'Untitled Announcement' }}</div>
+                        <div class="item-subtitle">{{ Str::limit($announcement->content ?? 'No content available', 60) }}</div>
                     </div>
                     <div class="item-meta">
-                        {{ $announcement->created_at->diffForHumans() }}
+                        {{ optional($announcement->created_at)->diffForHumans() ?? 'Recently' }}
                     </div>
                 </div>
                 @endforeach
@@ -493,9 +515,6 @@
             </div>
         @endif
     </div>
-
-
-
 
     <!-- Quick Actions -->
     <div class="grid-item">
@@ -525,22 +544,16 @@
 
 @section('scripts')
 <script>
-    // Pass PHP data to JavaScript
-    const studentGrades = @json($grades->pluck('final_grade')->filter()->values() ?? []);
-    const subjectNames = @json($grades->pluck('subject.name')->values() ?? []);
+    // Pass PHP data to JavaScript with null checks
+    const studentGrades = @json(optional($grades)->pluck('final_grade')->filter()->values() ?? []);
+    const subjectNames = @json(optional($grades)->pluck('subject.name')->values() ?? []);
 
     // Update date and time
     function updateDateTime() {
         const now = new Date();
-        const options = {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        };
-        document.getElementById('currentDateTime').textContent = now.toLocaleDateString('en-US', options);
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true };
+        const formattedDateTime = now.toLocaleDateString('en-US', options);
+        document.getElementById('currentDateTime').innerText = formattedDateTime;
     }
 
     // Update greeting based on time

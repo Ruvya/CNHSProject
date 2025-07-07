@@ -13,18 +13,10 @@ class SubjectController extends Controller
     {
         $student = Auth::guard('student')->user();
 
-        // Get subjects automatically assigned to this student (only those matching their grade, track, and strand)
+        // Get all subjects assigned to this student
+        // Note: We don't need additional filtering here because subjects should only be assigned
+        // to students if they match their grade, track, and strand
         $assignedSubjects = $student->subjects()
-            ->where('grade_level', $student->grade_level)
-            ->where(function($query) use ($student) {
-                $query->where('is_core_subject', true)
-                      ->orWhere(function($subQuery) use ($student) {
-                          $subQuery->where('track', $student->track);
-                      })
-                      ->orWhere(function($subQuery) use ($student) {
-                          $subQuery->where('strand', $student->strand);
-                      });
-            })
             ->with('teacher')
             ->get();
 
@@ -58,8 +50,12 @@ class SubjectController extends Controller
         // Get assignment status
         $assignmentStatus = $this->getAssignmentStatus($student);
 
+        // Add a simple $subjects variable for the view template compatibility
+        $subjects = $assignedSubjects;
+
         return view('student.subjects', compact(
             'student',
+            'subjects',
             'assignedSubjects',
             'coreSubjects',
             'appliedSubjects',

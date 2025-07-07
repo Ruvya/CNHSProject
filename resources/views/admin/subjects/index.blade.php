@@ -16,23 +16,7 @@
         </div>
     </div>
 
-    <!-- Role Information Notice -->
-    <div class="alert alert-info border-0 mb-4" style="background: linear-gradient(135deg, #e3f2fd, #f3e5f5);">
-        <div class="d-flex align-items-center">
-            <div class="me-3">
-                <i class="fas fa-info-circle fa-2x text-info"></i>
-            </div>
-            <div>
-                <h6 class="alert-heading mb-1">
-                    <i class="fas fa-eye me-2"></i>Admin View-Only Access
-                </h6>
-                <p class="mb-0">
-                    Subject creation, editing, and deletion is exclusively managed by the <strong>Registrar</strong>.
-                    As an Admin, you can view all subjects and their details for oversight purposes.
-                </p>
-            </div>
-        </div>
-    </div>
+
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">

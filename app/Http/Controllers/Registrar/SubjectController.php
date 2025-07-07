@@ -9,85 +9,43 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SubjectController extends Controller
 {
     public function index(Request $request)
     {
-        $registrar = Auth::guard('registrar')->user();
+        $query = Subject::query();
 
-        // Get filters from request
-        $gradeFilter = $request->get('grade_level');
-        $trackFilter = $request->get('track');
-        $strandFilter = $request->get('strand');
-
-        // Build query for all subjects
-        $query = Subject::with(['teacher', 'registrar'])
-            ->orderBy('grade_level')
-            ->orderBy('track')
-            ->orderBy('strand')
-            ->orderBy('name');
-
-        // Apply filters if specified
-        if ($gradeFilter && $gradeFilter !== 'all') {
-            if ($gradeFilter === '11') {
-                $query->where('grade_level', 'Grade 11');
-            } elseif ($gradeFilter === '12') {
-                $query->where('grade_level', 'Grade 12');
-            }
+        // Handle search
+        if ($request->filled('search')) {
+            $searchTerm = $request->input('search');
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', "%{$searchTerm}%")
+                  ->orWhere('code', 'like', "%{$searchTerm}%");
+            });
         }
 
-        if ($trackFilter && $trackFilter !== 'all') {
-            $query->where('track', $trackFilter);
+        // Handle grade level filter
+        if ($request->filled('grade_level')) {
+            $query->where('grade_level', 'Grade ' . $request->input('grade_level'));
         }
 
-        if ($strandFilter && $strandFilter !== 'all') {
-            $query->where('strand', $strandFilter);
-        }
+        $subjects = $query->orderBy('grade_level')->orderBy('name')->paginate(15);
 
-        $allSubjects = $query->get();
-
-        // Get all subjects for total count (unfiltered)
+        // Stats for the cards
         $totalSubjectsCount = Subject::count();
-
-        // Get filtered count
-        $filteredSubjectsCount = $allSubjects->count();
-
-        // Get available options for dropdowns
-        $availableGrades = Subject::select('grade_level')
-            ->distinct()
-            ->whereNotNull('grade_level')
-            ->orderBy('grade_level')
-            ->pluck('grade_level')
-            ->filter()
-            ->values();
-
-        $availableTracks = Subject::select('track')
-            ->distinct()
-            ->whereNotNull('track')
-            ->orderBy('track')
-            ->pluck('track')
-            ->filter()
-            ->values();
-
-        $availableStrands = Subject::select('strand')
-            ->distinct()
-            ->whereNotNull('strand')
-            ->orderBy('strand')
-            ->pluck('strand')
-            ->filter()
-            ->values();
+        $yourSubjectsCount = Subject::where('registrar_id', auth()->guard('registrar')->id())->count();
+        $withTeachersCount = Subject::whereNotNull('teacher_id')->count();
+        $gradeLevelsCount = Subject::select('grade_level')->whereNotNull('grade_level')->distinct()->count();
 
         return view('registrar.subjects.index', compact(
-            'allSubjects',
+            'subjects',
             'totalSubjectsCount',
-            'filteredSubjectsCount',
-            'availableGrades',
-            'availableTracks',
-            'availableStrands',
-            'gradeFilter',
-            'trackFilter',
-            'strandFilter'
+            'yourSubjectsCount',
+            'withTeachersCount',
+            'gradeLevelsCount'
         ));
     }
 
@@ -256,21 +214,27 @@ class SubjectController extends Controller
 
     public function destroy(Subject $subject)
     {
-        // Allow all registrars to delete any subject
-        // Note: Removed ownership restriction to allow full registrar access
+        try {
+            DB::transaction(function () use ($subject) {
+                // Manually delete related records to ensure data integrity
+                $subject->grades()->delete();
+                $subject->students()->detach();
+                $subject->teacherAssignments()->delete();
 
-        // Check if subject is assigned to any students (optional safety check)
-        // Uncomment if you have student-subject relationships
-        // if ($subject->students()->count() > 0) {
-        //     return redirect()->route('registrar.subjects.index')
-        //         ->with('error', 'Cannot delete subject that is assigned to students.');
-        // }
+                // Now, delete the subject
+                $subject->delete();
+            });
 
-        $subjectName = $subject->name;
-        $subject->delete();
+            return redirect()->route('registrar.subjects.index')
+                ->with('success', "Subject '{$subject->name}' and all its related data have been deleted successfully.");
 
-        return redirect()->route('registrar.subjects.index')
-            ->with('success', "Subject '{$subjectName}' has been deleted successfully.");
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error('Failed to delete subject: ' . $e->getMessage());
+
+            return redirect()->route('registrar.subjects.index')
+                ->with('error', 'Failed to delete subject. It might be linked to other critical data. Please check the logs.');
+        }
     }
 
     /**

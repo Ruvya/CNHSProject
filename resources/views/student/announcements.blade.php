@@ -6,12 +6,12 @@
 <style>
     /* Override main-content from layout */
     .main-content {
-        padding: 2rem !important;
-        background: #ffffff !important;
-        min-height: calc(100vh - 80px) !important;
+        padding: 2rem;
+        background: #f8fafc;
+        min-height: calc(100vh - 80px);
         position: relative;
         overflow-x: hidden;
-        margin-left: 250px !important; /* Account for sidebar */
+        margin-left: 250px; /* Account for sidebar */
     }
 
     /* Background decorative elements */
@@ -33,40 +33,45 @@
     }
 
     /* Header section */
-    .announcements-header {
-        background: #ffffff;
-        border-radius: 25px;
-        padding: 2.5rem;
+    .content-header{
+        background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-yellow) 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        border: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         margin-bottom: 2rem;
-        box-shadow:
-            0 4px 20px rgba(37, 99, 235, 0.08),
-            0 1px 3px rgba(0, 0, 0, 0.1);
         position: relative;
-        z-index: 2;
-        border: 1px solid rgba(37, 99, 235, 0.1);
+        overflow: hidden;
+        color: var(--white);
+        
     }
+  .content-header::before{
+    content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
+        clip-path: polygon(100% 0, 100% 100%, 0 100%, 20% 0);
+        opacity: 0.9;
+        z-index: 1;
+  }
 
     .header-title {
-        text-align: center;
+        text-align: left;   
         margin-bottom: 2rem;
+        font-size: 30px;
     }
 
-    .header-title h1 {
-        font-size: 2.8rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 0.5rem;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
+
 
     .subtitle {
         font-size: 1.2rem;
         color: #6b7280;
         font-weight: 500;
         opacity: 0.8;
+        margin-top: -4%;
     }
 
     /* Filter section */
@@ -126,11 +131,13 @@
         content: '';
         position: absolute;
         top: 0;
-        left: 0;
         right: 0;
-        height: 5px;
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        border-radius: 25px 25px 0 0;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
+        clip-path: polygon(100% 0, 100% 100%, 0 100%, 20% 0);
+        opacity: 0.9;
+        z-index: 1;
     }
 
     .announcement-card:hover {
@@ -421,36 +428,72 @@
 @endsection
 
 @section('content')
-<div class="announcements-header">
-    <div class="header-title">
-        <h1>📢 Class Announcements</h1>
-        <p class="subtitle">Stay updated with the latest news and important updates from your school</p>
-    </div>
-    <div class="filter-options">
-        <select id="announcementType" class="filter-select">
-            <option value="all">🔍 All Announcements</option>
-            <option value="important">🚨 Important</option>
-            <option value="class">📚 Class</option>
-            <option value="school">🏫 School</option>
+<!-- Header Section -->
+<div class="content-header">
+    <h1>School Announcements</h1>
+    <p>Stay updated with the latest school news and events</p>
+</div>
+
+<!-- Announcements List -->
+<div class="table-container">
+    <div class="table-header">
+        <h2 class="table-title">All Announcements</h2>
+        <select class="filter-dropdown">
+            <option value="all">All Categories</option>
+            <option value="academic">Academic</option>
+            <option value="events">Events</option>
+            <option value="general">General</option>
         </select>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Posted</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($announcements ?? [] as $announcement)
+                <tr>
+                    <td>{{ $announcement->title }}</td>
+                    <td>{{ $announcement->category }}</td>
+                    <td>{{ $announcement->created_at->diffForHumans() }}</td>
+                    <td>
+                        <span class="badge badge-active">Active</span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <button class="btn-table-action btn-draft">
+                                <i class="fas fa-eye"></i>
+                                View
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="5" class="text-center">No announcements found</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 </div>
 
-@if($announcements && $announcements->count() > 0)
-    <div class="announcements-container">
-        @foreach($announcements as $announcement)
-        <div class="announcement-card {{ $announcement->type ?? 'general' }}">
-            @if(isset($announcement->priority) && $announcement->priority === 'high')
-                <div class="priority-badge high">🚨 Urgent</div>
-            @elseif(isset($announcement->priority) && $announcement->priority === 'medium')
-                <div class="priority-badge medium">⚠️ Important</div>
-            @endif
-
-            <div class="card-header">
-                <i class="fas {{ $announcement->icon ?? 'fa-bullhorn' }}"></i>
-                <h3>{{ $announcement->title }}</h3>
-                <span class="date">📅 {{ $announcement->created_at->format('F d, Y') }}</span>
+<!-- Announcement Details Modal -->
+<div class="modal fade" id="announcementModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Announcement Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="card-content">
                 <p>{{ $announcement->content }}</p>
                 @if(isset($announcement->author))
@@ -474,178 +517,18 @@
                 <button class="share-btn" onclick="shareAnnouncement({{ $announcement->id }})">
                     <i class="fas fa-share-alt"></i> Share
                 </button>
+
+            <div class="modal-body">
+                <!-- Announcement content will be loaded here -->
+
             </div>
         </div>
-        @endforeach
     </div>
-@else
-    <div class="empty-announcements">
-        <i class="fas fa-bullhorn"></i>
-        <h3>📭 No Announcements Yet</h3>
-        <p>There are currently no announcements to display. Check back later for updates from your teachers and school administration. You'll be notified when new announcements are posted!</p>
-        <div style="margin-top: 2rem;">
-            <button onclick="window.location.reload()" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; padding: 0.8rem 2rem; border-radius: 50px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);">
-                🔄 Refresh Page
-            </button>
-        </div>
-    </div>
-@endif
+</div>
+@endsection
 
+@section('scripts')
 <script>
-    // Filter announcements based on type
-    document.getElementById('announcementType').addEventListener('change', function() {
-        const type = this.value;
-        const cards = document.querySelectorAll('.announcement-card');
-        const container = document.querySelector('.announcements-container');
-        let visibleCount = 0;
-
-        cards.forEach(card => {
-            if (type === 'all' || card.classList.contains(type)) {
-                card.style.display = 'block';
-                visibleCount++;
-            } else {
-                card.style.display = 'none';
-            }
-        });
-
-        // Show/hide empty state based on visible cards
-        const emptyState = document.querySelector('.empty-announcements');
-        if (visibleCount === 0 && cards.length > 0) {
-            if (!emptyState) {
-                const emptyDiv = document.createElement('div');
-                emptyDiv.className = 'empty-announcements';
-                emptyDiv.innerHTML = `
-                    <i class="fas fa-search"></i>
-                    <h3>No Announcements Found</h3>
-                    <p>No announcements match the selected filter. Try selecting a different category.</p>
-                `;
-                container.parentNode.insertBefore(emptyDiv, container.nextSibling);
-            }
-            if (container) container.style.display = 'none';
-        } else {
-            if (emptyState && emptyState.querySelector('.fas.fa-search')) {
-                emptyState.remove();
-            }
-            if (container) container.style.display = 'grid';
-        }
-    });
-
-    // Save announcement function
-    function saveAnnouncement(announcementId) {
-        // Add your save logic here
-        console.log('Saving announcement:', announcementId);
-
-        // Show feedback to user
-        const button = event.target.closest('.save-btn');
-        const originalText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-check"></i> Saved';
-        button.style.backgroundColor = '#28a745';
-        button.style.color = 'white';
-
-        setTimeout(() => {
-            button.innerHTML = originalText;
-            button.style.backgroundColor = '';
-            button.style.color = '';
-        }, 2000);
-    }
-
-    // Share announcement function
-    function shareAnnouncement(announcementId) {
-        // Add your share logic here
-        console.log('Sharing announcement:', announcementId);
-
-        // Simple share functionality
-        if (navigator.share) {
-            const card = event.target.closest('.announcement-card');
-            const title = card.querySelector('h3').textContent;
-            const content = card.querySelector('.card-content p').textContent;
-
-            navigator.share({
-                title: title,
-                text: content,
-                url: window.location.href
-            });
-        } else {
-            // Fallback: copy to clipboard
-            const card = event.target.closest('.announcement-card');
-            const title = card.querySelector('h3').textContent;
-            const content = card.querySelector('.card-content p').textContent;
-            const textToCopy = `${title}\n\n${content}`;
-
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                const button = event.target.closest('.share-btn');
-                const originalText = button.innerHTML;
-                button.innerHTML = '<i class="fas fa-check"></i> Copied';
-                button.style.backgroundColor = '#17a2b8';
-                button.style.color = 'white';
-
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.style.backgroundColor = '';
-                    button.style.color = '';
-                }, 2000);
-            });
-        }
-    }
-
-    // Add smooth scroll animation for better UX
-    document.addEventListener('DOMContentLoaded', function() {
-        const cards = document.querySelectorAll('.announcement-card');
-
-        // Add staggered animation for cards
-        cards.forEach((card, index) => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-
-            setTimeout(() => {
-                card.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, index * 150);
-        });
-
-        // Add hover effects for better interactivity
-        cards.forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.zIndex = '10';
-            });
-
-            card.addEventListener('mouseleave', function() {
-                this.style.zIndex = '1';
-            });
-        });
-
-        // Add notification for new announcements (if any)
-        if (cards.length > 0) {
-            setTimeout(() => {
-                const notification = document.createElement('div');
-                notification.innerHTML = `
-                    <div style="position: fixed; top: 100px; right: 20px; background: linear-gradient(135deg, #10b981, #22c55e); color: white; padding: 1rem 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3); z-index: 1000; font-weight: 600; animation: slideIn 0.5s ease;">
-                        ✅ ${cards.length} announcement${cards.length > 1 ? 's' : ''} loaded successfully!
-                    </div>
-                `;
-                document.body.appendChild(notification);
-
-                setTimeout(() => {
-                    notification.style.animation = 'slideOut 0.5s ease';
-                    setTimeout(() => notification.remove(), 500);
-                }, 3000);
-            }, 1000);
-        }
-    });
-
-    // Add CSS animations
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
+    // Add any JavaScript for handling announcements here
 </script>
 @endsection

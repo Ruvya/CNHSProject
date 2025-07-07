@@ -240,43 +240,4 @@
         </div>
     </div>
 </div>
-
-<!-- Information Card -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card border-info">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-info-circle me-2"></i>
-                    How Student Accounts Work
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6>Account Creation Process:</h6>
-                        <ol class="mb-3">
-                            <li><strong>Generate credentials</strong> using the bulk generation tool</li>
-                            <li><strong>Distribute credentials</strong> to students</li>
-                            <li><strong>Students log in</strong> for the first time</li>
-                            <li><strong>System creates account</strong> automatically</li>
-                            <li><strong>Students complete profile</strong> with their information</li>
-                        </ol>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Account Status Types:</h6>
-                        <ul class="mb-3">
-                            <li><span class="badge bg-warning me-2">Incomplete</span> Student logged in but hasn't completed profile</li>
-                            <li><span class="badge bg-success me-2">Complete</span> Student has completed their profile information</li>
-                        </ul>
-                        
-                        <div class="alert alert-light">
-                            <strong>Note:</strong> You cannot manually create student accounts. Students must use generated credentials to create their own accounts.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection

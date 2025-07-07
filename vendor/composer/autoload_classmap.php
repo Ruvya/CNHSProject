@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Console\\Commands\\ClearSubjectsData' => $baseDir . '/app/Console/Commands/ClearSubjectsData.php',
     'App\\Console\\Commands\\FixDatabase' => $baseDir . '/app/Console/Commands/FixDatabase.php',
     'App\\Console\\Commands\\MarkMigrationsAsRun' => $baseDir . '/app/Console/Commands/MarkMigrationsAsRun.php',
     'App\\Console\\Commands\\ResetAdminPassword' => $baseDir . '/app/Console/Commands/ResetAdminPassword.php',
@@ -24,7 +25,9 @@ return array(
     'App\\Http\\Controllers\\Principal\\AnnouncementController' => $baseDir . '/app/Http/Controllers/Principal/AnnouncementController.php',
     'App\\Http\\Controllers\\Principal\\AuthController' => $baseDir . '/app/Http/Controllers/Principal/AuthController.php',
     'App\\Http\\Controllers\\Principal\\DashboardController' => $baseDir . '/app/Http/Controllers/Principal/DashboardController.php',
+    'App\\Http\\Controllers\\Principal\\EventController' => $baseDir . '/app/Http/Controllers/Principal/EventController.php',
     'App\\Http\\Controllers\\Principal\\PagesController' => $baseDir . '/app/Http/Controllers/Principal/PagesController.php',
+    'App\\Http\\Controllers\\Principal\\ProfileController' => $baseDir . '/app/Http/Controllers/Principal/ProfileController.php',
     'App\\Http\\Controllers\\Principal\\TeacherController' => $baseDir . '/app/Http/Controllers/Principal/TeacherController.php',
     'App\\Http\\Controllers\\RegisterController' => $baseDir . '/app/Http/Controllers/RegisterController.php',
     'App\\Http\\Controllers\\Registrar\\AuthController' => $baseDir . '/app/Http/Controllers/Registrar/AuthController.php',
@@ -33,6 +36,10 @@ return array(
     'App\\Http\\Controllers\\Registrar\\ProfileController' => $baseDir . '/app/Http/Controllers/Registrar/ProfileController.php',
     'App\\Http\\Controllers\\Registrar\\StudentController' => $baseDir . '/app/Http/Controllers/Registrar/StudentController.php',
     'App\\Http\\Controllers\\Registrar\\StudentSubjectAssignmentController' => $baseDir . '/app/Http/Controllers/Registrar/StudentSubjectAssignmentController.php',
+
+
+    'App\\Http\\Controllers\\Registrar\\StudentYearlyRecordController' => $baseDir . '/app/Http/Controllers/Registrar/StudentYearlyRecordController.php',
+
     'App\\Http\\Controllers\\Registrar\\SubjectController' => $baseDir . '/app/Http/Controllers/Registrar/SubjectController.php',
     'App\\Http\\Controllers\\Registrar\\TeacherAssignmentController' => $baseDir . '/app/Http/Controllers/Registrar/TeacherAssignmentController.php',
     'App\\Http\\Controllers\\Student\\AnnouncementController' => $baseDir . '/app/Http/Controllers/Student/AnnouncementController.php',
@@ -53,11 +60,16 @@ return array(
     'App\\Imports\\StudentsImport' => $baseDir . '/app/Imports/StudentsImport.php',
     'App\\Models\\Admin' => $baseDir . '/app/Models/Admin.php',
     'App\\Models\\Announcement' => $baseDir . '/app/Models/Announcement.php',
+    'App\\Models\\Event' => $baseDir . '/app/Models/Event.php',
     'App\\Models\\Grade' => $baseDir . '/app/Models/Grade.php',
     'App\\Models\\Principal' => $baseDir . '/app/Models/Principal.php',
     'App\\Models\\Registrar' => $baseDir . '/app/Models/Registrar.php',
     'App\\Models\\Section' => $baseDir . '/app/Models/Section.php',
     'App\\Models\\Student' => $baseDir . '/app/Models/Student.php',
+
+
+    'App\\Models\\StudentYearlyRecord' => $baseDir . '/app/Models/StudentYearlyRecord.php',
+
     'App\\Models\\Subject' => $baseDir . '/app/Models/Subject.php',
     'App\\Models\\Teacher' => $baseDir . '/app/Models/Teacher.php',
     'App\\Models\\TeacherAssignment' => $baseDir . '/app/Models/TeacherAssignment.php',

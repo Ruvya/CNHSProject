@@ -22,6 +22,8 @@ class Teacher extends Authenticatable
         'address',
         'status',
         'profile_picture',
+        'password_change_required',
+        'password_changed_at',
     ];
 
     protected $hidden = [
@@ -32,6 +34,8 @@ class Teacher extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'password_change_required' => 'boolean',
+        'password_changed_at' => 'datetime',
     ];
 
     /**
@@ -50,6 +54,39 @@ class Teacher extends Authenticatable
         return Student::whereHas('subjects', function($query) {
             $query->where('teacher_id', $this->id);
         });
+    }
+
+    /**
+     * Get the yearly records for this teacher
+     */
+    public function yearlyRecords()
+    {
+        return $this->hasMany(TeacherYearlyRecord::class);
+    }
+
+    /**
+     * Get the current year record for this teacher
+     */
+    public function currentYearRecord()
+    {
+        $currentSchoolYear = $this->getCurrentSchoolYear();
+        return $this->yearlyRecords()->where('school_year', $currentSchoolYear)->first();
+    }
+
+    /**
+     * Get the current school year (e.g., 2023-2024)
+     */
+    public function getCurrentSchoolYear()
+    {
+        $currentMonth = date('n');
+        $currentYear = date('Y');
+
+        // School year typically starts in June/July
+        if ($currentMonth >= 6) {
+            return $currentYear . '-' . ($currentYear + 1);
+        } else {
+            return ($currentYear - 1) . '-' . $currentYear;
+        }
     }
 
 

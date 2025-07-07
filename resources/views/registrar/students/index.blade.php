@@ -336,8 +336,11 @@
                                     <a href="{{ route('registrar.students.show', $student) }}" class="btn btn-info btn-sm" title="View Profile">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ route('registrar.students.edit', $student) }}" class="btn btn-warning btn-sm" title="Edit">
+                                    <a href="{{ route('registrar.students.edit', $student) }}" class="btn btn-primary btn-sm" title="Edit">
                                         <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{{ route('registrar.students.yearly-records.index', $student) }}" class="btn btn-secondary btn-sm" title="Yearly Records">
+                                        <i class="fas fa-history"></i>
                                     </a>
                                     <a href="{{ route('registrar.students.enrollment', $student) }}" class="btn btn-success btn-sm" title="Manage Enrollment">
                                         <i class="fas fa-book"></i>

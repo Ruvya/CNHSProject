@@ -11,32 +11,46 @@
             min-height: calc(100vh - 80px) !important;
             position: relative;
             overflow-x: hidden;
-            margin-left: 250px !important;
+            /* margin-left: 250px !important; */
         }
 
         /* Profile Header */
         .profile-header {
             margin-bottom: 1.5rem;
             padding: 1.25rem;
-
-
+            background-image: linear-gradient(to right, #FFA726, #FF7043);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(255, 112, 67, 0.3);
+            position: relative;
+        }
+        .profile-header::before{
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
+        clip-path: polygon(100% 0, 100% 100%, 0 100%, 20% 0);
+        opacity: 0.9;
+        z-index: 1;
         }
 
         .profile-header h1 {
             margin-top: 3%;
-
-            font-size: 1.75rem;
+            font-size: 2.5rem;
             margin-bottom: 0.4rem;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: white;
+            -webkit-background-clip: unset;
+            -webkit-text-fill-color: unset;
+            background-clip: unset;
             font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
 
         .last-updated {
-            color: #6b7280;
-            font-size: 0.85rem;
+            color: white;
+            font-size: 0.95rem;
             margin: 0;
         }
 
@@ -391,19 +405,34 @@
         <div class="card-content">
             <div class="info-grid">
                 @if($student && $student->grade_level)
-                <div class="info-item"><label>Grade Level</label><p>{{ $student->grade_level }}</p></div>
+                <div class="info-item">
+                    <label>Grade Level</label>
+                    <p>{{ $student->grade_level }}</p>
+                </div>
                 @endif
                 @if($student && $student->section)
-                <div class="info-item"><label>Section</label><p>{{ $student->section }}</p></div>
+                <div class="info-item">
+                    <label>Section</label>
+                    <p>{{ $student->section }}</p>
+                </div>
                 @endif
                 @if($student && $student->advisor)
-                <div class="info-item"><label>Adviser Name</label><p>{{ $student->advisor }}</p></div>
+                <div class="info-item">
+                    <label>Adviser Name</label>
+                    <p>{{ $student->advisor }}</p>
+                </div>
                 @endif
                 @if($student && $student->track)
-                <div class="info-item"><label>Track</label><p>{{ $student->track }}</p></div>
+                <div class="info-item">
+                    <label>Track</label>
+                    <p>{{ $student->track }}</p>
+                </div>
                 @endif
                 @if($student && $student->strand)
-                <div class="info-item"><label>Strand</label><p>{{ $student->strand }}</p></div>
+                <div class="info-item">
+                    <label>Strand</label>
+                    <p>{{ $student->strand }}</p>
+                </div>
                 @endif
             </div>
         </div>

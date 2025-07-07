@@ -12,7 +12,7 @@ class AuthController extends Controller
 {
     public function showLoginForm()
     {
-        return view('auth.registrar-login');
+        return view('registrar.auth.login');
     }
 
     public function login(Request $request)
@@ -25,6 +25,7 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
+            'role' => 'required|in:admin,teacher,student,registrar',
         ]);
 
         // Debug: Check if user exists and password is correct

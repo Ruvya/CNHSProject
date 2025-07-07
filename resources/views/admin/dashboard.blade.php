@@ -5,7 +5,7 @@
 @section('content')
 <!-- Page Header -->
 <div class="page-header">
-    <h1 class="page-title">Dashboard</h1>
+    <h1 class="page-title">Admin Dashboard</h1>
     <p class="page-subtitle">Welcome back! Here's what's happening at CNHS today.</p>
     <div class="page-actions">
         <a href="{{ route('admin.credentials.generate') }}" class="btn btn-primary">
@@ -21,7 +21,7 @@
 <div class="row g-3 mb-4">
     <!-- Total Students Card -->
     <div class="col-lg-3 col-md-6">
-        <a href="{{ route('admin.users') }}?filter=students" class="text-decoration-none">
+        <a href="{{ route('admin.users.students.index') }}" class="text-decoration-none">
             <div class="stat-card stat-card-primary">
                 <div class="stat-card-body">
                     <div class="stat-card-icon">
@@ -49,7 +49,7 @@
 
     <!-- Total Teachers Card -->
     <div class="col-lg-3 col-md-6">
-        <a href="{{ route('admin.users') }}?filter=teachers" class="text-decoration-none">
+        <a href="{{ route('admin.users.teachers.index') }}" class="text-decoration-none">
             <div class="stat-card stat-card-success">
                 <div class="stat-card-body">
                     <div class="stat-card-icon">
@@ -105,8 +105,8 @@
 
     <!-- Active Teachers Card -->
     <div class="col-lg-3 col-md-6">
-        <a href="{{ route('admin.users') }}?filter=active_teachers" class="text-decoration-none">
-            <div class="stat-card stat-card-info">
+        <a href="{{ route('admin.users.teachers.index') }}" class="text-decoration-none">
+            <div class="stat-card stat-card-success">
                 <div class="stat-card-body">
                     <div class="stat-card-icon">
                         <i class="fas fa-user-check"></i>
@@ -124,6 +124,29 @@
                                 <i class="fas fa-info-circle me-1"></i>
                                 No active teachers
                             @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- New Teachers This Month Card -->
+    <div class="col-lg-3 col-md-6">
+        <a href="{{ route('admin.users.teachers.create') }}" class="text-decoration-none">
+            <div class="stat-card stat-card-info">
+                <div class="stat-card-body">
+                    <div class="stat-card-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="stat-card-content">
+                        <div class="stat-card-title">New Teachers</div>
+                        <div class="stat-card-value">
+                            {{ $recentTeachersCount ?? 0 }}
+                        </div>
+                        <div class="stat-card-subtitle">
+                            <i class="fas fa-calendar me-1"></i>
+                            This month
                         </div>
                     </div>
                 </div>
@@ -153,6 +176,12 @@
                         </a>
                     </div>
                     <div class="col-lg-3 col-md-6">
+                        <a href="{{ route('admin.users.students.index') }}" class="btn btn-outline-info w-100">
+                            <i class="fas fa-user-graduate me-2"></i>
+                            Manage Students
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
                         <a href="{{ route('admin.users.teachers.create') }}" class="btn btn-outline-success w-100">
                             <i class="fas fa-chalkboard-teacher me-2"></i>
                             Add Teacher
@@ -162,12 +191,6 @@
                         <a href="{{ route('admin.subjects.index') }}" class="btn btn-outline-warning w-100">
                             <i class="fas fa-book me-2"></i>
                             View Subjects
-                        </a>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <a href="{{ route('admin.users') }}" class="btn btn-outline-info w-100">
-                            <i class="fas fa-users me-2"></i>
-                            Manage Users
                         </a>
                     </div>
                 </div>
@@ -193,17 +216,44 @@
         </div>
     </div>
 
-    <!-- Students by Track Chart -->
+    <!-- Recent Teachers -->
     <div class="col-xl-6 col-lg-6">
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <i class="fas fa-chart-bar me-2 text-success"></i>
-                    Students by Track
+                    <i class="fas fa-user-plus me-2 text-success"></i>
+                    Recent Teachers
                 </h5>
             </div>
             <div class="card-body">
-                <canvas id="studentsTrackChart" height="300"></canvas>
+                @if($recentTeachers && $recentTeachers->count() > 0)
+                    <div class="list-group list-group-flush">
+                        @foreach($recentTeachers->take(5) as $teacher)
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-success text-white rounded-circle me-3 d-flex align-items-center justify-content-center">
+                                    {{ substr($teacher->name, 0, 1) }}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">{{ $teacher->name }}</h6>
+                                    <small class="text-muted">{{ $teacher->email }}</small>
+                                </div>
+                            </div>
+                            <span class="badge bg-{{ $teacher->status === 'active' ? 'success' : 'secondary' }}">
+                                {{ ucfirst($teacher->status ?? 'active') }}
+                            </span>
+                        </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-4">
+                        <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No recent teachers</p>
+                        <a href="{{ route('admin.users.teachers.create') }}" class="btn btn-success btn-sm">
+                            <i class="fas fa-plus me-1"></i>Add First Teacher
+                        </a>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -236,6 +286,50 @@
             </div>
             <div class="card-body">
                 <canvas id="usersByRoleChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pass/Fail by School Year Chart -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-12">
+        <div class="card">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2 text-danger"></i>
+                    Pass/Fail by School Year
+                </h5>
+                <div class="d-flex flex-wrap gap-2">
+                    <select id="filterGradeLevel" class="form-select form-select-sm" style="min-width: 140px;">
+                        <option value="">All Grade Levels</option>
+                        @foreach(\App\Models\Student::distinct()->pluck('grade_level')->filter() as $grade)
+                            <option value="{{ $grade }}">{{ $grade }}</option>
+                        @endforeach
+                    </select>
+                    <select id="filterSection" class="form-select form-select-sm" style="min-width: 140px;">
+                        <option value="">All Sections</option>
+                        @foreach(\App\Models\Student::distinct()->pluck('section')->filter() as $section)
+                            <option value="{{ $section }}">{{ $section }}</option>
+                        @endforeach
+                    </select>
+                    <select id="filterSchoolYear" class="form-select form-select-sm" style="min-width: 140px;">
+                        <option value="">All School Years</option>
+                        @php
+                            try {
+                                $schoolYears = \App\Models\StudentYearlyRecord::distinct()->pluck('school_year')->sort()->reverse();
+                            } catch (\Exception $e) {
+                                $schoolYears = collect([date('Y') . '-' . (date('Y') + 1)]);
+                            }
+                        @endphp
+                        @foreach($schoolYears as $sy)
+                            <option value="{{ $sy }}">{{ $sy }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="passFailChart" height="300"></canvas>
             </div>
         </div>
     </div>
@@ -715,6 +809,90 @@ document.addEventListener('DOMContentLoaded', function() {
             cutout: '60%'
         }
     });
+
+    // Pass/Fail by School Year Chart
+    let passFailChart;
+    const passFailCtx = document.getElementById('passFailChart').getContext('2d');
+    const filterGradeLevel = document.getElementById('filterGradeLevel');
+    const filterSection = document.getElementById('filterSection');
+    const filterSchoolYear = document.getElementById('filterSchoolYear');
+
+    function fetchPassFailData() {
+        const params = new URLSearchParams();
+        if (filterGradeLevel.value) params.append('grade_level', filterGradeLevel.value);
+        if (filterSection.value) params.append('section', filterSection.value);
+        if (filterSchoolYear.value) params.append('school_year', filterSchoolYear.value);
+        fetch(`/admin/dashboard/pass-fail-stats?${params.toString()}`)
+            .then(res => res.json())
+            .then(res => {
+                const stats = res.data || {};
+                const years = Object.keys(stats);
+                const passed = years.map(y => stats[y].passed);
+                const failed = years.map(y => stats[y].failed);
+                renderPassFailChart(years, passed, failed);
+            });
+    }
+
+    function renderPassFailChart(labels, passedData, failedData) {
+        if (passFailChart) passFailChart.destroy();
+        passFailChart = new Chart(passFailCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Passed',
+                        data: passedData,
+                        backgroundColor: '#10b981', // Green
+                        borderColor: '#059669',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        borderSkipped: false
+                    },
+                    {
+                        label: 'Failed',
+                        data: failedData,
+                        backgroundColor: '#ef4444', // Red
+                        borderColor: '#dc2626',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'bottom' },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#374151',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, color: '#6b7280' },
+                        grid: { color: '#f3f4f6' }
+                    },
+                    x: {
+                        ticks: { color: '#6b7280' },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // Fetch data on load and when filters change
+    [filterGradeLevel, filterSection, filterSchoolYear].forEach(el => {
+        el.addEventListener('change', fetchPassFailData);
+    });
+    fetchPassFailData();
 });
 </script>
 @endpush
