@@ -39,11 +39,9 @@ return new class extends Migration
             }
         });
 
-        // Migrate existing data from user_id to author_type/author_id
-        // Assuming existing announcements are from principals
+        // Set default values for existing announcements
         DB::table('announcements')->update([
             'author_type' => 'App\Models\Principal',
-            'author_id' => DB::raw('user_id'),
             'is_published' => true,
             'published_at' => DB::raw('created_at')
         ]);

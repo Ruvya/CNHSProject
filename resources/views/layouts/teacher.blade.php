@@ -24,20 +24,15 @@
         * {
             margin: 0;
             padding: 0;
-
             box-sizing: border-box;
-
-            font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9;
-            color: #334155;
-            line-height: 1.6;
-
         }
 
         body {
             font-family: 'Poppins', sans-serif;
             color: #333;
             position: relative;
+            background-color: #f1f5f9;
+            line-height: 1.6;
         }
 
         body::before {
@@ -66,6 +61,7 @@
             z-index: 1000;
             height: 70px;
             margin-left: 280px; /* Aligns with main content */
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .header-left {
@@ -134,8 +130,8 @@
             width: 400px;
             max-height: 500px;
             overflow-y: auto;
-            background: white;
-            border: 1px solid #ddd;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             z-index: 1000;
@@ -144,7 +140,7 @@
 
         .notification-header {
             padding: 15px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #e2e8f0;
             background: #f8f9fa;
             border-radius: 8px 8px 0 0;
         }
@@ -162,7 +158,7 @@
 
         .notification-item {
             padding: 15px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #e2e8f0;
             transition: background-color 0.2s;
         }
 
@@ -206,12 +202,12 @@
         }
 
         .new-announcement {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
         }
 
         .new-announcement:hover {
-            background-color: #ffeaa7;
+            background-color: #fde68a;
         }
 
         .no-notifications {
@@ -242,6 +238,31 @@
         .user-name {
             color: #012970;
             font-weight: 500;
+        }
+
+        /* Content Cards */
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert {
+            border-radius: 8px;
+            border: 1px solid transparent;
+        }
+
+        .alert-success {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+
+        .alert-danger {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
         }
 
         /* Sidebar Styles */
@@ -379,6 +400,8 @@
             flex-grow: 1;
             margin-left: 280px;
             padding: 90px 2rem 2rem; /* Adjusted padding for fixed header */
+            background-color: #f1f5f9;
+            min-height: 100vh;
         }
 
         /* Responsive Design */
@@ -398,6 +421,7 @@
             .main-content {
                 margin-left: 0;
                 padding-top: 90px; /* Ensure padding on mobile as well */
+                background-color: #f1f5f9;
             }
 
             .header-right .user-name {

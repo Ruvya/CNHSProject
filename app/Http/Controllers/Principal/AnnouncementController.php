@@ -257,6 +257,8 @@ class AnnouncementController extends Controller
             if (!$announcement) {
                 return redirect()->route('principal.announcements.index')
                     ->with('error', 'Announcement not found.');
+            }
+            
             // Log the deletion attempt
             \Log::info('Attempting to delete announcement', [
                 'id' => $announcement->id,

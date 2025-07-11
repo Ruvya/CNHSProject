@@ -1853,11 +1853,11 @@ Route::prefix('registrar')->name('registrar.')->group(function () {
         Route::get('/teacher-assignments/{teacherAssignment}/edit', [TeacherAssignmentController::class, 'edit'])->name('teacher-assignments.edit');
         Route::put('/teacher-assignments/{teacherAssignment}', [TeacherAssignmentController::class, 'update'])->name('teacher-assignments.update');
         Route::delete('/teacher-assignments/{teacherAssignment}', [TeacherAssignmentController::class, 'destroy'])->name('teacher-assignments.destroy');
-        Route::get('/teacher-assignments/check-qualification', [TeacherAssignmentController::class, 'checkQualification'])->name('registrar.teacher-assignments.check-qualification');
-        Route::get('/teacher-assignments/check-schedule-conflict', [TeacherAssignmentController::class, 'checkScheduleConflict'])->name('registrar.teacher-assignments.check-schedule-conflict');
+        Route::get('/teacher-assignments/check-qualification', [TeacherAssignmentController::class, 'checkQualification'])->name('teacher-assignments.check-qualification');
+        Route::get('/teacher-assignments/check-schedule-conflict', [TeacherAssignmentController::class, 'checkScheduleConflict'])->name('teacher-assignments.check-schedule-conflict');
 
         // AJAX routes for teacher assignments
-        Route::get('/api/subjects-by-grade-level', [TeacherAssignmentController::class, 'getSubjectsByGradeLevel'])->name('registrar.api.subjects-by-grade-level');
+        Route::get('/api/subjects-by-grade-level', [TeacherAssignmentController::class, 'getSubjectsByGradeLevel'])->name('api.subjects-by-grade-level');
 
         // Subject Assignment Routes (Simplified)
         Route::get('/subject-assignments', [App\Http\Controllers\Registrar\SubjectAssignmentController::class, 'index'])->name('subject-assignments.index');
@@ -1867,11 +1867,11 @@ Route::prefix('registrar')->name('registrar.')->group(function () {
 
         // Student Subject Assignment Routes
         Route::get('/student-subject-assignments', [StudentSubjectAssignmentController::class, 'index'])->name('student-subject-assignments.index');
-        Route::get('/student-subject-assignments/create/{student}', [StudentSubjectAssignmentController::class, 'create'])->name('registrar.student-subject-assignments.create');
-        Route::post('/student-subject-assignments/store/{student}', [StudentSubjectAssignmentController::class, 'store'])->name('registrar.student-subject-assignments.store');
-        Route::get('/student-subject-assignments/bulk-create', [StudentSubjectAssignmentController::class, 'bulkCreate'])->name('registrar.student-subject-assignments.bulk-create');
-        Route::post('/student-subject-assignments/bulk-store', [StudentSubjectAssignmentController::class, 'bulkStore'])->name('registrar.student-subject-assignments.bulk-store');
-        Route::delete('/student-subject-assignments/{student}/{subject}', [StudentSubjectAssignmentController::class, 'removeSubject'])->name('registrar.student-subject-assignments.remove');
+        Route::get('/student-subject-assignments/create/{student}', [StudentSubjectAssignmentController::class, 'create'])->name('student-subject-assignments.create');
+        Route::post('/student-subject-assignments/store/{student}', [StudentSubjectAssignmentController::class, 'store'])->name('student-subject-assignments.store');
+        Route::get('/student-subject-assignments/bulk-create', [StudentSubjectAssignmentController::class, 'bulkCreate'])->name('student-subject-assignments.bulk-create');
+        Route::post('/student-subject-assignments/bulk-store', [StudentSubjectAssignmentController::class, 'bulkStore'])->name('student-subject-assignments.bulk-store');
+        Route::delete('/student-subject-assignments/{student}/{subject}', [StudentSubjectAssignmentController::class, 'removeSubject'])->name('student-subject-assignments.remove');
 
         // AJAX routes for student subject assignments
         Route::get('/api/student-subjects-by-filters', [StudentSubjectAssignmentController::class, 'getSubjectsByFilters'])->name('api.student-subjects-by-filters');
@@ -1893,11 +1893,11 @@ Route::prefix('registrar')->name('registrar.')->group(function () {
         // Teacher Management Routes (placeholder routes for future implementation)
         Route::get('/teachers', function() {
             return redirect()->route('registrar.students.index')->with('info', 'Teacher management feature coming soon. For now, you can manage students and subjects.');
-        })->name('registrar.teachers.index');
+        })->name('teachers.index');
 
         Route::get('/teachers/create', function() {
-            return redirect()->route('registrar.subjects.create')->with('info', 'Teacher creation feature coming soon. For now, you can create subjects.');
-        })->name('registrar.teachers.create');
+            return redirect()->route('registrar.subjects.create')->with('info', 'Teacher creation feature coming soon. For now, you can manage students and subjects.');
+        })->name('teachers.create');
 
         Route::resource('students', RegistrarStudentController::class);
         Route::resource('students.yearly-records', StudentYearlyRecordController::class)->except(['show']);
@@ -4856,7 +4856,7 @@ Route::get('/all-issues-fixed', function() {
 // FINAL DASHBOARD FIX CONFIRMATION
 Route::get('/dashboard-fix-complete', function() {
     $output = '<!DOCTYPE html><html><head><title>Dashboard Fix Complete - CNHS</title>';
-    $output .= '<style>body{font-family:Arial;margin:20px;background:#f8f9fa;} .container{max-width:800px;margin:0 auto;background:white;padding:30px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);} .success{color:#28a745;} .info{color:#007bff;} .warning{color:#ffc107;background:#fff3cd;padding:15px;border-radius:5px;margin:20px 0;} .btn{background:#007bff;color:white;padding:12px 24px;text-decoration:none;border-radius:5px;display:inline-block;margin:5px;} .btn-success{background:#28a745;} .fix{background:#d4edda;padding:15px;border-left:4px solid #28a745;margin:10px 0;border-radius:5px;}</style>';
+    $output .= '<style>body{font-family:Arial;margin:20px;background:#f8f9fa;} .container{max-width:800px;margin:0 auto;background:white;padding:30px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);} .success{color:#28a745;} .info{color:#007bff;} .warning{color:#ffc107;background:#fff3cd;padding:15px;border-radius:5px;margin:20px 0;} .btn{background:#007bff;color:white;padding:12px 24px;text-decoration:none;border-radius:5px;display:inline-block;margin:5px;} .btn-success{background:#28a745;} .btn-warning{background:#ffc107;color:#212529;} .fix{background:#d4edda;padding:15px;border-left:4px solid #28a745;margin:10px 0;border-radius:5px;}</style>';
     $output .= '</head><body><div class="container">';
 
     $output .= '<h1 class="success">✅ DASHBOARD ROUTENOTFOUNDEXCEPTION FIXED!</h1>';
@@ -6139,17 +6139,22 @@ Route::get('/fix-student-subject-display', function() {
 
 // Force run all migrations route
 Route::get('/force-run-all-migrations', function() {
-    try {
-        $output = "<h2>⚡ Force Run All Migrations</h2>";
-        $output .= "<p style='color: red;'><strong>Warning:</strong> This will attempt to run ALL migrations, even if some fail.</p>";
-        // Get all migration files in order
-        $migrationFiles = glob(database_path('migrations/*.php'));
-        sort($migrationFiles); // Ensure chronological order
+    $output = "<h2>⚡ Force Run All Migrations</h2>";
+    $output .= "<p style='color: red;'><strong>Warning:</strong> This will attempt to run ALL migrations, even if some fail.</p>";
+    // Get all migration files in order
+    $migrationFiles = glob(database_path('migrations/*.php'));
+    sort($migrationFiles); // Ensure chronological order
+
+    // (You may want to add more logic here...)
+
+    return $output;
+});
+
 
 // COMPLETE SOLUTION - Subject Assignment Misalignment Fixed
 Route::get('/subject-assignment-misalignment-solved', function() {
     $output = '<!DOCTYPE html><html><head><title>Subject Assignment Misalignment - COMPLETELY SOLVED!</title>';
-    $output .= '<style>body{font-family:Arial;margin:20px;background:#f8f9fa;} .container{max-width:1000px;margin:0 auto;background:white;padding:30px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);} .success{color:#28a745;} .error{color:#dc3545;} .warning{color:#ffc107;} .info{color:#007bff;} .section{background:#f8f9fa;padding:20px;border-radius:5px;margin:20px 0;} .btn{background:#007bff;color:white;padding:12px 24px;text-decoration:none;border-radius:5px;display:inline-block;margin:5px;} .btn-success{background:#28a745;} .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;} .fix{background:#d4edda;padding:15px;border-left:4px solid #28a745;margin:10px 0;border-radius:5px;}</style>';
+    $output .= '<style>body{font-family:Arial;margin:20px;background:#f8f9fa;} .container{max-width:1000px;margin:0 auto;background:white;padding:30px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);} .success{color:#28a745;} .error{color:#dc3545;} .warning{color:#ffc107;} .info{color:#007bff;} .section{background:#f8f9fa;padding:20px;border-radius:5px;margin:20px 0;} .btn{background:#007bff;color:white;padding:12px 24px;text-decoration:none;border-radius:5px;display:inline-block;margin:5px;} .btn-success{background:#28a745;} .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:20px 0;} .fix{background:#d4edda;padding:15px;border-left:4px solid #28a745;margin:10px 0;border-radius:5px;}</style>';
     $output .= '</head><body><div class="container">';
 
     $output .= '<h1 class="success">🎉 SUBJECT ASSIGNMENT MISALIGNMENT COMPLETELY SOLVED!</h1>';
@@ -6484,3 +6489,4 @@ Route::get('/student-grades-complete-solution', function() {
     return $output;
 });
 
+    

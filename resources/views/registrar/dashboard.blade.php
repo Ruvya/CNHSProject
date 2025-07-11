@@ -194,18 +194,73 @@
     max-height: 250px !important;
     width: 100% !important;
 }
+.angled-header-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(115deg, #f97316 60%, #3b82f6 60%);
+    color: white;
+    padding: 2.2rem 2.5rem 2.2rem 2.5rem;
+    border-radius: 16px;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 10px 30px rgba(249, 115, 22, 0.18);
+    position: relative;
+    overflow: hidden;
+    min-height: 120px;
+}
+.header-left-content {
+    display: flex;
+    align-items: center;
+}
+.header-left-content .icon {
+    font-size: 2.8rem;
+    margin-right: 1.5rem;
+    opacity: 0.92;
+}
+.header-left-content .title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 0.2rem;
+    line-height: 1.1;
+}
+.header-left-content .subtitle {
+    font-size: 1.1rem;
+    font-weight: 500;
+    opacity: 0.95;
+    display: block;
+}
+@media (max-width: 768px) {
+    .angled-header-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.2rem 1rem;
+        min-height: 100px;
+    }
+    .header-left-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .header-left-content .icon {
+        margin-bottom: 0.7rem;
+        margin-right: 0;
+    }
+}
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid py-4">
-
-    <!-- Dashboard Header -->
-    <div class="dashboard-header">
-        <div class="container-fluid">
-            <h1 class="dashboard-title">Registrar Dashboard</h1>
-            <p class="dashboard-subtitle">Welcome back, {{ auth()->guard('registrar')->user()->first_name }}! Here's your school's overview.</p>
+    <!-- Modern Angled Header Card -->
+    <div class="angled-header-card mb-4">
+        <div class="header-left-content">
+            <span class="icon"><i class="fas fa-clipboard-check"></i></span>
+            <div>
+                <span class="title">Registrar Dashboard</span>
+                <span class="subtitle">Welcome back, {{ auth()->guard('registrar')->user()->first_name }}! Here's your school's overview.</span>
+            </div>
         </div>
+        <!-- Optionally, you can add a right-aligned button or badge here -->
     </div>
 
     <!-- Statistics Cards -->
@@ -268,7 +323,6 @@
                     <a href="{{ route('registrar.students.upload') }}" class="action-item"><i class="fas fa-upload"></i><span>Upload Students</span></a>
                     <a href="{{ route('registrar.students.create') }}" class="action-item"><i class="fas fa-user-plus"></i><span>Generate Credentials</span></a>
                     <a href="{{ route('registrar.subject-assignments.index') }}" class="action-item"><i class="fas fa-user-tie"></i><span>Assign Subjects to Teachers</span></a>
-                    <a href="{{ route('registrar.student-subject-assignments.index') }}" class="action-item"><i class="fas fa-user-graduate"></i><span>Assign Subjects to Students</span></a>
                 </div>
             </div>
         </div>
