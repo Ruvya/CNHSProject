@@ -454,7 +454,7 @@
     <!-- Header -->
     <header class="header">
         <div class="header-left">
-            <img src="{{ asset('images/CNHS.png') }}" alt="CNHS Logo" class="logo">
+            <img src="{{ asset('images/logo.png') }}" alt="CNHS Logo" class="logo">
             <h1>CNHS Registrar Portal</h1>
         </div>
         <div class="header-right">
@@ -496,7 +496,13 @@
     <div class="sidebar">
         <div class="profile">
             <div class="profile-image-container">
-                <img src="{{ asset('images/logo.png') }}" alt="Profile Picture">
+                @php
+                    $registrar = Auth::guard('registrar')->user();
+                    $firstName = $registrar->first_name ?? $registrar->name ?? 'Registrar';
+                    $lastName = $registrar->last_name ?? '';
+                    $fullName = trim($firstName . ' ' . $lastName);
+                @endphp
+                <img src="{{ $registrar && $registrar->profile_picture ? asset('storage/' . $registrar->profile_picture) : 'https://ui-avatars.com/api/?name=' . urlencode($fullName) . '&size=90&background=4e73df&color=ffffff&bold=true' }}" alt="Profile Picture">
                 <div class="online-indicator"></div>
             </div>
             <h2>{{ Auth::guard('registrar')->check() ? (Auth::guard('registrar')->user()->first_name ?? Auth::guard('registrar')->user()->name ?? 'Registrar') : 'Registrar' }}</h2>

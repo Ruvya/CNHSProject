@@ -702,9 +702,7 @@
                 <option value="2021-2022">2021-2022</option>
             </select>
         </div>
-        <button class="btn-print" onclick="generateGradeSheet()">
-            <i class="fas fa-print"></i> Print Grade Sheet
-        </button>
+        <!-- Print Grade Sheet button removed -->
     </div>
 </div>
 
@@ -789,7 +787,7 @@
                     </div>
                 </td>
                 <td class="teacher-cell">
-                    {{ $grade->subject->teacher->name ?? 'No teacher assigned' }}
+                    {{ $grade->subject->current_teacher->name ?? 'No teacher assigned' }}
                 </td>
                 <td class="grade-cell {{ $grade->quarter1 ? '' : 'pending' }}">
                     <span class="q1-grade">{{ $grade->quarter1 ?? '-' }}</span>

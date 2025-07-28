@@ -213,7 +213,7 @@ class DashboardController extends Controller
     }
 
     // New method to fetch and return the upcoming events list HTML
-    public function getUpcomingEventsHtml()
+    public function upcomingEventsHtml()
     {
         $upcomingEvents = Event::where('start', '>=', now())
             ->orderBy('start', 'asc')

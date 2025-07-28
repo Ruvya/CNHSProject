@@ -2,39 +2,19 @@
 
 @section('content')
 <div class="container-fluid">
-    <!-- Page Header with Clear Action Buttons -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="page-title mb-1">
-                <i class="fas fa-book me-2 text-primary"></i>
-                Subject Management
-                <span class="badge bg-success ms-2">Exclusive Access</span>
-            </h1>
-            <p class="text-muted mb-0">Create, edit, and manage academic subjects with DepEd curriculum structure</p>
-        </div>
-        <div>
-            <a href="{{ route('registrar.subjects.create') }}" class="btn btn-primary btn-lg">
-                <i class="fas fa-plus me-2"></i>Create New Subject
-            </a>
-        </div>
-    </div>
-
-    <!-- Role Information Notice -->
-    <div class="alert alert-success border-0 mb-4" style="background: linear-gradient(135deg, #d4edda, #c3e6cb);">
-        <div class="d-flex align-items-center">
-            <div class="me-3">
-                <i class="fas fa-user-check fa-2x text-success"></i>
-            </div>
+    <!-- Modern Angled Header Card -->
+    <div class="angled-header-card mb-4">
+        <div class="header-left-content">
+            <span class="icon"><i class="fas fa-book"></i></span>
             <div>
-                <h6 class="alert-heading mb-1">
-                    <i class="fas fa-cogs me-2"></i>Registrar Exclusive Management
-                </h6>
-                <p class="mb-0">
-                    You have exclusive access to create, edit, and delete subjects. Use structured forms with
-                    <strong>Grade Level (11-12)</strong>, <strong>Track</strong>, <strong>Strand</strong>,
-                    <strong>Cluster</strong>, and <strong>Specialization</strong> aligned with DepEd curriculum.
-                </p>
+                <span class="title">Subject Management</span>
+                <span class="subtitle">Create, edit, and manage academic subjects with DepEd curriculum structure</span>
             </div>
+        </div>
+        <div class="header-right-content">
+            <a href="{{ route('registrar.subjects.create') }}" class="angled-header-btn">
+                <i class="fas fa-plus me-2"></i> Create New Subject
+            </a>
         </div>
     </div>
 
@@ -131,8 +111,7 @@
                             <th>Name</th>
                             <th>Code</th>
                             <th>Grade Level</th>
-                            <th>Track</th>
-                            <th>Strand</th>
+                            <th>Cluster</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -142,8 +121,7 @@
                                 <td>{{ $subject->name }}</td>
                                 <td>{{ $subject->code }}</td>
                                 <td>{{ $subject->grade_level }}</td>
-                                <td>{{ $subject->track ?? 'N/A' }}</td>
-                                <td>{{ $subject->strand ?? 'N/A' }}</td>
+                                <td>{{ $subject->cluster ?? 'N/A' }}</td>
                                 <td>
                                     <a href="{{ route('registrar.subjects.edit', $subject) }}" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
                                     <form action="{{ route('registrar.subjects.destroy', $subject) }}" method="POST" style="display:inline-block;">
@@ -155,7 +133,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
+                                <td colspan="5" class="text-center text-muted py-4">
                                     <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
                                     <p class="mb-0">No subjects found matching your criteria.</p>
                                 </td>
@@ -174,6 +152,87 @@
 
 @push('styles')
 <style>
+.angled-header-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(115deg, #f97316 60%, #3b82f6 60%);
+    color: white;
+    padding: 2.2rem 2.5rem 2.2rem 2.5rem;
+    border-radius: 16px;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 10px 30px rgba(249, 115, 22, 0.18);
+    position: relative;
+    overflow: hidden;
+    min-height: 120px;
+}
+.header-left-content {
+    display: flex;
+    align-items: center;
+}
+.header-left-content .icon {
+    font-size: 2.8rem;
+    margin-right: 1.5rem;
+    opacity: 0.92;
+}
+.header-left-content .title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 0.2rem;
+    line-height: 1.1;
+}
+.header-left-content .subtitle {
+    font-size: 1.1rem;
+    font-weight: 500;
+    opacity: 0.95;
+    display: block;
+}
+.header-right-content {
+    display: flex;
+    align-items: center;
+}
+.angled-header-btn {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: 2rem;
+    padding: 0.7rem 1.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    box-shadow: 0 2px 8px rgba(56,135,250,0.10);
+    border: 1px solid rgba(255,255,255,0.25);
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+}
+.angled-header-btn:hover {
+    background: rgba(255,255,255,0.28);
+    color: #fff;
+    text-decoration: none;
+}
+@media (max-width: 768px) {
+    .angled-header-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.2rem 1rem;
+        min-height: 100px;
+    }
+    .header-left-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .header-left-content .icon {
+        margin-bottom: 0.7rem;
+        margin-right: 0;
+    }
+    .header-right-content {
+        margin-top: 1rem;
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
 /* Modern Stat Cards */
 .stat-card {
     background: white;
@@ -422,8 +481,7 @@
 $(document).ready(function() {
     console.log('Document ready - jQuery loaded');
     console.log('Grade select element:', $('#grade_level').length);
-    console.log('Track select element:', $('#track').length);
-    console.log('Strand select element:', $('#strand').length);
+    console.log('Cluster select element:', $('#cluster').length);
 
     // Initialize DataTables
     $('#subjectsTable').DataTable({
@@ -434,13 +492,11 @@ $(document).ready(function() {
             { "width": "10%", "targets": [0] }, // Code
             { "width": "20%", "targets": [1] }, // Name
             { "width": "10%", "targets": [2] }, // Grade Level
-            { "width": "12%", "targets": [3] }, // Track
-            { "width": "12%", "targets": [4] }, // Strand
-            { "width": "12%", "targets": [5] }, // Cluster/Specialization
-            { "width": "12%", "targets": [6] }, // Teacher
-            { "width": "10%", "targets": [7] }, // Grading Period
-            { "width": "8%", "targets": [8] }, // Created By
-            { "width": "4%", "targets": [9] }  // Actions
+            { "width": "12%", "targets": [3] }, // Cluster
+            { "width": "12%", "targets": [4] }, // Teacher
+            { "width": "10%", "targets": [5] }, // Grading Period
+            { "width": "8%", "targets": [6] }, // Created By
+            { "width": "4%", "targets": [7] }  // Actions
         ],
         "language": {
             "search": "Search subjects:",
@@ -454,8 +510,7 @@ $(document).ready(function() {
 
     // Dynamic filtering functionality
     const gradeSelect = $('#grade_level');
-    const trackSelect = $('#track');
-    const strandSelect = $('#strand');
+    const clusterSelect = $('#cluster');
     const dynamicSection = $('#dynamicSubjectsSection');
     const subjectsList = $('#subjectsList');
     const subjectCount = $('#subjectCount');
@@ -469,13 +524,12 @@ $(document).ready(function() {
         console.log('Grade selected:', selectedGrade);
 
         // Reset dependent dropdowns
-        trackSelect.html('<option value="all">All Tracks</option>');
-        strandSelect.html('<option value="all">All Strands</option>');
+        clusterSelect.html('<option value="all">All Clusters</option>');
 
         if (selectedGrade && selectedGrade !== 'all') {
-            console.log('Loading tracks for grade:', selectedGrade);
-            // Load tracks for selected grade
-            loadTracks(selectedGrade);
+            console.log('Loading clusters for grade:', selectedGrade);
+            // Load clusters for selected grade
+            loadClusters(selectedGrade);
         }
 
         // Hide dynamic section when grade changes
@@ -483,63 +537,42 @@ $(document).ready(function() {
         fileUploadSection.hide();
     });
 
-    // Track change handler
-    trackSelect.on('change', function() {
+    // Cluster change handler
+    clusterSelect.on('change', function() {
         const selectedGrade = gradeSelect.val();
-        const selectedTrack = $(this).val();
+        const selectedCluster = $(this).val();
 
-        // Reset strand dropdown
-        strandSelect.html('<option value="all">All Strands</option>');
-
-        if (selectedGrade && selectedGrade !== 'all' && selectedTrack && selectedTrack !== 'all') {
-            // Load strands for selected grade and track
-            loadStrands(selectedGrade, selectedTrack);
-        }
-
-        // Hide dynamic section when track changes
-        dynamicSection.hide();
-        fileUploadSection.hide();
-    });
-
-    // Strand change handler
-    strandSelect.on('change', function() {
-        const selectedGrade = gradeSelect.val();
-        const selectedTrack = trackSelect.val();
-        const selectedStrand = $(this).val();
-
-        if (selectedGrade && selectedGrade !== 'all' &&
-            selectedTrack && selectedTrack !== 'all' &&
-            selectedStrand && selectedStrand !== 'all') {
+        if (selectedGrade && selectedGrade !== 'all' && selectedCluster && selectedCluster !== 'all') {
             // Load subjects for selected combination
-            loadSubjects(selectedGrade, selectedTrack, selectedStrand);
+            loadSubjects(selectedGrade, selectedCluster);
         } else {
             dynamicSection.hide();
             fileUploadSection.hide();
         }
     });
 
-    // Load tracks based on grade level
-    function loadTracks(gradeLevel) {
-        console.log('loadTracks called with:', gradeLevel);
-        console.log('AJAX URL:', '{{ route("registrar.api.tracks-by-grade") }}');
+    // Load clusters based on grade level
+    function loadClusters(gradeLevel) {
+        console.log('loadClusters called with:', gradeLevel);
+        console.log('AJAX URL:', '{{ route("registrar.api.clusters-by-grade") }}');
 
         $.ajax({
-            url: '{{ route("registrar.api.tracks-by-grade") }}',
+            url: '{{ route("registrar.api.clusters-by-grade") }}',
             method: 'GET',
             data: { grade_level: gradeLevel },
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            success: function(tracks) {
-                console.log('Tracks received:', tracks);
-                trackSelect.html('<option value="all">All Tracks</option>');
-                tracks.forEach(function(track) {
-                    trackSelect.append(`<option value="${track}">${track}</option>`);
+            success: function(clusters) {
+                console.log('Clusters received:', clusters);
+                clusterSelect.html('<option value="all">All Clusters</option>');
+                clusters.forEach(function(cluster) {
+                    clusterSelect.append(`<option value="${cluster}">${cluster}</option>`);
                 });
             },
             error: function(xhr, status, error) {
-                console.error('Failed to load tracks');
+                console.error('Failed to load clusters');
                 console.error('Status:', status);
                 console.error('Error:', error);
                 console.error('Response:', xhr.responseText);
@@ -547,33 +580,8 @@ $(document).ready(function() {
         });
     }
 
-    // Load strands based on grade level and track
-    function loadStrands(gradeLevel, track) {
-        $.ajax({
-            url: '{{ route("registrar.api.strands-by-grade-track") }}',
-            method: 'GET',
-            data: {
-                grade_level: gradeLevel,
-                track: track
-            },
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            success: function(strands) {
-                strandSelect.html('<option value="all">All Strands</option>');
-                strands.forEach(function(strand) {
-                    strandSelect.append(`<option value="${strand}">${strand}</option>`);
-                });
-            },
-            error: function() {
-                console.error('Failed to load strands');
-            }
-        });
-    }
-
     // Load subjects based on filters
-    function loadSubjects(gradeLevel, track, strand) {
+    function loadSubjects(gradeLevel, cluster) {
         showLoadingOverlay();
 
         $.ajax({
@@ -581,8 +589,7 @@ $(document).ready(function() {
             method: 'GET',
             data: {
                 grade_level: gradeLevel,
-                track: track,
-                strand: strand
+                cluster: cluster
             },
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
@@ -590,11 +597,11 @@ $(document).ready(function() {
             },
             success: function(response) {
                 hideLoadingOverlay();
-                displaySubjects(response.subjects, gradeLevel, track, strand);
+                displaySubjects(response.subjects, gradeLevel, cluster);
                 subjectCount.text(response.count);
 
                 // Update filter summary
-                filterSummary.text(`Grade ${gradeLevel} - ${track} - ${strand}`);
+                filterSummary.text(`Grade ${gradeLevel} - ${cluster}`);
 
                 // Show dynamic section
                 dynamicSection.show();
@@ -613,7 +620,7 @@ $(document).ready(function() {
     }
 
     // Display subjects in cards
-    function displaySubjects(subjects, gradeLevel, track, strand) {
+    function displaySubjects(subjects, gradeLevel, cluster) {
         subjectsList.empty();
 
         if (subjects.length === 0) {
@@ -622,7 +629,7 @@ $(document).ready(function() {
                     <div class="alert alert-warning text-center">
                         <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
                         <h5>No Subjects Found</h5>
-                        <p>No subjects found for Grade ${gradeLevel} - ${track} - ${strand}</p>
+                        <p>No subjects found for Grade ${gradeLevel} - ${cluster}</p>
                         <a href="{{ route('registrar.subjects.create') }}" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>Create New Subject
                         </a>

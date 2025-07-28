@@ -276,7 +276,7 @@
                 <div class="announcement-meta">
                     <span>📅 {{ $announcement->created_at->format('M d, Y') }}</span>
                     @if($announcement->published_at)
-                        <span>🕒 Published {{ $announcement->published_at->format('M d, Y') }}</span>
+                        <span>🕒 Published {{ optional($announcement->published_at instanceof \Illuminate\Support\Carbon ? $announcement->published_at : \Illuminate\Support\Carbon::parse($announcement->published_at))->format('M d, Y') }}</span>
                     @endif
                 </div>
                 

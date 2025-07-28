@@ -361,7 +361,7 @@
                 <tr>
                     <td>{{ $subject->code }}</td>
                     <td>{{ $subject->name }}</td>
-                    <td>{{ $subject->teacher->name ?? 'TBA' }}</td>
+                    <td>{{ $subject->current_teacher->name ?? 'TBA' }}</td>
                     <td>{{ $subject->schedule ?? 'TBA' }}</td>
                     <td>
                         <span class="badge badge-active">Enrolled</span>

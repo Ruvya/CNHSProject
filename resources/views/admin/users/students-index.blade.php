@@ -3,73 +3,94 @@
 @section('title', 'Student Accounts')
 
 @section('content')
-<div class="page-header">
-    <h1 class="page-title">Student Accounts</h1>
-    <p class="page-subtitle">Manage student accounts created through credential login</p>
-    <div class="page-actions">
-        <a href="{{ route('admin.credentials.generate') }}" class="btn btn-primary">
-            <i class="fas fa-key me-2"></i>Generate New Credentials
-        </a>
-        <a href="{{ route('admin.credentials.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-list me-2"></i>Manage Credentials
-        </a>
+<style>
+.angled-header-student {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    border-radius: 24px;
+    overflow: hidden;
+    min-height: 120px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+.angled-header-student .left {
+    background: #fa7816;
+    color: #fff;
+    flex: 0 0 65%;
+    display: flex;
+    align-items: center;
+    padding: 2rem 2.5rem;
+    position: relative;
+    z-index: 1;
+}
+.angled-header-student .right {
+    background: #4286f4;
+    flex: 1 1 35%;
+    position: relative;
+    z-index: 0;
+}
+.angled-header-student .left-content {
+    display: flex;
+    align-items: center;
+    z-index: 2;
+}
+.angled-header-student .icon {
+    font-size: 3.5rem;
+    margin-right: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+.angled-header-student .titles {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.angled-header-student .main-title {
+    font-size: 2rem;
+    font-weight: bold;
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.1;
+}
+.angled-header-student .subtitle {
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    margin-top: 0.25rem;
+}
+.angled-header-student .diagonal {
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 60%;
+    z-index: 1;
+    width: 40%;
+    height: 100%;
+    pointer-events: none;
+}
+@media (max-width: 900px) {
+    .angled-header-student .main-title { font-size: 1.5rem; }
+    .angled-header-student .icon { font-size: 2rem; }
+    .angled-header-student .left, .angled-header-student .right { padding: 1rem; }
+}
+</style>
+<div class="angled-header-student mb-4">
+    <div class="left">
+        <div class="left-content">
+            <span class="icon"><i class="fas fa-users"></i></span>
+            <div class="titles">
+                <span class="main-title">Student Accounts</span>
+                <span class="subtitle">Welcome back! Here's an overview of your classes and activities.</span>
+            </div>
+        </div>
     </div>
+    <div class="right"></div>
+    <svg class="diagonal" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <polygon fill="#4286f4" points="70,0 100,0 100,100 30,100" />
+    </svg>
 </div>
 
 <!-- Statistics Cards -->
 <div class="row mb-4">
-    <div class="col-md-3">
-        <div class="stat-card stat-card-primary">
-            <div class="stat-card-body">
-                <div class="stat-card-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-card-content">
-                    <div class="stat-card-title">Total Students</div>
-                    <div class="stat-card-value">{{ $totalStudents }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card stat-card-warning">
-            <div class="stat-card-body">
-                <div class="stat-card-icon">
-                    <i class="fas fa-user-clock"></i>
-                </div>
-                <div class="stat-card-content">
-                    <div class="stat-card-title">Temporary Accounts</div>
-                    <div class="stat-card-value">{{ $temporaryAccounts }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card stat-card-success">
-            <div class="stat-card-body">
-                <div class="stat-card-icon">
-                    <i class="fas fa-user-check"></i>
-                </div>
-                <div class="stat-card-content">
-                    <div class="stat-card-title">Completed Profiles</div>
-                    <div class="stat-card-value">{{ $completedProfiles }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card stat-card-info">
-            <div class="stat-card-body">
-                <div class="stat-card-icon">
-                    <i class="fas fa-percentage"></i>
-                </div>
-                <div class="stat-card-content">
-                    <div class="stat-card-title">Completion Rate</div>
-                    <div class="stat-card-value">{{ $totalStudents > 0 ? round(($completedProfiles / $totalStudents) * 100) : 0 }}%</div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Cards removed as per request -->
 </div>
 
 <!-- Filters -->
@@ -81,7 +102,7 @@
                     <div class="col-md-3">
                         <label for="search" class="form-label">Search</label>
                         <input type="text" name="search" id="search" class="form-control" 
-                               value="{{ request('search') }}" placeholder="Name, ID, or email">
+                               value="{{ request('search') }}" placeholder="Name or ID">
                     </div>
                     <div class="col-md-3">
                         <label for="grade_level" class="form-label">Grade Level</label>
@@ -138,10 +159,10 @@
                             <tr>
                                 <th>Student ID</th>
                                 <th>Name</th>
-                                <th>Email</th>
                                 <th>Grade Level</th>
-                                <th>Account Status</th>
-                                <th>Created</th>
+                                <th>Track</th>
+                                <th>Cluster</th>
+                                <th>Password</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -149,13 +170,10 @@
                             @foreach($students as $student)
                             <tr>
                                 <td>
-                                    <code class="text-primary">{{ $student->student_id }}</code>
+                                    <code class="text-primary" style="font-family: 'Poppins', sans-serif;">{{ $student->student_id }}</code>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
-                                            {{ substr($student->first_name ?? 'S', 0, 1) }}{{ substr($student->last_name ?? 'T', 0, 1) }}
-                                        </div>
                                         <div>
                                             <strong>{{ $student->full_name ?? $student->student_id }}</strong>
                                             @if($student->is_temporary_account)
@@ -168,37 +186,15 @@
                                     </div>
                                 </td>
                                 <td>
-                                    @if($student->email && !str_contains($student->email, '@temp.cnhs.edu.ph'))
-                                        {{ $student->email }}
-                                    @else
-                                        <span class="text-muted">Not provided</span>
-                                    @endif
+                                    {{ $student->grade_level ?? '-' }}
                                 </td>
                                 <td>
-                                    @if($student->grade_level)
-                                        <span class="badge bg-info">{{ $student->grade_level }}</span>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
+                                    {{ $student->track ?? '-' }}
                                 </td>
                                 <td>
-                                    @if($student->profile_completed)
-                                        <span class="badge bg-success">
-                                            <i class="fas fa-check me-1"></i>
-                                            Complete
-                                        </span>
-                                    @elseif($student->is_temporary_account)
-                                        <span class="badge bg-warning">
-                                            <i class="fas fa-clock me-1"></i>
-                                            Incomplete
-                                        </span>
-                                    @else
-                                        <span class="badge bg-secondary">Unknown</span>
-                                    @endif
+                                    {{ $student->cluster ?? '-' }}
                                 </td>
-                                <td>
-                                    <small class="text-muted">{{ $student->created_at->format('M j, Y') }}</small>
-                                </td>
+                                <td>Temp_123</td>
                                 <td>
                                     <div class="btn-group" role="group">
                                         <a href="{{ route('admin.users.students.show', $student) }}" 

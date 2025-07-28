@@ -36,12 +36,13 @@ class ProfileController extends Controller
         }
 
         // Store new profile picture
-        $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+        $file = $request->file('profile_picture');
+        $filename = 'student_' . $student->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('student-profiles', $filename, 'public');
 
         // Update student record
-        $student->update([
-            'profile_picture' => $path
-        ]);
+        $student->profile_picture = $path;
+        $student->save();
 
         return redirect()->back()->with('success', 'Profile picture updated successfully');
     }

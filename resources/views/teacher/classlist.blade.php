@@ -216,10 +216,9 @@
                                     <tr>
                                         <th>Student ID <i class="fas fa-sort sort-icon" data-sort="student_id"></i></th>
                                         <th>Name <i class="fas fa-sort sort-icon" data-sort="name"></i></th>
-                                        <th>Grade & Section</th>
                                         <th>Track</th>
-                                        <th>Strand</th>
-                                        <th>Subject</th>
+                                        <th>Cluster</th>
+                                        <th>Grade Level</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -238,28 +237,17 @@
                                                     </div>
                                                     <div>
                                                         <div class="fw-bold">{{ $student->full_name }}</div>
-                                                        <small class="text-muted">{{ $student->email }}</small>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td>
-                                                <span class="badge bg-info">Grade {{ $student->grade_level }}</span>
-                                                <span class="badge bg-secondary">Section {{ $student->section }}</span>
+                                                {{ $student->track ?? 'N/A' }}
                                             </td>
                                             <td>
-                                                <span class="badge bg-primary">{{ $student->track ?? 'N/A' }}</span>
+                                                {{ $student->cluster ?? 'N/A' }}
                                             </td>
                                             <td>
-                                                <span class="badge bg-success">{{ $student->strand ?? 'N/A' }}</span>
-                                            </td>
-                                            <td>
-                                                @if($enrolledSubjects->count() > 0)
-                                                    @foreach($enrolledSubjects as $subject)
-                                                        <span class="badge bg-light text-dark me-1">{{ $subject->code }}</span>
-                                                    @endforeach
-                                                @else
-                                                    <span class="text-muted">None</span>
-                                                @endif
+                                                {{ $student->grade_level ?? 'N/A' }}
                                             </td>
                                         </tr>
                                     @endforeach

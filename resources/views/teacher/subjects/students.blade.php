@@ -129,8 +129,6 @@
                                             <td>{{ $student->student_id }}</td>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <img src="{{ $student->profile_picture ? asset('storage/' . $student->profile_picture) : asset('images/photo.jpg') }}" 
-                                                         class="rounded-circle me-2" width="32" height="32" alt="Profile">
                                                     <div>
                                                         <strong>{{ $student->first_name }} {{ $student->last_name }}</strong>
                                                         @if($student->middle_name)

@@ -468,7 +468,14 @@
                     </td>
                     <td>
                         <div class="d-flex gap-2">
-                            <button class="btn-table-action btn-draft">
+                            <button class="btn-table-action btn-draft view-announcement-btn"
+                                data-bs-toggle="modal" data-bs-target="#announcementModal"
+                                data-title="{{ htmlspecialchars($announcement->title, ENT_QUOTES) }}"
+                                data-content="{{ htmlspecialchars($announcement->content, ENT_QUOTES) }}"
+                                data-category="{{ htmlspecialchars($announcement->category, ENT_QUOTES) }}"
+                                data-author="{{ isset($announcement->author) ? htmlspecialchars($announcement->author->name ?? '', ENT_QUOTES) : '' }}"
+                                data-author-type="{{ method_exists($announcement, 'isFromTeacher') && $announcement->isFromTeacher() ? 'Teacher' : (method_exists($announcement, 'isFromPrincipal') && $announcement->isFromPrincipal() ? 'Principal' : 'School Administration') }}"
+                                data-id="{{ $announcement->id }}">
                                 <i class="fas fa-eye"></i>
                                 View
                             </button>
@@ -490,37 +497,23 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Announcement Details</h5>
+                <h5 class="modal-title" id="modalAnnouncementTitle">Announcement Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
             <div class="card-content">
-                <p>{{ $announcement->content }}</p>
-                @if(isset($announcement->author))
-                    <div class="announcement-author">
-                        <small>
-                            @if($announcement->isFromTeacher())
-                                👨‍🏫 Posted by: {{ $announcement->author->name ?? 'Teacher' }} (Teacher)
-                            @elseif($announcement->isFromPrincipal())
-                                🏫 Posted by: {{ $announcement->author->name ?? 'Principal' }} (Principal)
-                            @else
-                                📝 Posted by: {{ $announcement->author->name ?? 'School Administration' }}
-                            @endif
-                        </small>
-                    </div>
-                @endif
+                <p id="modalAnnouncementContent"></p>
+                <div class="announcement-author" id="modalAnnouncementAuthor"></div>
             </div>
             <div class="card-actions">
-                <button class="save-btn" onclick="saveAnnouncement({{ $announcement->id }})">
+                <button class="save-btn" id="modalSaveBtn">
                     <i class="fas fa-bookmark"></i> Save
                 </button>
-                <button class="share-btn" onclick="shareAnnouncement({{ $announcement->id }})">
+                <button class="share-btn" id="modalShareBtn">
                     <i class="fas fa-share-alt"></i> Share
                 </button>
-
+            </div>
             <div class="modal-body">
                 <!-- Announcement content will be loaded here -->
-
             </div>
         </div>
     </div>
@@ -529,6 +522,45 @@
 
 @section('scripts')
 <script>
-    // Add any JavaScript for handling announcements here
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('announcementModal');
+        const titleEl = document.getElementById('modalAnnouncementTitle');
+        const contentEl = document.getElementById('modalAnnouncementContent');
+        const authorEl = document.getElementById('modalAnnouncementAuthor');
+        const saveBtn = document.getElementById('modalSaveBtn');
+        const shareBtn = document.getElementById('modalShareBtn');
+
+        document.querySelectorAll('.view-announcement-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const title = btn.getAttribute('data-title');
+                const content = btn.getAttribute('data-content');
+                const author = btn.getAttribute('data-author');
+                const authorType = btn.getAttribute('data-author-type');
+                const id = btn.getAttribute('data-id');
+
+                titleEl.textContent = title;
+                contentEl.textContent = content;
+                let authorText = '';
+                if (authorType === 'Teacher') {
+                    authorText = `👨‍🏫 Posted by: ${author || 'Teacher'} (Teacher)`;
+                } else if (authorType === 'Principal') {
+                    authorText = `🏫 Posted by: ${author || 'Principal'} (Principal)`;
+                } else {
+                    authorText = `📝 Posted by: ${author || 'School Administration'}`;
+                }
+                authorEl.innerHTML = `<small>${authorText}</small>`;
+
+                saveBtn.onclick = function () { saveAnnouncement(id); };
+                shareBtn.onclick = function () { shareAnnouncement(id); };
+            });
+        });
+    });
+    // Dummy functions for save/share
+    function saveAnnouncement(id) {
+        alert('Save announcement ' + id);
+    }
+    function shareAnnouncement(id) {
+        alert('Share announcement ' + id);
+    }
 </script>
 @endsection

@@ -61,7 +61,8 @@
         position: fixed;
         height: 100vh;
         box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-        overflow-y: auto;
+        /* overflow-y: auto; */
+        padding-top: 40px;
     }
 
     .profile {

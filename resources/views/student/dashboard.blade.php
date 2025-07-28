@@ -402,13 +402,15 @@
 
 
 <!-- Welcome Section -->
-<div class="welcome-section">
-    <div class="welcome-text">
-        <h1>
-            <span id="greeting">Good morning</span>
-            {{ optional($student)->first_name . ' ' . optional($student)->last_name ?? 'Guest' }}!
+<div class="welcome-section d-flex align-items-center flex-wrap" style="position: relative; min-height: 140px; background: #FFA726;">
+    <div class="welcome-text flex-grow-1" style="z-index:2;">
+        <h1 class="mb-1" style="font-size:2.2rem; font-weight:700; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,0.10);">
+            <span id="greeting" style="font-size:1.3em; font-weight:700; color:#fff;">Good morning</span>
+            <span style="font-weight:700; color:#fff;">{{ optional($student)->first_name . ' ' . optional($student)->last_name ?? 'Guest' }}!</span>
         </h1>
-        <p>Calingcaguing National High School</p>
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+            <span class="text-white-50 ms-2" id="currentDateTime" style="font-size:0.98rem;"></span>
+        </div>
     </div>
 </div>
 
@@ -458,7 +460,7 @@
                     </div>
                     <div class="item-content">
                         <div class="item-title">{{ $subject->name ?? 'Untitled Subject' }}</div>
-                        <div class="item-subtitle">{{ optional($subject->teacher)->name ?? 'No teacher assigned' }}</div>
+                        <div class="item-subtitle">{{ optional($subject->current_teacher)->name ?? 'No teacher assigned' }}</div>
                     </div>
                     <div class="item-meta">
                         {{ $subject->track ?? 'No Track' }} - {{ $subject->strand ?? 'No Strand' }}

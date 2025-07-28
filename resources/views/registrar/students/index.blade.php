@@ -162,12 +162,12 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <label for="strand" class="form-label">Strand</label>
-                        <select class="form-select" id="strand" name="strand">
-                            <option value="">All Strands</option>
-                            @foreach($strands as $strand)
-                                <option value="{{ $strand }}" {{ request('strand') === $strand ? 'selected' : '' }}>
-                                    {{ $strand }}
+                        <label for="cluster" class="form-label">Cluster</label>
+                        <select class="form-select" id="cluster" name="cluster">
+                            <option value="">All Clusters</option>
+                            @foreach($clusters as $cluster)
+                                <option value="{{ $cluster }}" {{ request('cluster') === $cluster ? 'selected' : '' }}>
+                                    {{ $cluster }}
                                 </option>
                             @endforeach
                         </select>
@@ -215,10 +215,10 @@
                     </button>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="/excel-template-emergency">
-                            <i class="fas fa-file-csv me-2"></i>Download CSV Template
+                            <i class="fas fa-file-csv me-2"></i>Download SF1-SHS CSV Template
                         </a></li>
                         <li><a class="dropdown-item" href="/excel-template-emergency?format=excel">
-                            <i class="fas fa-file-excel me-2"></i>Download Excel Template
+                            <i class="fas fa-file-excel me-2"></i>Download SF1-SHS Excel Template
                         </a></li>
                     </ul>
                 </div>
@@ -260,15 +260,13 @@
                 <table class="table table-bordered" id="studentsTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
-                            <th width="30">
-                                <input type="checkbox" id="selectAll" onchange="toggleAllCheckboxes()">
-                            </th>
                             <th>Student ID</th>
+                            <th>LRN</th>
                             <th>Name</th>
-                            <th>Email</th>
                             <th>Grade Level</th>
                             <th>Section</th>
-                            <th>Track/Strand</th>
+                            <th>Track</th>
+                            <th>Cluster</th>
                             <th>Enrollment Status</th>
                             <th>Actions</th>
                         </tr>
@@ -276,53 +274,48 @@
                     <tbody>
                         @forelse($students as $student)
                         <tr>
-                            <td>
-                                <input type="checkbox" name="student_ids[]" value="{{ $student->id }}" class="student-checkbox">
+                            <td style="color: black;">
+                                {{ $student->student_id }}
                             </td>
-                            <td>
-                                <span class="badge bg-primary">{{ $student->student_id }}</span>
+                            <td style="color: black;">
+                                {{ $student->lrn }}
                             </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-sm bg-success text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
-                                        {{ substr($student->first_name, 0, 1) }}{{ substr($student->last_name, 0, 1) }}
-                                    </div>
-                                    <div>
-                                        <a href="{{ route('registrar.students.show', $student) }}" class="text-decoration-none">
-                                            <strong class="text-primary">{{ $student->full_name }}</strong>
-                                        </a>
-                                        @if($student->middle_name)
-                                            <br><small class="text-muted">{{ $student->middle_name }}</small>
-                                        @endif
-                                    </div>
+                            <td style="color: black;">
+                                <div>
+                                    <a href="{{ route('registrar.students.show', $student) }}" class="text-decoration-none" style="color: black;">
+                                        <strong>{{ $student->full_name }}</strong>
+                                    </a>
                                 </div>
                             </td>
-                            <td>{{ $student->email }}</td>
-                            <td>
-                                <span class="badge bg-info">{{ $student->grade_level }}</span>
+                            <td style="color: black;">
+                                {{ $student->grade_level }}
                             </td>
-                            <td>
+                            <td style="color: black;">
                                 @if($student->section)
-                                    <span class="badge bg-secondary">{{ $student->section }}</span>
+                                    {{ $student->section }}
                                 @else
-                                    <span class="text-muted">Not assigned</span>
+                                    Not assigned
                                 @endif
                             </td>
-                            <td>
+                            <td style="color: black;">
                                 @if($student->track)
-                                    <span class="badge bg-warning text-dark">{{ $student->track }}</span>
-                                    @if($student->strand)
-                                        <br><span class="badge bg-light text-dark">{{ $student->strand }}</span>
-                                    @endif
+                                    {{ $student->track }}
                                 @else
-                                    <span class="text-muted">Not assigned</span>
+                                    Not assigned
                                 @endif
                             </td>
-                            <td>
-                                @if($student->subjects->count() > 0)
-                                    <span class="badge bg-success">Enrolled ({{ $student->subjects->count() }} subjects)</span>
+                            <td style="color: black;">
+                                @if($student->cluster)
+                                    {{ $student->cluster }}
                                 @else
-                                    <span class="badge bg-danger">Not Enrolled</span>
+                                    Not assigned
+                                @endif
+                            </td>
+                            <td style="color: black;">
+                                @if($student->subjects->count() > 0)
+                                    Enrolled ({{ $student->subjects->count() }} subjects)
+                                @else
+                                    Not Enrolled
                                 @endif
                             </td>
                             <td>

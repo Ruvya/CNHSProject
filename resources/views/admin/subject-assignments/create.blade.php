@@ -1,0 +1,347 @@
+@extends('layouts.admin')
+@section('title', 'Assign Subject to Teacher')
+@section('content')
+<div class="container-fluid">
+    <!-- Success Notification -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-1">
+                <i class="fas fa-plus-circle me-2 text-primary"></i>
+                Assign Subject to Teacher
+            </h1>
+            <p class="text-muted mb-0">Create a new subject assignment for a teacher</p>
+        </div>
+        <div>
+            <a href="{{ route('admin.subject-assignments.index') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Assignments
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <!-- Assignment Form -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-form me-2"></i>Assignment Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('admin.subject-assignments.store') }}" id="assignmentForm">
+                        @csrf
+                        <!-- Teacher Selection -->
+                        <div class="mb-4">
+                            <label for="teacher_id" class="form-label fw-bold">
+                                <i class="fas fa-user me-1"></i>Select Teacher <span class="text-danger">*</span>
+                            </label>
+                            <select name="teacher_id" id="teacher_id" class="form-select @error('teacher_id') is-invalid @enderror" required>
+                                <option value="">Choose a teacher...</option>
+                                @foreach($teachers as $teacher)
+                                    <option value="{{ $teacher->id }}" {{ old('teacher_id') == $teacher->id ? 'selected' : '' }}>
+                                        {{ $teacher->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('teacher_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <!-- Subject Selection -->
+                        <div class="mb-4">
+                            <label for="subject_id" class="form-label fw-bold">
+                                <i class="fas fa-book me-1"></i>Select Subject <span class="text-danger">*</span>
+                            </label>
+                            <select name="subject_id" id="subject_id" class="form-select @error('subject_id') is-invalid @enderror" required>
+                                <option value="">Choose a subject...</option>
+                                @foreach($subjects as $subject)
+                                    <option value="{{ $subject->id }}"
+                                        {{ (old('subject_id', $selectedSubjectId ?? '') == $subject->id) ? 'selected' : '' }}>
+                                        {{ $subject->code ?? '' }} - {{ $subject->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('subject_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <!-- Academic Period - REQUIRED FIELDS -->
+                        <div class="card border-warning mb-4">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Required: Academic Period</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="school_year" class="form-label fw-bold">
+                                            <i class="fas fa-calendar me-1"></i>School Year <span class="text-danger">*</span>
+                                        </label>
+                                        <select name="school_year" id="school_year" class="form-select @error('school_year') is-invalid @enderror" required>
+                                            <option value="2024-2025" {{ old('school_year', $currentSchoolYear ?? '2024-2025') == '2024-2025' ? 'selected' : '' }}>2024-2025</option>
+                                            <option value="2025-2026" {{ old('school_year', $currentSchoolYear ?? '2024-2025') == '2025-2026' ? 'selected' : '' }}>2025-2026</option>
+                                        </select>
+                                        @error('school_year')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="grading_period" class="form-label fw-bold">
+                                            <i class="fas fa-clock me-1"></i>Grading Period <span class="text-danger">*</span>
+                                        </label>
+                                        <select name="grading_period" id="grading_period" class="form-select @error('grading_period') is-invalid @enderror" required>
+                                            <option value="First Grading" {{ old('grading_period', $currentGradingPeriod ?? 'First Grading') == 'First Grading' ? 'selected' : '' }}>First Grading</option>
+                                            <option value="Second Grading" {{ old('grading_period', $currentGradingPeriod ?? 'First Grading') == 'Second Grading' ? 'selected' : '' }}>Second Grading</option>
+                                            <option value="Third Grading" {{ old('grading_period', $currentGradingPeriod ?? 'First Grading') == 'Third Grading' ? 'selected' : '' }}>Third Grading</option>
+                                            <option value="Fourth Grading" {{ old('grading_period', $currentGradingPeriod ?? 'First Grading') == 'Fourth Grading' ? 'selected' : '' }}>Fourth Grading</option>
+                                        </select>
+                                        @error('grading_period')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Schedule (Optional) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-schedule me-1"></i>Teaching Schedule (Optional)
+                            </label>
+                            <div id="scheduleContainer">
+                                <div class="schedule-slot border rounded p-3 mb-2">
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Day</label>
+                                            <select name="schedule[0][day]" class="form-select">
+                                                <option value="">Select Day</option>
+                                                <option value="Monday">Monday</option>
+                                                <option value="Tuesday">Tuesday</option>
+                                                <option value="Wednesday">Wednesday</option>
+                                                <option value="Thursday">Thursday</option>
+                                                <option value="Friday">Friday</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Start Time</label>
+                                            <input type="time" name="schedule[0][start_time]" class="form-control">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">End Time</label>
+                                            <input type="time" name="schedule[0][end_time]" class="form-control">
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-schedule" style="display: none;">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" id="addSchedule" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-plus me-1"></i>Add Another Time Slot
+                            </button>
+                        </div>
+                        <!-- Assignment Status -->
+                        <div class="mb-4">
+                            <label for="status" class="form-label fw-bold">
+                                <i class="fas fa-toggle-on me-1"></i>Assignment Status <span class="text-danger">*</span>
+                            </label>
+                            <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
+                                <option value="active" {{ old('status', 'active') == 'active' ? 'selected' : '' }}>Active</option>
+                                <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                            </select>
+                            @error('status')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">Active assignments are immediately effective</div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="mb-4">
+                            <label for="notes" class="form-label fw-bold">
+                                <i class="fas fa-sticky-note me-1"></i>Notes (Optional)
+                            </label>
+                            <textarea name="notes" id="notes" rows="3" class="form-control @error('notes') is-invalid @enderror"
+                                      placeholder="Add any additional notes about this assignment...">{{ old('notes') }}</textarea>
+                            @error('notes')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <!-- Email Notification -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="send_email" id="send_email" value="1" {{ old('send_email') ? 'checked' : '' }}>
+                                <label class="form-check-label fw-bold" for="send_email">
+                                    <i class="fas fa-envelope me-1"></i>Send email notification to teacher
+                                </label>
+                                <div class="form-text">The teacher will receive an email with assignment details and login instructions.</div>
+                            </div>
+                        </div>
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ route('admin.subject-assignments.index') }}" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-check me-1"></i>Assign Subject
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style="z-index: 9999;">
+    <div class="text-center text-white">
+        <div class="spinner-border mb-3" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <h5>Creating Assignment...</h5>
+        <p>Please wait while we process the assignment.</p>
+    </div>
+</div>
+
+<style>
+.page-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.schedule-slot {
+    background-color: #f8f9fa;
+}
+
+.validation-feedback {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875em;
+}
+
+.validation-feedback.valid {
+    color: #198754;
+}
+
+.validation-feedback.invalid {
+    color: #dc3545;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('assignmentForm');
+    const teacherSelect = document.getElementById('teacher_id');
+    const subjectSelect = document.getElementById('subject_id');
+    const statusSelect = document.getElementById('status');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    // Real-time validation feedback
+    function showValidationFeedback(element, isValid, message) {
+        // Remove existing feedback
+        const existingFeedback = element.parentNode.querySelector('.validation-feedback');
+        if (existingFeedback) {
+            existingFeedback.remove();
+        }
+
+        // Add new feedback
+        const feedback = document.createElement('div');
+        feedback.className = `validation-feedback ${isValid ? 'valid' : 'invalid'}`;
+        feedback.innerHTML = `<i class="fas fa-${isValid ? 'check' : 'times'} me-1"></i>${message}`;
+        element.parentNode.appendChild(feedback);
+
+        // Update element styling
+        element.classList.remove('is-valid', 'is-invalid');
+        element.classList.add(isValid ? 'is-valid' : 'is-invalid');
+    }
+
+    // Validate teacher selection
+    teacherSelect.addEventListener('change', function() {
+        if (this.value) {
+            const teacherName = this.options[this.selectedIndex].text;
+            showValidationFeedback(this, true, `Teacher "${teacherName}" selected`);
+        } else {
+            showValidationFeedback(this, false, 'Please select a teacher');
+        }
+        validateForm();
+    });
+
+    // Validate subject selection
+    subjectSelect.addEventListener('change', function() {
+        if (this.value) {
+            const subjectName = this.options[this.selectedIndex].text;
+            showValidationFeedback(this, true, `Subject "${subjectName}" selected`);
+        } else {
+            showValidationFeedback(this, false, 'Please select a subject');
+        }
+        validateForm();
+    });
+
+    // Validate status selection
+    statusSelect.addEventListener('change', function() {
+        if (this.value) {
+            const statusName = this.options[this.selectedIndex].text;
+            showValidationFeedback(this, true, `Status "${statusName}" selected`);
+        } else {
+            showValidationFeedback(this, false, 'Please select a status');
+        }
+        validateForm();
+    });
+
+    // Form validation
+    function validateForm() {
+        const isValid = teacherSelect.value && subjectSelect.value && statusSelect.value;
+        submitBtn.disabled = !isValid;
+
+        if (isValid) {
+            submitBtn.innerHTML = '<i class="fas fa-check me-1"></i>Assign Subject';
+            submitBtn.className = 'btn btn-primary';
+        } else {
+            submitBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Please Complete Required Fields';
+            submitBtn.className = 'btn btn-secondary';
+        }
+    }
+
+    // Form submission with confirmation
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const teacherName = teacherSelect.options[teacherSelect.selectedIndex].text;
+        const subjectName = subjectSelect.options[subjectSelect.selectedIndex].text;
+        const statusName = statusSelect.options[statusSelect.selectedIndex].text;
+        const schoolYear = document.getElementById('school_year').value;
+        const gradingPeriod = document.getElementById('grading_period').value;
+
+        // Show confirmation dialog
+        const confirmMessage = `Are you sure you want to assign this subject?\n\n` +
+                             `👨‍🏫 Teacher: ${teacherName}\n` +
+                             `📚 Subject: ${subjectName}\n` +
+                             `📅 School Year: ${schoolYear}\n` +
+                             `📊 Grading Period: ${gradingPeriod}\n` +
+                             `📝 Status: ${statusName}`;
+
+        if (confirm(confirmMessage)) {
+            // Show loading overlay
+            loadingOverlay.classList.remove('d-none');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Creating Assignment...';
+
+            // Submit the form
+            this.submit();
+        }
+    });
+
+    // Initial validation
+    validateForm();
+});
+</script>
+@endsection

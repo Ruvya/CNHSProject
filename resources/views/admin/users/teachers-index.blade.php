@@ -119,7 +119,8 @@
                             <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
-                            <th>Strand</th>
+                            <th>Track</th>
+                            <th>Cluster</th>
                             <th>Contact</th>
                             <th>Status</th>
                             <th>Actions</th>
@@ -138,7 +139,8 @@
                                 </div>
                             </td>
                             <td>{{ $teacher->email }}</td>
-                            <td>{{ $teacher->strand ?? '-' }}</td>
+                            <td>{{ $teacher->track ?? '-' }}</td>
+                            <td>{{ $teacher->cluster ?? '-' }}</td>
                             <td>{{ $teacher->contact_number ?? '-' }}</td>
                             <td>
                                 <span class="badge badge-{{ $teacher->status === 'active' ? 'success' : 'secondary' }}">
@@ -189,7 +191,7 @@ $(document).ready(function() {
         "pageLength": 10,
         "order": [[ 1, "asc" ]],
         "columnDefs": [
-            { "orderable": false, "targets": 6 }
+            { "orderable": false, "targets": 7 }
         ],
         "language": {
             "search": "Search teachers:",

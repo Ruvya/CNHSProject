@@ -236,38 +236,7 @@
     </div>
 
     <!-- Quick Actions -->
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Grading Tips
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-2"></i>
-                            Complete all quarter grades for accurate final grades
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-2"></i>
-                            Review grades before finalizing
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-2"></i>
-                            Add remarks for students who need attention
-                        </li>
-                        <li class="mb-0">
-                            <i class="fas fa-check text-success me-2"></i>
-                            Monitor class averages regularly
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Grading Tips card removed -->
 </div>
 @endsection
 

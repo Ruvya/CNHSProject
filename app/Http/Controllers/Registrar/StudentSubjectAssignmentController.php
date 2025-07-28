@@ -27,8 +27,8 @@ class StudentSubjectAssignmentController extends Controller
             $query->where('track', $request->track);
         }
 
-        if ($request->filled('strand')) {
-            $query->where('strand', $request->strand);
+        if ($request->filled('cluster')) {
+            $query->where('cluster', $request->cluster);
         }
 
         if ($request->filled('section')) {
@@ -58,7 +58,7 @@ class StudentSubjectAssignmentController extends Controller
         // Get filter options
         $gradeLevels = Student::distinct()->pluck('grade_level')->filter()->sort();
         $tracks = Student::distinct()->pluck('track')->filter()->sort();
-        $strands = Student::distinct()->pluck('strand')->filter()->sort();
+        $clusters = Student::distinct()->pluck('cluster')->filter()->sort();
         $sections = Student::distinct()->pluck('section')->filter()->sort();
 
         // Get statistics
@@ -70,7 +70,7 @@ class StudentSubjectAssignmentController extends Controller
             'students',
             'gradeLevels',
             'tracks',
-            'strands',
+            'clusters',
             'sections',
             'totalStudents',
             'studentsWithSubjects',
@@ -85,10 +85,10 @@ class StudentSubjectAssignmentController extends Controller
     {
         $student = Student::with('subjects')->findOrFail($studentId);
 
-        // Get available subjects based on student's grade level, track, and strand
+        // Get available subjects based on student's grade level, track, and cluster
         $availableSubjects = Subject::where('grade_level', $student->grade_level)
             ->where('track', $student->track)
-            ->where('strand', $student->strand)
+            ->where('cluster', $student->cluster)
             ->with(['teacher', 'students'])
             ->orderBy('name')
             ->get();
@@ -97,7 +97,7 @@ class StudentSubjectAssignmentController extends Controller
         $allSubjects = Subject::with(['teacher', 'students'])
             ->orderBy('grade_level')
             ->orderBy('track')
-            ->orderBy('strand')
+            ->orderBy('cluster')
             ->orderBy('name')
             ->get();
 
@@ -173,8 +173,8 @@ class StudentSubjectAssignmentController extends Controller
             $query->where('track', $request->track);
         }
 
-        if ($request->filled('strand')) {
-            $query->where('strand', $request->strand);
+        if ($request->filled('cluster')) {
+            $query->where('cluster', $request->cluster);
         }
 
         if ($request->filled('section')) {
@@ -194,8 +194,8 @@ class StudentSubjectAssignmentController extends Controller
             $subjects->where('track', $request->track);
         }
 
-        if ($request->filled('strand')) {
-            $subjects->where('strand', $request->strand);
+        if ($request->filled('cluster')) {
+            $subjects->where('cluster', $request->cluster);
         }
 
         $subjects = $subjects->with('teacher')->orderBy('name')->get();
@@ -203,7 +203,7 @@ class StudentSubjectAssignmentController extends Controller
         // Get filter options
         $gradeLevels = Student::distinct()->pluck('grade_level')->filter()->sort();
         $tracks = Student::distinct()->pluck('track')->filter()->sort();
-        $strands = Student::distinct()->pluck('strand')->filter()->sort();
+        $clusters = Student::distinct()->pluck('cluster')->filter()->sort();
         $sections = Student::distinct()->pluck('section')->filter()->sort();
 
         return view('registrar.student-subject-assignments.bulk-create', compact(
@@ -211,7 +211,7 @@ class StudentSubjectAssignmentController extends Controller
             'subjects',
             'gradeLevels',
             'tracks',
-            'strands',
+            'clusters',
             'sections'
         ));
     }
@@ -306,8 +306,8 @@ class StudentSubjectAssignmentController extends Controller
             $query->where('track', $request->track);
         }
 
-        if ($request->filled('strand')) {
-            $query->where('strand', $request->strand);
+        if ($request->filled('cluster')) {
+            $query->where('cluster', $request->cluster);
         }
 
         $subjects = $query->orderBy('name')->get();

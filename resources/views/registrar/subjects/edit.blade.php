@@ -132,24 +132,6 @@
                                     @enderror
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <label for="strand" class="form-label fw-semibold">
-                                        Strand <span class="text-danger">*</span>
-                                    </label>
-                                    <select class="form-select @error('strand') is-invalid @enderror"
-                                            id="strand"
-                                            name="strand"
-                                            required>
-                                        <option value="">Select Strand</option>
-                                        <!-- Options will be populated by JavaScript based on track selection -->
-                                    </select>
-                                    @error('strand')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
                                     <label for="cluster" class="form-label fw-semibold">
                                         Cluster
                                     </label>
@@ -157,12 +139,15 @@
                                             id="cluster"
                                             name="cluster">
                                         <option value="">Select Cluster (Optional)</option>
-                                        <!-- Options will be populated by JavaScript based on strand selection -->
+                                        <!-- Options will be populated by JavaScript based on track selection -->
                                     </select>
                                     @error('cluster')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+                            </div>
+
+                            <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="specialization" class="form-label fw-semibold">
                                         Specialization
@@ -258,7 +243,7 @@
                                                value="1"
                                                {{ old('is_master_subject', $subject->is_master_subject) ? 'checked' : '' }}>
                                         <label class="form-check-label fw-semibold" for="is_master_subject">
-                                            Master Subject
+                                            Elective Subject
                                         </label>
                                         <div class="form-text">Check if this is a master subject template</div>
                                     </div>
@@ -376,47 +361,32 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const trackSelect = document.getElementById('track');
-    const strandSelect = document.getElementById('strand');
     const clusterSelect = document.getElementById('cluster');
     const codeInput = document.getElementById('code');
+    const coreSubjectCheckbox = document.getElementById('is_core_subject');
+    const electiveSubjectCheckbox = document.getElementById('is_master_subject');
+    const gradeLevelSelect = document.getElementById('grade_level');
+    const gradingSelect = document.getElementById('grading');
 
     // Current values from the subject
     const currentTrack = '{{ old("track", $subject->track) }}';
-    const currentStrand = '{{ old("strand", $subject->strand) }}';
     const currentCluster = '{{ old("cluster", $subject->cluster) }}';
 
     // Initialize form with current values
     function initializeForm() {
         if (currentTrack) {
-            populateStrands(currentTrack);
-            if (currentStrand) {
-                strandSelect.value = currentStrand;
-                populateClusters(currentTrack, currentStrand);
-                if (currentCluster) {
-                    clusterSelect.value = currentCluster;
-                }
+            populateClusters(currentTrack);
+            if (currentCluster) {
+                clusterSelect.value = currentCluster;
             }
         }
     }
 
-    // Populate strands based on track
-    function populateStrands(selectedTrack) {
-        strandSelect.innerHTML = '<option value="">Select Strand</option>';
-        if (selectedTrack && curriculumData[selectedTrack]) {
-            Object.keys(curriculumData[selectedTrack]).forEach(strand => {
-                const option = document.createElement('option');
-                option.value = strand;
-                option.textContent = strand;
-                strandSelect.appendChild(option);
-            });
-        }
-    }
-
-    // Populate clusters based on track and strand
-    function populateClusters(selectedTrack, selectedStrand) {
+    // Populate clusters based on track
+    function populateClusters(selectedTrack) {
         clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
-        if (selectedTrack && selectedStrand && curriculumData[selectedTrack][selectedStrand]) {
-            const clusters = curriculumData[selectedTrack][selectedStrand].clusters;
+        if (selectedTrack && curriculumData[selectedTrack]) {
+            const clusters = curriculumData[selectedTrack].clusters; // Assuming clusters are directly under the track
             clusters.forEach(cluster => {
                 const option = document.createElement('option');
                 option.value = cluster;
@@ -429,14 +399,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners
     trackSelect.addEventListener('change', function() {
         const selectedTrack = this.value;
-        populateStrands(selectedTrack);
-        clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
-    });
-
-    strandSelect.addEventListener('change', function() {
-        const selectedTrack = trackSelect.value;
-        const selectedStrand = this.value;
-        populateClusters(selectedTrack, selectedStrand);
+        populateClusters(selectedTrack);
     });
 
     // Ensure code is always uppercase
@@ -446,7 +409,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Auto-map semester to grading period
     const semesterSelect = document.getElementById('semester');
-    const gradingSelect = document.getElementById('grading');
 
     semesterSelect.addEventListener('change', function() {
         const semester = this.value;
@@ -459,11 +421,82 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Core Subject auto-assign logic
+    coreSubjectCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            gradeLevelSelect.value = 'Grade 11';
+            gradeLevelSelect.style.backgroundColor = '#e9ecef';
+            gradeLevelSelect.style.pointerEvents = 'none';
+            trackSelect.value = 'All';
+            trackSelect.style.backgroundColor = '#e9ecef';
+            trackSelect.style.pointerEvents = 'none';
+            clusterSelect.value = 'All';
+            clusterSelect.style.backgroundColor = '#e9ecef';
+            clusterSelect.style.pointerEvents = 'none';
+            gradingSelect.value = 'All Gradings';
+            gradingSelect.style.backgroundColor = '#e9ecef';
+            gradingSelect.style.pointerEvents = 'none';
+            // Disable and uncheck Elective Subject
+            electiveSubjectCheckbox.checked = false;
+            electiveSubjectCheckbox.setAttribute('disabled', 'disabled');
+        } else {
+            gradeLevelSelect.style.backgroundColor = '';
+            gradeLevelSelect.style.pointerEvents = '';
+            trackSelect.style.backgroundColor = '';
+            trackSelect.style.pointerEvents = '';
+            clusterSelect.style.backgroundColor = '';
+            clusterSelect.style.pointerEvents = '';
+            gradingSelect.style.backgroundColor = '';
+            gradingSelect.style.pointerEvents = '';
+            // Enable Elective Subject
+            electiveSubjectCheckbox.removeAttribute('disabled');
+        }
+    });
+
+    // Elective Subject logic
+    electiveSubjectCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            // Disable and uncheck Core Subject
+            coreSubjectCheckbox.checked = false;
+            coreSubjectCheckbox.setAttribute('disabled', 'disabled');
+        } else {
+            // Enable Core Subject
+            coreSubjectCheckbox.removeAttribute('disabled');
+        }
+    });
+
+    // On page load, if checked, apply logic
+    if (coreSubjectCheckbox.checked) {
+        gradeLevelSelect.value = 'Grade 11';
+        gradeLevelSelect.style.backgroundColor = '#e9ecef';
+        gradeLevelSelect.style.pointerEvents = 'none';
+        trackSelect.value = 'All';
+        trackSelect.style.backgroundColor = '#e9ecef';
+        trackSelect.style.pointerEvents = 'none';
+        clusterSelect.value = 'All';
+        clusterSelect.style.backgroundColor = '#e9ecef';
+        clusterSelect.style.pointerEvents = 'none';
+        gradingSelect.value = 'All Gradings';
+        gradingSelect.style.backgroundColor = '#e9ecef';
+        gradingSelect.style.pointerEvents = 'none';
+        // Disable and uncheck Elective Subject
+        electiveSubjectCheckbox.checked = false;
+        electiveSubjectCheckbox.setAttribute('disabled', 'disabled');
+    } else if (electiveSubjectCheckbox.checked) {
+        // Disable and uncheck Core Subject
+        coreSubjectCheckbox.checked = false;
+        coreSubjectCheckbox.setAttribute('disabled', 'disabled');
+    } else {
+        electiveSubjectCheckbox.removeAttribute('disabled');
+        coreSubjectCheckbox.removeAttribute('disabled');
+    }
+
     // Form validation
     document.getElementById('subjectForm').addEventListener('submit', function(e) {
-        const requiredFields = ['name', 'code', 'grade_level', 'track', 'strand', 'grading'];
+        const requiredFields = ['name', 'code'];
         let isValid = true;
 
+        // Always validate name and code
         requiredFields.forEach(fieldName => {
             const field = document.getElementById(fieldName);
             if (!field.value.trim()) {
@@ -473,6 +506,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 field.classList.remove('is-invalid');
             }
         });
+
+        // Only validate grade_level, track, and grading if Core Subject is NOT checked
+        if (!coreSubjectCheckbox.checked) {
+            const conditionalFields = ['grade_level', 'track', 'grading'];
+            conditionalFields.forEach(fieldName => {
+                const field = document.getElementById(fieldName);
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+        } else {
+            // If Core Subject is checked, ensure disabled fields have their values
+            // and remove any invalid styling
+            document.getElementById('grade_level').classList.remove('is-invalid');
+            document.getElementById('track').classList.remove('is-invalid');
+            document.getElementById('grading').classList.remove('is-invalid');
+        }
 
         if (!isValid) {
             e.preventDefault();

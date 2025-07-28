@@ -1,22 +1,34 @@
-@extends('layouts.admin')
+    @extends('layouts.admin')
 
 @section('title', 'Student Profile')
 
 @section('content')
 <!-- Page Header -->
-<div class="page-header">
-    <h1 class="page-title">{{ $student->full_name }}</h1>
-    <p class="page-subtitle">Student ID: {{ $student->student_id }} • {{ $student->grade_level }}</p>
-    <div class="page-actions">
-        <a href="{{ route('admin.users.students.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back to Student Accounts
-        </a>
-        @if($student->is_temporary_account)
-            <span class="badge bg-warning fs-6">
-                <i class="fas fa-exclamation-triangle me-1"></i>
-                Profile Incomplete - Student needs to complete profile
-            </span>
-        @endif
+<div class="card mb-4 shadow-sm border-0 bg-light position-relative">
+    <div class="card-body d-flex flex-column flex-md-row align-items-md-center justify-content-between py-4 px-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="avatar-xl bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; font-size: 2.5rem; font-weight: 700;">
+                {{ substr($student->first_name, 0, 1) }}{{ substr($student->last_name, 0, 1) }}
+            </div>
+            <div>
+                <h1 class="mb-1 fw-bold" style="font-size: 2.2rem; letter-spacing: -1px;">{{ $student->full_name }}</h1>
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                    <span class="badge bg-primary fs-6"><i class="fas fa-id-card me-1"></i> {{ $student->student_id }}</span>
+                    <span class="badge bg-info text-dark fs-6"><i class="fas fa-layer-group me-1"></i> {{ $student->grade_level }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex flex-column align-items-end gap-2 mt-3 mt-md-0">
+            <a href="{{ route('admin.users.students.index') }}" class="btn btn-outline-secondary px-3 mb-1">
+                <i class="fas fa-arrow-left me-2"></i>Back to Student Accounts
+            </a>
+            @if($student->is_temporary_account)
+                <span class="badge bg-warning fs-6 align-self-end">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Profile Incomplete - Student needs to complete profile
+                </span>
+            @endif
+        </div>
     </div>
 </div>
 
@@ -29,7 +41,7 @@
 
 <div class="row g-4">
     <!-- Main Content -->
-    <div class="col-xl-8">
+    <div class="col-xl-12">
         <!-- Personal Information -->
         <div class="card mb-4">
             <div class="card-header">
@@ -292,76 +304,7 @@
     <!-- Sidebar -->
     <div class="col-xl-4">
         <!-- Student Avatar and Quick Info -->
-        <div class="card mb-4">
-            <div class="card-body text-center">
-                <div class="avatar-xl bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center">
-                    {{ substr($student->first_name, 0, 1) }}{{ substr($student->last_name, 0, 1) }}
-                </div>
-                <h4>{{ $student->full_name }}</h4>
-                <p class="text-muted mb-2">{{ $student->student_id }}</p>
-                <div class="d-flex justify-content-center gap-2 mb-3">
-                    <span class="badge bg-info">{{ $student->grade_level }}</span>
-                    @if($student->section)
-                        <span class="badge bg-success">{{ $student->section }}</span>
-                    @endif
-                </div>
-                <div class="d-grid gap-2">
-                    <a href="mailto:{{ $student->email }}" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-envelope me-2"></i>Send Email
-                    </a>
-                    @if($student->contact_number)
-                        <a href="tel:{{ $student->contact_number }}" class="btn btn-outline-success btn-sm">
-                            <i class="fas fa-phone me-2"></i>Call Student
-                        </a>
-                    @endif
-                </div>
-            </div>
-        </div>
-
-        <!-- Academic Statistics -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-chart-bar me-2 text-success"></i>
-                    Academic Statistics
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-6">
-                        <div class="border-end">
-                            <h4 class="text-primary">{{ $totalSubjects }}</h4>
-                            <small class="text-muted">Total Subjects</small>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <h4 class="text-success">{{ $passedSubjects }}</h4>
-                        <small class="text-muted">Passed</small>
-                    </div>
-                </div>
-
-                @if($averageGrade)
-                <hr>
-                <div class="row text-center">
-                    <div class="col-6">
-                        <div class="border-end">
-                            <h5 class="text-info">{{ number_format($averageGrade, 1) }}</h5>
-                            <small class="text-muted">Average Grade</small>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        @if($gpa)
-                            <h5 class="text-warning">{{ $gpa }}</h5>
-                            <small class="text-muted">GPA</small>
-                        @else
-                            <h5 class="text-muted">N/A</h5>
-                            <small class="text-muted">GPA</small>
-                        @endif
-                    </div>
-                </div>
-                @endif
-            </div>
-        </div>
+        {{-- Removed the card with avatar, name, student ID, grade, section, and Send Email/Call Student buttons as requested --}}
 
         <!-- Recent Grades -->
         @if($recentGrades->count() > 0)
@@ -388,43 +331,6 @@
             </div>
         </div>
         @endif
-
-        <!-- Quick Actions -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-cogs me-2 text-secondary"></i>
-                    Quick Actions
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    @if($student->is_temporary_account)
-                        <div class="alert alert-warning alert-sm">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Note:</strong> This student has not completed their profile yet. They need to log in and complete their information.
-                        </div>
-                    @endif
-
-                    <!-- Password Reset Button -->
-                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
-                        <i class="fas fa-key me-2"></i>Reset Password
-                    </button>
-
-                    <button class="btn btn-info btn-sm" onclick="window.print()">
-                        <i class="fas fa-print me-2"></i>Print Profile
-                    </button>
-                    <form action="{{ route('admin.users.students.destroy', $student) }}" method="POST"
-                          onsubmit="return confirm('Are you sure you want to delete this student? This action cannot be undone.')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm w-100">
-                            <i class="fas fa-trash me-2"></i>Delete Student
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 

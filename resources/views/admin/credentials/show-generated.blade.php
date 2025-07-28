@@ -13,9 +13,7 @@
         <button type="button" class="btn btn-primary" onclick="printCredentials()">
             <i class="fas fa-print me-2"></i>Print
         </button>
-        <a href="{{ route('admin.credentials.generate') }}" class="btn btn-outline-primary">
-            <i class="fas fa-plus me-2"></i>Generate More
-        </a>
+        <!-- Generate More button removed as per request -->
     </div>
 </div>
 

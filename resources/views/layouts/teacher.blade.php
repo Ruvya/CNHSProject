@@ -71,9 +71,13 @@
         }
 
         .logo {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             object-fit: contain;
+            border-radius: 50%;
+            background: white;
+            padding: 3px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .header h1 {
@@ -273,10 +277,10 @@
             padding: 25px 20px;
             position: fixed;
             height: 100vh;
-            padding-top: 90px; /* Space for fixed header */
+            padding-top: 40px; /* Reduced space for fixed header */
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-            overflow-y: auto;
-            overflow-x: auto;
+            /* overflow-y: auto; */
+            /* overflow-x: auto; */
             min-width: 280px;
             max-width: 100vw;
         }
@@ -437,7 +441,7 @@
     <!-- Header - Student Style -->
     <header class="header">
         <div class="header-left">
-            <img src="{{ asset('images/CNHS.png') }}" alt="CNHS Logo" class="logo">
+            <img src="{{ asset('images/logo.png') }}" alt="Calingcaguing National High School Logo" class="logo">
             <h1>CNHS Teacher Portal</h1>
         </div>
         <div class="header-right">
@@ -491,7 +495,7 @@
     <div class="sidebar">
         <div class="profile">
             <div class="profile-image-container">
-                <img src="{{ asset('images/logo.png') }}" alt="Profile Picture">
+                <img src="{{ Auth::guard('teacher')->user()->profile_picture ? asset('storage/' . Auth::guard('teacher')->user()->profile_picture) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::guard('teacher')->user()->name) . '&size=90&background=4e73df&color=ffffff&bold=true' }}" alt="Profile Picture">
                 <div class="online-indicator"></div>
             </div>
             <h2>{{ Auth::guard('teacher')->user()->name }}</h2>

@@ -172,25 +172,25 @@
                     <ul>
                         <li>Supported formats: Excel (.xlsx, .xls) and CSV (.csv)</li>
                         <li>First row must contain column headers</li>
-                        <li>Required column: <code>student_id</code></li>
-                        <li>Recommended columns: <code>first_name</code>, <code>last_name</code>, <code>email</code></li>
-                        <li>Profile fields: <code>date_of_birth</code>, <code>place_of_birth</code>, <code>nationality</code>, <code>religion</code>, <code>civil_status</code></li>
+                        <li>Required column: <code>student_id</code> or <code>LRN</code></li>
+                        <li>SF1-SHS format supported with all 27 columns</li>
+                        <li>All profile fields will be updated from Excel data</li>
                         <li>Maximum file size: 20MB</li>
                     </ul>
                 </div>
                 <div class="col-md-6">
-                    <h6>Import Process:</h6>
+                    <h6>Import Process & Profile Updates:</h6>
                     <ul>
                         <li><strong>Step 1:</strong> Select Grade Level and Track for all students in the file</li>
                         <li><strong>Step 2:</strong> Choose your Excel/CSV file</li>
                         <li><strong>Step 3:</strong> Click "Upload & Import" to process</li>
-                        <li>Students are matched by their unique <code>student_id</code></li>
-                        <li>Existing students will be updated with new data</li>
-                        <li>New students will be created automatically</li>
-                        <li>Selected Grade Level and Track will be applied to all students</li>
-                        <li>Students can edit their profiles after upload</li>
-                        <li>Track and strand assignments are automatic</li>
-                        <li>Date format: YYYY-MM-DD (e.g., 2006-05-15)</li>
+                        <li><strong>Student Matching:</strong> Students are matched by <code>student_id</code> or <code>LRN</code></li>
+                        <li><strong>Profile Updates:</strong> ALL fields from Excel will update existing student profiles</li>
+                        <li><strong>New Students:</strong> Students not found will be created automatically</li>
+                        <li><strong>Academic Changes:</strong> Track/cluster changes trigger automatic subject reassignment</li>
+                        <li><strong>Profile Lock:</strong> Students cannot edit their profiles after registrar upload</li>
+                        <li><strong>Data Tracking:</strong> System logs all changes and update timestamps</li>
+                        <li><strong>Date Format:</strong> MM/DD/YYYY (e.g., 05/15/2006) or YYYY-MM-DD</li>
                     </ul>
                 </div>
             </div>
@@ -198,10 +198,10 @@
             <div class="mt-3">
                 <div class="btn-group" role="group">
                     <a href="{{ route('registrar.students.template') }}" class="btn btn-outline-success">
-                        <i class="fas fa-download me-2"></i>Download CSV Template
+                        <i class="fas fa-download me-2"></i>Download SF1-SHS CSV Template
                     </a>
                     <a href="{{ route('registrar.students.template', ['format' => 'excel']) }}" class="btn btn-outline-primary">
-                        <i class="fas fa-file-excel me-2"></i>Download Excel Template
+                        <i class="fas fa-file-excel me-2"></i>Download SF1-SHS Excel Template
                     </a>
                 </div>
             </div>

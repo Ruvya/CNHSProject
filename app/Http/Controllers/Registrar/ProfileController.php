@@ -15,15 +15,27 @@ class ProfileController extends Controller
         return view('registrar.profile');
     }
 
+    protected function getActingUser()
+    {
+        if (\Auth::guard('admin')->check()) {
+            return ['user' => \Auth::guard('admin')->user(), 'type' => 'admin'];
+        } elseif (\Auth::guard('registrar')->check()) {
+            return ['user' => \Auth::guard('registrar')->user(), 'type' => 'registrar'];
+        }
+        return ['user' => null, 'type' => null];
+    }
+
     public function update(Request $request)
     {
-        $registrar = Auth::guard('registrar')->user();
+        $acting = $this->getActingUser();
+        $user = $acting['user'];
+        $type = $acting['type'];
 
         // Validation rules
         $rules = [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:registrars,email,' . $registrar->id,
+            'email' => 'required|email|unique:' . ($type === 'admin' ? 'admins' : 'registrars') . ',email,' . $user->id,
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ];
 
@@ -37,7 +49,7 @@ class ProfileController extends Controller
 
         // Verify current password if changing password
         if ($request->filled('password')) {
-            if (!Hash::check($request->current_password, $registrar->password)) {
+            if (!\Hash::check($request->current_password, $user->password)) {
                 return back()->withErrors(['current_password' => 'The current password is incorrect.']);
             }
         }
@@ -45,33 +57,35 @@ class ProfileController extends Controller
         // Handle profile picture upload
         if ($request->hasFile('profile_picture')) {
             // Delete old profile picture if exists
-            if ($registrar->profile_picture && Storage::disk('public')->exists($registrar->profile_picture)) {
-                Storage::disk('public')->delete($registrar->profile_picture);
+            if ($user->profile_picture && \Storage::disk('public')->exists($user->profile_picture)) {
+                \Storage::disk('public')->delete($user->profile_picture);
             }
 
-            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-            $registrar->profile_picture = $path;
+            $file = $request->file('profile_picture');
+            $filename = 'registrar_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('registrar-profiles', $filename, 'public');
+            $user->profile_picture = $path;
         }
 
         // Handle profile picture removal
         if ($request->has('remove_profile_picture')) {
-            if ($registrar->profile_picture && Storage::disk('public')->exists($registrar->profile_picture)) {
-                Storage::disk('public')->delete($registrar->profile_picture);
+            if ($user->profile_picture && \Storage::disk('public')->exists($user->profile_picture)) {
+                \Storage::disk('public')->delete($user->profile_picture);
             }
-            $registrar->profile_picture = null;
+            $user->profile_picture = null;
         }
 
         // Update basic information
-        $registrar->first_name = $request->first_name;
-        $registrar->last_name = $request->last_name;
-        $registrar->email = $request->email;
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->email = $request->email;
 
         // Update password if provided
         if ($request->filled('password')) {
-            $registrar->password = Hash::make($request->password);
+            $user->password = \Hash::make($request->password);
         }
 
-        $registrar->save();
+        $user->save();
 
         return redirect()->back()->with('success', 'Profile updated successfully! Your changes have been saved.');
     }

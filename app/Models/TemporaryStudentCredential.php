@@ -12,9 +12,11 @@ class TemporaryStudentCredential extends Model
         'password',
         'is_used',
         'created_by_admin_id',
+        'created_by_registrar_id',
         'used_by_student_id',
         'used_at',
-        'notes'
+        'notes',
+        'source'
     ];
 
     protected $casts = [
@@ -35,11 +37,19 @@ class TemporaryStudentCredential extends Model
     }
 
     /**
+     * Get the registrar who created this credential
+     */
+    public function createdByRegistrar(): BelongsTo
+    {
+        return $this->belongsTo(Registrar::class, 'created_by_registrar_id');
+    }
+
+    /**
      * Get the student who used this credential
      */
     public function usedByStudent(): BelongsTo
     {
-        return $this->belongsTo(Student::class, 'used_by_student_id', 'student_id');
+        return $this->belongsTo(Student::class, 'used_by_student_id', 'id');
     }
 
     /**
@@ -76,6 +86,22 @@ class TemporaryStudentCredential extends Model
     public function scopeCreatedBy($query, $adminId)
     {
         return $query->where('created_by_admin_id', $adminId);
+    }
+
+    /**
+     * Scope to get credentials generated from CSV uploads
+     */
+    public function scopeFromCsvUpload($query)
+    {
+        return $query->where('source', 'csv_upload');
+    }
+
+    /**
+     * Scope to get manually generated credentials
+     */
+    public function scopeManuallyGenerated($query)
+    {
+        return $query->where('source', 'manual');
     }
 
     /**

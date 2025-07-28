@@ -25,7 +25,11 @@ class EventController extends Controller
             'end' => 'nullable|date',
             'color' => 'nullable|string',
         ]);
-        $event = Event::create($validated + ['created_by' => auth()->id()]);
+        
+        $event = Event::create($validated + [
+            'created_by' => auth('principal')->id()
+        ]);
+        
         return response()->json($event, 201);
     }
 

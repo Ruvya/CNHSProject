@@ -85,15 +85,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 text-center">
-                    <div class="registration-visual">
-                        <div class="visual-icon">
-                            <i class="fas fa-user-graduate"></i>
-                        </div>
-                        <h6 class="mt-3 mb-2">Self-Service Registration</h6>
-                        <p class="text-muted small mb-0">Faculty create their own accounts</p>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -144,7 +135,10 @@
                                 <i class="fas fa-book me-2"></i>SUBJECT AREA
                             </th>
                             <th>
-                                <i class="fas fa-graduation-cap me-2"></i>STRAND
+                                <i class="fas fa-route me-2"></i>TRACK
+                            </th>
+                            <th>
+                                <i class="fas fa-graduation-cap me-2"></i>CLUSTER
                             </th>
                             <th>
                                 <i class="fas fa-toggle-on me-2"></i>STATUS
@@ -161,7 +155,8 @@
                                 <td>{{ $teacher->email }}</td>
                                 <td>{{ $teacher->contact_number }}</td>
                                 <td>{{ $teacher->subject ?? 'N/A' }}</td>
-                                <td>{{ $teacher->strand ?? 'N/A' }}</td>
+                                <td>{{ $teacher->track ?? 'N/A' }}</td>
+                                <td>{{ $teacher->cluster ?? 'N/A' }}</td>
                                 <td>
                                     <span class="badge bg-{{ $teacher->status === 'active' ? 'success' : 'secondary' }}">
                                         {{ ucfirst($teacher->status) }}
@@ -194,7 +189,18 @@
 @endsection
 
 @section('styles')
+@parent
 <style>
+    body, .page-header, .page-title, .page-subtitle, .info-card, .info-card-header, .info-card-body, .registration-steps, .step-content, .registration-visual, .visual-icon, h1, h2, h3, h4, h5, h6, p, span, div, th, td, label {
+        color: #fff !important;
+    }
+    .info-card, .info-card-header, .info-card-body {
+        background: #1E3A8A !important;
+        border: none !important;
+    }
+    .registration-visual .visual-icon i {
+        color: #fff !important;
+    }
     /* CSS Variables */
     :root {
         --primary-orange: #ff6b35;
@@ -540,6 +546,24 @@
         .header-button-group {
             margin-top: 1rem;
         }
+    }
+
+    /* Faculty Directory Card: gray background, black text */
+    .faculty-directory-card, .faculty-directory-header, .faculty-directory-body, .faculty-table, .faculty-table th, .faculty-table td {
+        background: #e5e7eb !important;
+        color: #222 !important;
+    }
+    .faculty-directory-header h5, .faculty-directory-header .faculty-stats, .faculty-directory-header .faculty-stats .stat-item, .faculty-directory-header .faculty-stats .stat-item i {
+        color: #222 !important;
+    }
+    .faculty-table th {
+        font-weight: 700;
+    }
+    .faculty-table tbody tr {
+        background: #f8fafc;
+    }
+    .faculty-table tbody tr:nth-child(even) {
+        background: #e3edfa;
     }
 </style>
 @endsection

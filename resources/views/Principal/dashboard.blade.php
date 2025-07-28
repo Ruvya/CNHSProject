@@ -117,8 +117,8 @@
 
 <!-- Main Content Grid -->
 <div class="row">
-    <!-- Recent School Announcements -->
-    <div class="col-lg-8 mb-4">
+    <!-- School Announcements: full width -->
+    <div class="col-12 mb-4">
         <div class="card enhanced-announcements-card">
             <div class="card-header enhanced-card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 card-title-enhanced">
@@ -171,48 +171,50 @@
             </div>
         </div>
     </div>
-
-    <!-- Quick Actions & Calendar -->
-    <div class="col-lg-4 mb-4">
-        <!-- Quick Actions -->
-        <div class="card enhanced-quick-actions-card mb-4">
-            <div class="card-header enhanced-card-header">
-                <h5 class="mb-0 card-title-enhanced">
-                    <i class="fas fa-bolt me-2"></i>
-                    Quick Actions
-                </h5>
-            </div>
-            <div class="card-body enhanced-card-body">
-                <div class="d-grid gap-3">
-                    <a href="{{ route('principal.announcements.create') }}" class="btn btn-enhanced-outline-primary enhanced-action-btn">
-                        <i class="fas fa-bullhorn me-2"></i>Create Announcement
-                    </a>
-                    <a href="{{ route('principal.teachers.index') }}" class="btn btn-enhanced-outline-success enhanced-action-btn">
-                        <i class="fas fa-users me-2"></i>Manage Teachers
-                    </a>
-                    <a href="#" class="btn btn-enhanced-outline-warning enhanced-action-btn">
-                        <i class="fas fa-calendar-alt me-2"></i>School Calendar
-                    </a>
+    <!-- Quick Actions and Upcoming Events below Announcements -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <!-- Quick Actions -->
+            <div class="card enhanced-quick-actions-card mb-4">
+                <div class="card-header enhanced-card-header">
+                    <h5 class="mb-0 card-title-enhanced">
+                        <i class="fas fa-bolt me-2"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body enhanced-card-body">
+                    <div class="d-grid gap-3">
+                        <a href="{{ route('principal.announcements.create') }}" class="btn btn-enhanced-outline-primary enhanced-action-btn">
+                            <i class="fas fa-bullhorn me-2"></i>Create Announcement
+                        </a>
+                        <a href="{{ route('principal.teachers.index') }}" class="btn btn-enhanced-outline-success enhanced-action-btn">
+                            <i class="fas fa-users me-2"></i>Manage Teachers
+                        </a>
+                        <a href="#" class="btn btn-enhanced-outline-warning enhanced-action-btn">
+                            <i class="fas fa-calendar-alt me-2"></i>School Calendar
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <!-- Upcoming School Events -->
-        <div class="card enhanced-events-card">
-            <div class="card-header enhanced-card-header">
-                <h5 class="mb-0 card-title-enhanced">
-                    <i class="fas fa-calendar-check me-2"></i>
-                    Upcoming Events
-                </h5>
-            </div>
-            <div class="card-body enhanced-card-body p-0">
-                <div id="upcoming-events-container" class="enhanced-events-container">
-                    @include('Principal._upcoming_events_list', ['upcomingEvents' => $upcomingEvents])
+        <div class="col-lg-6 mb-4">
+            <!-- Upcoming School Events -->
+            <div class="card enhanced-events-card">
+                <div class="card-header enhanced-card-header">
+                    <h5 class="mb-0 card-title-enhanced">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        Upcoming Events
+                    </h5>
                 </div>
-                <div class="text-center py-3 enhanced-calendar-action">
-                    <button type="button" class="btn btn-enhanced-primary btn-lg enhanced-calendar-btn" data-bs-toggle="modal" data-bs-target="#calendarModal">
-                        <i class="fas fa-calendar-alt me-2"></i>View Full Calendar
-                    </button>
+                <div class="card-body enhanced-card-body p-0">
+                    <div id="upcoming-events-container" class="enhanced-events-container">
+                        @include('Principal._upcoming_events_list', ['upcomingEvents' => $upcomingEvents])
+                    </div>
+                    <div class="text-center py-3 enhanced-calendar-action">
+                        <button type="button" class="btn btn-enhanced-primary btn-lg enhanced-calendar-btn" data-bs-toggle="modal" data-bs-target="#calendarModal">
+                            <i class="fas fa-calendar-alt me-2"></i>View Full Calendar
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -358,11 +360,12 @@
     /* Enhanced School Header */
     .school-header {
         background: var(--cnhs-gradient-orange);
-        border-radius: 24px;
-        padding: 3rem;
+        border-radius: 16px;
+        padding: 1.5rem 2rem 1.2rem 2rem;
         border: none;
         box-shadow: var(--cnhs-shadow-lg);
-        margin-bottom: 2.5rem;
+        margin-bottom: 1.2rem;
+        margin-top: 0.5rem;
         position: relative;
         overflow: hidden;
         color: var(--cnhs-white);
@@ -398,8 +401,8 @@
     }
 
     .school-header h1 {
-        font-size: 2.2rem;
-        margin-bottom: 1rem;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
         font-weight: 800;
         color: var(--cnhs-white);
         text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
@@ -408,8 +411,8 @@
     }
 
     .school-header p {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+        margin-bottom: 0.2rem;
         color: var(--cnhs-white);
         font-weight: 500;
         position: relative;
@@ -428,11 +431,12 @@
     .enhanced-events-card {
         background: linear-gradient(145deg, var(--cnhs-white), var(--cnhs-light-gray));
         border: none;
-        border-radius: 24px;
+        border-radius: 16px;
         box-shadow: var(--cnhs-shadow-md);
         transition: all 0.4s ease;
         overflow: hidden;
         position: relative;
+        padding: 0.75rem 1rem 0.75rem 1rem;
     }
 
     .enhanced-announcements-card:hover,
@@ -445,7 +449,7 @@
     .enhanced-card-header {
         background: var(--cnhs-gradient-primary);
         color: var(--cnhs-white);
-        padding: 2rem;
+        padding: 1rem 1.25rem;
         border-bottom: none;
         position: relative;
         overflow: hidden;
@@ -469,7 +473,7 @@
     }
 
     .card-title-enhanced {
-        font-size: 1.4rem;
+        font-size: 1.05rem;
         font-weight: 700;
         margin: 0;
         text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
@@ -478,7 +482,7 @@
     }
 
     .enhanced-card-body {
-        padding: 2rem;
+        padding: 1rem 1.25rem;
         background: var(--cnhs-white);
     }
 
@@ -609,9 +613,9 @@
     }
 
     .enhanced-action-btn {
-        padding: 1.2rem 2rem;
-        font-size: 1rem;
-        border-radius: 15px;
+        padding: 0.5rem 1rem;
+        font-size: 0.92rem;
+        border-radius: 10px;
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
@@ -871,6 +875,7 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
 var calendar;
@@ -927,20 +932,18 @@ function initOrRefreshCalendar() {
             editable: false,
             dateClick: function(info) {
                 console.log('Date clicked:', info.dateStr);
-                console.log('eventModal object:', eventModal);
                 if (eventModal && typeof eventModal.show === 'function') {
                     resetModal();
                     if (eventStartInput) eventStartInput.value = info.dateStr + 'T08:00';
                     if (eventEndInput) eventEndInput.value = info.dateStr + 'T17:00';
                     eventModal.show();
                 } else {
-                    console.error('eventModal is not properly initialized or show method is missing.', eventModal);
+                    console.error('eventModal is not properly initialized');
                     alert('Calendar is not ready to create events. Please check console for details.');
                 }
             },
             eventClick: function(info) {
                 console.log('Event clicked:', info.event.id);
-                console.log('eventModal object:', eventModal);
                 if (eventModal && typeof eventModal.show === 'function') {
                     var event = info.event;
                     resetModal();
@@ -953,7 +956,7 @@ function initOrRefreshCalendar() {
                     if (deleteEventBtn) deleteEventBtn.style.display = 'inline-block';
                     eventModal.show();
                 } else {
-                    console.error('eventModal is not properly initialized or show method is missing.', eventModal);
+                    console.error('eventModal is not properly initialized');
                     alert('Calendar is not ready to edit events. Please check console for details.');
                 }
             }
@@ -977,7 +980,7 @@ document.addEventListener('DOMContentLoaded', function() {
     eventEndInput = document.getElementById('eventEnd');
     eventColorInput = document.getElementById('eventColor');
 
-    var calendarModal = document.getElementById('calendarModal'); // This is the main FullCalendar display modal
+    var calendarModal = document.getElementById('calendarModal');
 
     if (calendarModal) {
         calendarModal.addEventListener('shown.bs.modal', function () {
@@ -1004,17 +1007,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 url = `{{ route('principal.events.store') }}`;
                 method = 'POST';
             }
+            
+            // Get CSRF token
+            var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                           document.querySelector('input[name="_token"]')?.value;
+            
             fetch(url, {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-TOKEN': csrfToken
                 },
                 body: JSON.stringify(data)
             })
             .then(response => {
                 if (!response.ok) {
-                    // If response is not OK (e.g., 4xx or 5xx status)
                     return response.json().then(err => {
                         throw new Error(err.message || 'Server error occurred.');
                     });
@@ -1036,7 +1043,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error saving event:', error);
-                alert('Error saving event: ' + error.message || 'An unknown error occurred.');
+                alert('Error saving event: ' + (error.message || 'An unknown error occurred.'));
             });
         };
     }
@@ -1046,10 +1053,15 @@ document.addEventListener('DOMContentLoaded', function() {
             var id = eventIdInput.value;
             if (!id) return;
             if (!confirm('Are you sure you want to delete this event?')) return;
+            
+            // Get CSRF token
+            var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                           document.querySelector('input[name="_token"]')?.value;
+            
             fetch(`/principal/events/${id}`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-TOKEN': csrfToken
                 }
             })
             .then(response => {
@@ -1079,59 +1091,19 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error deleting event:', error);
-                alert('Error deleting event: ' + error.message || 'An unknown error occurred.');
+                alert('Error deleting event: ' + (error.message || 'An unknown error occurred.'));
             });
         };
     }
 
     // AJAX setup for CSRF token
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
-
-    console.log('CSRF Token:', $('meta[name="csrf-token"]').attr('content')); // Log CSRF token
-
-    // Handle Save Event button click
-    document.getElementById('saveEventButton').addEventListener('click', function() {
-        // ... existing code ...
-    });
-});
-
-// FullCalendar Initialization for Modal
-var calendarModalEl = document.getElementById('school-calendar');
-var calendarModal = new FullCalendar.Calendar(calendarModalEl, {
-    headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-    },
-    initialView: 'dayGridMonth',
-    events: '/principal/events',
-    editable: true,
-    selectable: true,
-    dayMaxEvents: true,
-    eventDidMount: function(info) {
-        // Optional: Add tooltip or custom styling
-    },
-    eventClick: function(info) {
-        var event = info.event;
-
-        // Populate modal for viewing (read-only)
-        document.getElementById('displayEventTitle').innerText = event.title;
-        document.getElementById('displayEventDescription').innerText = event.extendedProps.description || 'N/A';
-        document.getElementById('displayEventStart').innerText = moment(event.start).format('YYYY-MM-DD HH:mm');
-        document.getElementById('displayEventEnd').innerText = event.end ? moment(event.end).format('YYYY-MM-DD HH:mm') : 'N/A';
-        document.getElementById('displayEventColor').style.backgroundColor = event.backgroundColor;
-
-        $('#eventModal').modal('show');
+    if (typeof $ !== 'undefined') {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
     }
-});
-
-// Render the calendar when the modal is shown
-$('#calendarModal').on('shown.bs.modal', function() {
-    calendarModal.render();
 });
 </script>
 @endsection

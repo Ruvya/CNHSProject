@@ -45,7 +45,8 @@ class TeacherController extends Controller
             'contact_number' => 'required|string|max:20',
             'address' => 'required|string|max:255',
             'subject' => 'required|string|max:255',
-            'strand' => 'nullable|string|max:255',
+            'track' => 'nullable|string|max:255',
+            'cluster' => 'nullable|string|max:255',
             'status' => 'required|in:active,inactive',
         ]);
 
@@ -55,7 +56,8 @@ class TeacherController extends Controller
             'contact_number' => $request->contact_number,
             'address' => $request->address,
             'subject' => $request->subject,
-            'strand' => $request->strand,
+            'track' => $request->track,
+            'cluster' => $request->cluster,
             'status' => $request->status,
         ];
 

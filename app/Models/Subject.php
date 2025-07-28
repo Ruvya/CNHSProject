@@ -17,7 +17,6 @@ class Subject extends Model
         'registrar_id',
         'description',
         'track',
-        'strand',
         'cluster',
         'specialization',
         'grading',
@@ -79,5 +78,24 @@ class Subject extends Model
     public function getDisplayNameAttribute()
     {
         return $this->code . ' - ' . $this->name;
+    }
+
+    /**
+     * Get the currently assigned teacher (from TeacherAssignment, fallback to teacher_id)
+     */
+    public function getCurrentTeacherAttribute()
+    {
+        // Try to get the active teacher assignment for the current school year
+        $schoolYear = app()->bound('currentSchoolYear') ? app('currentSchoolYear') : (date('n') >= 6 ? date('Y').'-'.(date('Y')+1) : (date('Y')-1).'-'.date('Y'));
+        $assignment = $this->teacherAssignments()
+            ->where('status', 'active')
+            ->where('school_year', $schoolYear)
+            ->latest('assignment_date')
+            ->first();
+        if ($assignment && $assignment->teacher) {
+            return $assignment->teacher;
+        }
+        // Fallback to direct teacher_id column
+        return $this->teacher;
     }
 }

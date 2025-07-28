@@ -337,7 +337,7 @@
             <!-- Clean Brand with Logo -->
             <a class="enhanced-navbar-brand" href="{{ route('principal.index') }}">
                 <div class="school-logo-container">
-                    <img src="{{ asset('images/CNHS.png') }}" alt="CNHS Logo" class="school-logo" 
+                    <img src="{{ asset('images/logo.png') }}" alt="School Logo" class="school-logo" 
                          onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');">
                     <i class="fas fa-graduation-cap school-logo-icon" style="display: none;"></i>
                 </div>
@@ -385,38 +385,11 @@
                             Contact
                         </a>
                     </li>
-                    @auth('principal')
-                        <li class="nav-item dropdown position-relative">
-                            <a class="nav-link dropdown-toggle enhanced-dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                                <div class="position-relative" style="display: inline-block;">
-                                    <img src="{{ Auth::guard('principal')->user()->profile_picture ? asset('storage/' . Auth::guard('principal')->user()->profile_picture) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::guard('principal')->user()->name) . '&size=40&background=007bff&color=ffffff&bold=true' }}" alt="{{ Auth::guard('principal')->user()->name }}" class="rounded-circle" width="40" height="40">
-                                    <!-- Online Status Dot -->
-                                    <span class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-white rounded-circle" style="width: 14px; height: 14px;"></span>
-                                </div>
-                                <span class="ms-2">{{ Auth::guard('principal')->user()->name }}</span>
-                            </a>
-                            <ul class="dropdown-menu enhanced-dropdown-menu">
-                                <li><a class="dropdown-item enhanced-dropdown-item" href="{{ route('principal.dashboard') }}">
-                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="POST" action="{{ route('principal.logout') }}">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item enhanced-dropdown-item">
-                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    @else
-                        <li class="nav-item">
-                            <a class="login-link" href="{{ route('login') }}">
-                                Login Portal
-                            </a>
-                        </li>
-                    @endauth
+                    <li class="nav-item">
+                        <a class="login-link" href="{{ route('login') }}">
+                            LOGIN PORTAL
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -437,7 +410,7 @@
                 <div class="col-md-4 mb-4">
                     <div class="d-flex align-items-center mb-3">
                         <div class="school-logo-container me-3" style="width: 50px; height: 50px; background: var(--cnhs-white);">
-                            <img src="{{ asset('images/CNHS.png') }}" alt="CNHS Logo" class="school-logo" 
+                            <img src="{{ asset('images/logo.png') }}" alt="School Logo" class="school-logo" 
                                  onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');">
                             <i class="fas fa-graduation-cap school-logo-icon" style="display: none; font-size: 1.5rem; color: var(--cnhs-primary-blue);"></i>
                         </div>

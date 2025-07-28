@@ -96,8 +96,6 @@
                                             <tr>
                                                 <td>
                                                     <div class="d-flex align-items-center">
-                                                        <img src="{{ $student->profile_picture ? asset('storage/' . $student->profile_picture) : asset('images/photo.jpg') }}"
-                                                             class="rounded-circle me-2" width="32" height="32" alt="Profile">
                                                         <div>
                                                             <strong>{{ $student->first_name }} {{ $student->last_name }}</strong>
                                                             <br><small class="text-muted">{{ $student->student_id }}</small>
@@ -175,6 +173,25 @@
                                 </button>
                             </div>
                         </form>
+
+                        <!-- Save All Grades Confirmation Modal -->
+                        <div class="modal fade" id="saveAllGradesModal" tabindex="-1" aria-labelledby="saveAllGradesModalLabel" aria-hidden="true">
+                          <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                              <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title" id="saveAllGradesModalLabel"><i class="fas fa-question-circle me-2"></i>Save All Grades?</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body text-center">
+                                <p class="mb-0">Are you sure you want to save all grades? This action will update all students' grades for this subject.</p>
+                              </div>
+                              <div class="modal-footer justify-content-center">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                                <button type="button" class="btn btn-success" id="confirmSaveAllGrades">Yes</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                     @else
                         <div class="text-center py-5">
                             <i class="fas fa-users fa-3x text-gray-300 mb-3"></i>
@@ -633,60 +650,12 @@ $(document).ready(function() {
 
     // Simple test for Save All Grades button
     $('#saveAllBtn').on('click', function() {
-        alert('Button clicked! This is working.');
-
-        // Show loading state
-        const saveBtn = $(this);
-        const originalText = saveBtn.html();
-        saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
-
-        // Collect all grade data
-        const gradesData = {};
-
-        // Collect grades from all inputs
-        $('.grade-input').each(function() {
-            const studentId = $(this).data('student');
-            const quarter = $(this).data('quarter');
-            const value = $(this).val();
-
-            if (studentId && quarter && value) {
-                if (!gradesData[studentId]) {
-                    gradesData[studentId] = {};
-                }
-                gradesData[studentId][quarter] = value;
-            }
-        });
-
-        console.log('Grades to save:', gradesData);
-
-        // Check if we have any data to save
-        if (Object.keys(gradesData).length === 0) {
-            alert('No grades to save. Please enter some grades first.');
-            saveBtn.prop('disabled', false).html(originalText);
-            return;
-        }
-
-        // Submit via AJAX
-        $.ajax({
-            url: '{{ route("teacher.subjects.grades.update", $subject) }}',
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                grades: gradesData
-            },
-            success: function(response) {
-                console.log('Success:', response);
-                alert('Grades saved successfully!');
-                window.location.reload();
-            },
-            error: function(xhr) {
-                console.log('Error:', xhr);
-                alert('Error saving grades: ' + (xhr.responseJSON?.message || 'Unknown error'));
-            },
-            complete: function() {
-                saveBtn.prop('disabled', false).html(originalText);
-            }
-        });
+        var modal = new bootstrap.Modal(document.getElementById('saveAllGradesModal'));
+        modal.show();
+    });
+    $('#confirmSaveAllGrades').on('click', function() {
+        $('#saveAllGradesModal').modal('hide');
+        $('#gradesForm').submit();
     });
 
     // Refresh all grades

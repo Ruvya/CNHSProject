@@ -3,25 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>CNHS Principal - @yield('title', 'Dashboard')</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Bootstrap CSS -->
+    <title>@yield('title', 'Principal Dashboard') - CNHS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <link href="{{ asset('css/principal-sections.css') }}" rel="stylesheet">
-    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    @include('layouts.shared.dashboard-styles')
+
     <style>
         :root {
             --sidebar-width: 280px;
@@ -88,7 +85,7 @@
         .navbar {
             height: var(--header-height);
             background-color: white;
-            box-shadow: 0 2px 15px rgba(0,0,0,.04);
+            box-shadow: 0 6px 24px 0 rgba(30,58,138,0.18), 0 1.5px 4px rgba(0,0,0,0.10);
             padding: 0.5rem 1.5rem;
             position: fixed;
             top: 0;
@@ -192,34 +189,6 @@
 </head>
 <body>
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 px-0 sidebar">
-                <div class="d-flex flex-column">
-                    <div class="p-3 text-center">
-                        <img src="{{ asset('images/logo.png') }}" alt="CNHS Logo" height="60" class="mb-2">
-                        <h5 class="mb-0">CNHS Principal</h5>
-                    </div>
-                    <hr class="mx-3">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('principal.dashboard') ? 'active' : '' }}" href="{{ route('principal.dashboard') }}">
-                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('principal.announcements.*') ? 'active' : '' }}" href="{{ route('principal.announcements.index') }}">
-                                <i class="fas fa-bullhorn me-2"></i> My Announcements
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('principal.teachers.*') ? 'active' : '' }}" href="{{ route('principal.teachers.index') }}">
-                                <i class="fas fa-chalkboard-teacher me-2"></i> Teachers
-                            </a>
-                        </li>
-                    </ul>
-
     <div class="container-fluid p-0">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -237,8 +206,8 @@
                 
                 <h6 class="mb-1 text-white fw-bold">{{ Auth::guard('principal')->user()->name }}</h6>
                 <p class="mb-2 text-white-50 small">{{ Auth::guard('principal')->user()->position ?? 'Principal' }}</p>
-                <span class="badge bg-success bg-opacity-25 text-white px-2 py-1">
-                    <i class="fas fa-circle me-1" style="font-size: 6px;"></i>
+                <span class="d-inline-flex align-items-center" style="font-size: 0.98rem; color: #10B981; font-weight: 600;">
+                    <span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:50%;margin-right:6px;"></span>
                     Online
                 </span>
             </div>
@@ -277,10 +246,11 @@
                         <i class="fas fa-bars"></i>
                     </button>
                     <a class="navbar-brand" href="{{ route('principal.dashboard') }}">
-                        <img src="{{ asset('images/CNHS.png') }}" alt="CNHS Logo" class="me-2">
-                        <span class="h5 mb-0 text-primary fw-bold">CNHS Portal</span>
+                        <img src="{{ asset('images/logo.png') }}" alt="CNHS Logo" class="me-2" style="height:48px;width:auto;">
+                        <span class="h5 mb-0 text-primary fw-bold">Principal Portal</span>
                     </a>
                     <div class="ms-auto d-flex align-items-center">
+                        @if(Auth::guard('principal')->check())
                         <div class="dropdown">
                             <button class="btn btn-link dropdown-toggle text-dark text-decoration-none" type="button" id="userDropdown" data-bs-toggle="dropdown">
                                 <img src="{{ Auth::guard('principal')->user()->profile_picture ? asset('storage/' . Auth::guard('principal')->user()->profile_picture) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::guard('principal')->user()->name) . '&size=32&background=007bff&color=ffffff&bold=true' }}" 
@@ -288,7 +258,7 @@
                                      class="rounded-circle me-2"
                                      width="32"
                                      height="32">
-                                <span class="fw-medium">{{ Auth::guard('principal')->user()->name }}</span>
+                                <span class="fw-medium" style="color: #1E3A8A;">{{ Auth::guard('principal')->user()->name }}</span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="{{ route('principal.profile') }}">
@@ -305,6 +275,11 @@
                                 </li>
                             </ul>
                         </div>
+                        @else
+                        <a href="{{ route('principal.login') }}" class="btn btn-outline-primary px-4 py-2 fw-bold">
+                            LOGIN
+                        </a>
+                        @endif
                     </div>
                 </div>
             </nav>

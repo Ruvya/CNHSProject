@@ -14,10 +14,10 @@ class AutomaticSubjectAssignmentService
      */
     public function assignSubjectsToStudent(Student $student, $schoolYear = null)
     {
-        if (!$student->track || !$student->strand || !$student->grade_level) {
+        if (!$student->track || !$student->cluster || !$student->grade_level) {
             Log::info("Student {$student->id} missing required fields for automatic assignment", [
                 'track' => $student->track,
-                'strand' => $student->strand,
+                'cluster' => $student->cluster,
                 'grade_level' => $student->grade_level
             ]);
             return false;
@@ -31,7 +31,7 @@ class AutomaticSubjectAssignmentService
                 $subjectsToAssign = $this->getSubjectsForStudent($student);
 
                 if ($subjectsToAssign->isEmpty()) {
-                    Log::warning("No subjects found for student {$student->id} with track {$student->track} and strand {$student->strand}");
+                    Log::warning("No subjects found for student {$student->id} with track {$student->track} and cluster {$student->cluster}");
                     return;
                 }
 
@@ -40,7 +40,7 @@ class AutomaticSubjectAssignmentService
                 foreach ($subjectsToAssign as $subject) {
                     $pivotData[$subject->id] = [
                         'school_year' => $schoolYear,
-                        'remarks' => 'Automatically assigned based on track and strand',
+                        'remarks' => 'Automatically assigned based on track and cluster',
                         'created_at' => now(),
                         'updated_at' => now()
                     ];
@@ -75,17 +75,17 @@ class AutomaticSubjectAssignmentService
             ->where('is_core_subject', false)
             ->get();
 
-        // Strand-specific subjects
-        $strandSubjects = (clone $query)
+        // Cluster-specific subjects
+        $clusterSubjects = (clone $query)
             ->where('track', $student->track)
-            ->where('strand', $student->strand)
+            ->where('cluster', $student->cluster)
             ->where('is_core_subject', false)
             ->get();
 
         // Combine all subjects and remove duplicates
         $allSubjects = $coreSubjects
             ->merge($trackSubjects)
-            ->merge($strandSubjects)
+            ->merge($clusterSubjects)
             ->unique('id');
 
         return $allSubjects;
@@ -101,24 +101,24 @@ class AutomaticSubjectAssignmentService
         // Core subjects (required for all students)
         $coreSubjects = $subjects->where('is_core_subject', true);
 
-        // Applied subjects (track-specific but not strand-specific)
+        // Applied subjects (track-specific but not cluster-specific)
         $appliedSubjects = $subjects->where('track', $student->track)
             ->where('is_core_subject', false)
             ->where(function($subject) use ($student) {
-                return empty($subject->strand) || $subject->strand === null;
+                return empty($subject->cluster) || $subject->cluster === null;
             });
 
-        // Specialized subjects (strand-specific)
-        $specializedSubjects = $subjects->where('strand', $student->strand)
+        // Specialized subjects (cluster-specific)
+        $specializedSubjects = $subjects->where('cluster', $student->cluster)
             ->where('is_core_subject', false)
-            ->where('strand', '!=', null);
+            ->where('cluster', '!=', null);
 
         return [
             'core_subjects' => $coreSubjects,
             'applied_subjects' => $appliedSubjects,
             'specialized_subjects' => $specializedSubjects,
-            'track_subjects' => $subjects->where('track', $student->track)->where('is_core_subject', false)->where('strand', '!=', $student->strand),
-            'strand_subjects' => $subjects->where('strand', $student->strand)->where('is_core_subject', false),
+            'track_subjects' => $subjects->where('track', $student->track)->where('is_core_subject', false)->where('cluster', '!=', $student->cluster),
+            'cluster_subjects' => $subjects->where('cluster', $student->cluster)->where('is_core_subject', false),
             'total_count' => $subjects->count()
         ];
     }
@@ -148,7 +148,7 @@ class AutomaticSubjectAssignmentService
     }
 
     /**
-     * Re-assign subjects to a student (useful when track/strand changes)
+     * Re-assign subjects to a student (useful when track/cluster changes)
      */
     public function reassignSubjectsToStudent(Student $student, $schoolYear = null)
     {
@@ -184,19 +184,19 @@ class AutomaticSubjectAssignmentService
     {
         $stats = [];
 
-        // Get all tracks and strands
+        // Get all tracks and clusters
         $tracks = Subject::distinct()->pluck('track')->filter();
 
         foreach ($tracks as $track) {
-            $strands = Subject::where('track', $track)->distinct()->pluck('strand')->filter();
+            $clusters = Subject::where('track', $track)->distinct()->pluck('cluster')->filter();
 
             $stats[$track] = [];
-            foreach ($strands as $strand) {
+            foreach ($clusters as $cluster) {
                 $subjectCount = Subject::where('track', $track)
-                    ->where('strand', $strand)
+                    ->where('cluster', $cluster)
                     ->count();
 
-                $stats[$track][$strand] = $subjectCount;
+                $stats[$track][$cluster] = $subjectCount;
             }
         }
 
@@ -209,7 +209,7 @@ class AutomaticSubjectAssignmentService
     public function getStudentsNeedingAssignment()
     {
         return Student::whereNotNull('track')
-            ->whereNotNull('strand')
+            ->whereNotNull('cluster')
             ->whereNotNull('grade_level')
             ->whereDoesntHave('subjects')
             ->get();
@@ -223,7 +223,7 @@ class AutomaticSubjectAssignmentService
         $studentsNeedingReassignment = collect();
 
         $students = Student::whereNotNull('track')
-            ->whereNotNull('strand')
+            ->whereNotNull('cluster')
             ->whereNotNull('grade_level')
             ->whereHas('subjects')
             ->with('subjects')
@@ -265,8 +265,8 @@ class AutomaticSubjectAssignmentService
             $errors[] = 'Track is required for automatic subject assignment';
         }
 
-        if (!$student->strand) {
-            $errors[] = 'Strand is required for automatic subject assignment';
+        if (!$student->cluster) {
+            $errors[] = 'Cluster is required for automatic subject assignment';
         }
 
         if (!$student->grade_level) {
@@ -274,10 +274,10 @@ class AutomaticSubjectAssignmentService
         }
 
         // Check if subjects exist for this combination
-        if ($student->track && $student->strand && $student->grade_level) {
+        if ($student->track && $student->cluster && $student->grade_level) {
             $availableSubjects = $this->getSubjectsForStudent($student);
             if ($availableSubjects->isEmpty()) {
-                $errors[] = "No subjects available for {$student->track} - {$student->strand} in {$student->grade_level}";
+                $errors[] = "No subjects available for {$student->track} - {$student->cluster} in {$student->grade_level}";
             }
         }
 

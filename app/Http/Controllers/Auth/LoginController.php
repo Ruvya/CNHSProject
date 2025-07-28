@@ -145,6 +145,48 @@ class LoginController extends Controller
                 if (!$passwordMatch) {
                     return back()->withErrors(['password' => 'Invalid password'])->withInput();
                 }
+            } else {
+                // For temporary accounts (including CSV uploads), check both hashed password and temporary credential
+                $passwordMatch = \Hash::check($password, $student->password);
+
+                // Also check if there's a matching temporary credential for CSV uploads
+                $tempCredential = null;
+                if (!$passwordMatch) {
+                    $tempCredential = \App\Models\TemporaryStudentCredential::where('student_id', $studentId)
+                        ->where('is_used', false)
+                        ->first();
+
+                    if ($tempCredential && $tempCredential->password === $password) {
+                        $passwordMatch = true;
+                        \Log::emergency('TEMP CREDENTIAL PASSWORD MATCH FOR EXISTING STUDENT', [
+                            'student_id' => $studentId,
+                            'credential_id' => $tempCredential->id
+                        ]);
+                    }
+                }
+
+                \Log::emergency('TEMPORARY STUDENT PASSWORD CHECK', [
+                    'match' => $passwordMatch ? 'yes' : 'no',
+                    'has_temp_credential' => $tempCredential ? 'yes' : 'no'
+                ]);
+
+                if (!$passwordMatch) {
+                    return back()->withErrors(['password' => 'Invalid password'])->withInput();
+                }
+
+                // If login was successful with temporary credential, mark it as used
+                if ($tempCredential) {
+                    $tempCredential->update([
+                        'is_used' => true,
+                        'used_by_student_id' => $student->id,
+                        'used_at' => now()
+                    ]);
+
+                    \Log::emergency('MARKED TEMP CREDENTIAL AS USED', [
+                        'credential_id' => $tempCredential->id,
+                        'student_id' => $student->student_id
+                    ]);
+                }
             }
 
             // Login student with proper session handling

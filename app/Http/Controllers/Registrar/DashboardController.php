@@ -11,14 +11,25 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    protected function getActingUser()
+    {
+        if (\Auth::guard('admin')->check()) {
+            return ['user' => \Auth::guard('admin')->user(), 'type' => 'admin'];
+        } elseif (\Auth::guard('registrar')->check()) {
+            return ['user' => \Auth::guard('registrar')->user(), 'type' => 'registrar'];
+        }
+        return ['user' => null, 'type' => null];
+    }
+
     public function index()
     {
-        $registrar = auth()->guard('registrar')->user();
+        $acting = $this->getActingUser();
+        $registrar = $acting['user'];
 
         // Basic Statistics
         $totalStudents = Student::count();
         $totalSubjects = Subject::count();
-        $mySubjects = Subject::where('registrar_id', $registrar->id)->count();
+        $mySubjects = $acting['type'] === 'registrar' ? Subject::where('registrar_id', $registrar->id)->count() : Subject::count();
         $totalTeachers = Teacher::count();
         $assignedSubjects = Subject::whereNotNull('teacher_id')->count();
         $unassignedSubjects = Subject::whereNull('teacher_id')->count();
