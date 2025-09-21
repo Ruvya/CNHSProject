@@ -10,6 +10,7 @@ class TeacherAssignment extends Model
     protected $fillable = [
         'teacher_id',
         'subject_id',
+        'section_id',
         'school_year',
         'grading_period',
         'schedule',
@@ -39,6 +40,14 @@ class TeacherAssignment extends Model
     {
         return $this->belongsTo(Subject::class);
     }
+
+    /**
+     * Get the section for this assignment
+     */
+     public function section(): BelongsTo
+     {
+         return $this->belongsTo(Section::class);
+     }
 
     /**
      * Get the registrar who made this assignment

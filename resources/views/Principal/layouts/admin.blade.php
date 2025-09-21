@@ -276,7 +276,7 @@
                             </ul>
                         </div>
                         @else
-                        <a href="{{ route('principal.login') }}" class="btn btn-outline-primary px-4 py-2 fw-bold">
+                        <a href="{{ route('login') }}" class="btn btn-outline-primary px-4 py-2 fw-bold">
                             LOGIN
                         </a>
                         @endif

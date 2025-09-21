@@ -90,9 +90,11 @@
                             <tr>
                                 <th>Teacher</th>
                                 <th>Subject</th>
+                                <th>Section</th>
                                 <th>Grade Level</th>
                                 <th>Track</th>
                                 <th>Cluster</th>
+                                <th>Schedule</th>
                                 <th>Assigned Date</th>
                                 <th>Assigned By</th>
                                 <th>Actions</th>
@@ -114,6 +116,9 @@
                                         </div>
                                     </td>
                                     <td>
+                                        {{ optional($assignment->section)->name ?? '' }}
+                                    </td>
+                                    <td>
                                         {{ $assignment->subject->grade_level ?? '' }}
                                     </td>
                                     <td>
@@ -121,6 +126,9 @@
                                     </td>
                                     <td>
                                         {{ $assignment->subject->cluster ?? '' }}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ $assignment->formatted_schedule ?? '' }}</small>
                                     </td>
                                     <td>
                                         <small class="text-muted">{{ $assignment->assignment_date ? $assignment->assignment_date->format('M d, Y') : '' }}</small>

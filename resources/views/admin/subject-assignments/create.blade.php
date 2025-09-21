@@ -70,6 +70,23 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        <!-- Section Selection -->
+                        <div class="mb-4">
+                            <label for="section_id" class="form-label fw-bold">
+                                <i class="fas fa-users me-1"></i>Select Section <span class="text-danger">*</span>
+                            </label>
+                            <select name="section_id" id="section_id" class="form-select @error('section_id') is-invalid @enderror" required>
+                                <option value="">Choose a section...</option>
+                                @foreach(($sections ?? []) as $section)
+                                    <option value="{{ $section->id }}" {{ old('section_id') == $section->id ? 'selected' : '' }}>
+                                        {{ $section->grade_level }} - {{ $section->track }} {{ $section->strand ? $section->strand . ' ' : '' }}- {{ $section->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('section_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                         <!-- Academic Period - REQUIRED FIELDS -->
                         <div class="card border-warning mb-4">
                             <div class="card-header bg-warning text-dark">

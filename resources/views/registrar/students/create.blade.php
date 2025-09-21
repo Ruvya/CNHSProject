@@ -148,21 +148,22 @@
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="section" class="form-label">Section</label>
-                                <input type="text" class="form-control @error('section') is-invalid @enderror" 
-                                       id="section" name="section" value="{{ old('section') }}" 
-                                       placeholder="e.g., Einstein, Newton, Darwin">
+                                <select class="form-select @error('section') is-invalid @enderror" id="section" name="section">
+                                    <option value="">— Select Section —</option>
+                                </select>
                                 @error('section')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label for="track" class="form-label">Academic Track</label>
+                                <label for="track" class="form-label">Strand</label>
                                 <select class="form-select @error('track') is-invalid @enderror" id="track" name="track">
-                                    <option value="">Select Track (Optional)</option>
-                                    <option value="Academic Track" {{ old('track') === 'Academic Track' ? 'selected' : '' }}>Academic Track</option>
-                                    <option value="Technical-Vocational-Livelihood Track" {{ old('track') === 'Technical-Vocational-Livelihood Track' ? 'selected' : '' }}>Technical-Vocational-Livelihood Track</option>
-                                    <option value="Sports Track" {{ old('track') === 'Sports Track' ? 'selected' : '' }}>Sports Track</option>
-                                    <option value="Arts and Design Track" {{ old('track') === 'Arts and Design Track' ? 'selected' : '' }}>Arts and Design Track</option>
+                                    <option value="">Select Strand (Optional)</option>
+                                    <option value="STEM" {{ old('track') === 'STEM' ? 'selected' : '' }}>STEM</option>
+                                    <option value="ABM" {{ old('track') === 'ABM' ? 'selected' : '' }}>ABM</option>
+                                    <option value="HUMSS" {{ old('track') === 'HUMSS' ? 'selected' : '' }}>HUMSS</option>
+                                    <option value="GAS" {{ old('track') === 'GAS' ? 'selected' : '' }}>GAS</option>
+                                    <option value="TVL" {{ old('track') === 'TVL' ? 'selected' : '' }}>TVL</option>
                                 </select>
                                 @error('track')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -313,6 +314,28 @@ $(document).ready(function() {
             $('#email').val(`${firstName}.${lastName}@cnhs.edu.ph`);
         }
     });
+
+    // Load sections dropdown when grade level or strand changes
+    function loadSections() {
+        const grade = $('#grade_level').val();
+        const strand = $('#track').val();
+        const sectionSelect = $('#section');
+        sectionSelect.html('<option value="">— Select Section —</option>');
+        if (!grade || !strand) return;
+        const url = `${window.location.origin}/admin/api/sections-by-filters?grade_level=${encodeURIComponent(grade)}&strand=${encodeURIComponent(strand)}`;
+        fetch(url, { headers: { 'Accept': 'application/json' }})
+          .then(r => r.json())
+          .then(json => {
+            json.data.forEach(s => {
+              const selected = (s.name === '{{ old('section') }}') ? 'selected' : '';
+              sectionSelect.append(`<option value="${s.name}" ${selected}>${s.name} (${s.grade_level})</option>`);
+            });
+          })
+          .catch(err => console.error('Failed loading sections', err));
+    }
+    $('#grade_level').on('change', loadSections);
+    $('#track').on('change', loadSections);
+    loadSections();
 });
 </script>
 @endpush

@@ -385,141 +385,42 @@
                 <!-- Section: Login Credentials -->
                 <form method="POST" action="{{ route('login') }}" id="loginForm">
                     @csrf
-                    <div class="row g-0 align-items-stretch" style="display: flex; flex-wrap: wrap;">
-                        <!-- Left: Select Role -->
-                        <div class="col-12 col-md-5 d-flex flex-column align-items-center justify-content-center p-2" style="min-width: 180px; max-width: 220px; border-right: 1.5px solid #e5e7eb;">
-                            <label class="form-label text-uppercase fw-bold mb-2 mt-2 w-100" style="color: #1E3A8A; font-size: 1.02rem; letter-spacing: 0.5px; text-align:left;">Select Role</label>
-                            <!-- In the Select Role section, ensure the role-selector is vertical and each label is full-width -->
-                            <div class="role-selector flex-column w-100 mb-0">
-                                <label class="role-option active">
-                                    <input type="radio" name="role" value="admin" required checked>
+                    <div class="p-3 d-flex flex-column justify-content-center">
+                        <label class="form-label text-uppercase fw-bold mb-2 mt-2 w-100" style="color: #1E3A8A; font-size: 1.02rem; letter-spacing: 0.5px; text-align:left;">Login</label>
+
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text">
                                     <i class='bx bxs-user'></i>
-                                    <span>Admin</span>
-                                </label>
-                                <label class="role-option">
-                                    <input type="radio" name="role" value="teacher" required>
-                                    <i class='bx bxs-group'></i>
-                                    <span>Teacher</span>
-                                </label>
-                                <label class="role-option">
-                                    <input type="radio" name="role" value="student" required>
-                                    <i class='bx bxs-group'></i>
-                                    <span>Student</span>
-                                </label>
-                                <label class="role-option">
-                                    <input type="radio" name="role" value="registrar" required>
-                                    <i class='bx bxs-group'></i>
-                                    <span>Registrar</span>
-                                </label>
-                                <label class="role-option">
-                                    <input type="radio" name="role" value="principal" required>
-                                    <i class='bx bxs-hourglass'></i>
-                                    <span>Principal</span>
-                                </label>
+                                </span>
+                                <input type="text" class="form-control" name="identifier" id="identifier-input" placeholder="Username / Email / Student ID" value="{{ old('identifier') }}" required>
                             </div>
+                            @error('identifier')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
                         </div>
-                        <!-- Right: Login Credentials -->
-                        <div class="col-12 col-md-7 p-3 d-flex flex-column justify-content-center">
-                            <label class="form-label text-uppercase fw-bold mb-2 mt-2 w-100" style="color: #1E3A8A; font-size: 1.02rem; letter-spacing: 0.5px; text-align:left;">Login Credentials</label>
-                            <!-- Admin Username Field -->
-                            <div class="mb-3" id="username-container">
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class='bx bxs-user'></i>
-                                    </span>
-                                    <input type="text" class="form-control @error('username') is-invalid @enderror"
-                                           name="username"
-                                           id="username-input"
-                                           placeholder="Admin Username"
-                                           value="{{ old('username') }}"
-                                           required>
-                                </div>
-                                @error('username')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class='bx bxs-lock-alt'></i>
+                                </span>
+                                <input type="password" class="form-control" name="password" placeholder="Password" required>
+                                <span class="input-group-text" style="cursor: pointer" onclick="togglePassword(this)">
+                                    <i class='bx bxs-show'></i>
+                                </span>
                             </div>
-                            <!-- Teacher Email Field -->
-                            <div class="mb-3" id="email-container" style="display: none;">
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class='bx bxs-envelope'></i>
-                                    </span>
-                                    <input type="email" class="form-control" name="email" id="email-input" placeholder="Teacher Email Address">
-                                </div>
-                                @error('email')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                            <!-- Registrar Email Field -->
-                            <div class="mb-3" id="registrar-email-container" style="display: none;">
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class='bx bxs-envelope'></i>
-                                    </span>
-                                    <input type="email" class="form-control @error('email') is-invalid @enderror"
-                                           name="email"
-                                           id="registrar-email-input"
-                                           placeholder="Registrar Email Address"
-                                           value="{{ old('email') }}">
-                                </div>
-                                @error('email')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                            <!-- Student Username Field (was Student ID) -->
-                            <div class="mb-3" id="student-id-container" style="display: none;">
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class='bx bxs-id-card'></i>
-                                    </span>
-                                    <input type="text" class="form-control" name="student_id" id="student-id-input" placeholder="Student ID" required>
-                                </div>
-                                @error('student_id')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                            <!-- Principal Email Field -->
-                            <div class="mb-3" id="principal-email-container" style="display: none;">
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class='bx bxs-envelope'></i>
-                                    </span>
-                                    <input type="email" class="form-control @error('email') is-invalid @enderror"
-                                           name="email"
-                                           id="principal-email-input"
-                                           placeholder="Principal Email Address"
-                                           value="{{ old('email') }}">
-                                </div>
-                                @error('email')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                            <div class="mb-3">
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class='bx bxs-lock-alt'></i>
-                                    </span>
-                                    <input type="password" class="form-control" name="password" placeholder="Password" required>
-                                    <span class="input-group-text" style="cursor: pointer" onclick="togglePassword(this)">
-                                        <i class='bx bxs-show'></i>
-                                    </span>
-                                </div>
-                                @error('password')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-login mb-2 mt-2">
-                                <i class='bx bx-log-in'></i> Login
-                            </button>
-                            <div class="register-link" style="font-size: 0.98rem; margin-top: 0.7rem;">
-                                <p>Need an account? Contact your administrator for account creation.</p>
-                            </div>
+                            @error('password')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-login mb-2 mt-2">
+                            <i class='bx bx-log-in'></i> Login
+                        </button>
+
+                        <div class="register-link" style="font-size: 0.98rem; margin-top: 0.7rem;">
+                            <p>Need an account? Contact your administrator for account creation.</p>
                         </div>
                     </div>
                 </form>
@@ -543,209 +444,25 @@
             }
         }
 
-        // Add active class to selected role and toggle input fields
-        document.querySelectorAll('.role-option input[type="radio"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                console.log('Role changed to:', this.value);
-                document.querySelectorAll('.role-option').forEach(option => {
-                    option.classList.remove('active');
-                });
-                this.closest('.role-option').classList.add('active');
-
-                // Toggle input fields based on role
-                const usernameContainer = document.getElementById('username-container');
-                const emailContainer = document.getElementById('email-container');
-                const registrarEmailContainer = document.getElementById('registrar-email-container');
-                const studentIdContainer = document.getElementById('student-id-container');
-                const usernameInput = document.getElementById('username-input');
-                const emailInput = document.getElementById('email-input');
-                const registrarEmailInput = document.getElementById('registrar-email-input');
-                const studentIdInput = document.getElementById('student-id-input');
-                const passwordInput = document.querySelector('input[name="password"]');
-
-                // Hide all containers first
-                usernameContainer.style.display = 'none';
-                emailContainer.style.display = 'none';
-                registrarEmailContainer.style.display = 'none';
-                studentIdContainer.style.display = 'none';
-                const principalEmailContainer = document.getElementById('principal-email-container');
-                principalEmailContainer.style.display = 'none';
-
-                // Remove required attribute and disable all inputs to prevent conflicts
-                usernameInput.removeAttribute('required');
-                usernameInput.disabled = true;
-                emailInput.removeAttribute('required');
-                emailInput.disabled = true;
-                registrarEmailInput.removeAttribute('required');
-                registrarEmailInput.disabled = true;
-                studentIdInput.removeAttribute('required');
-                studentIdInput.disabled = true;
-                const principalEmailInput = document.getElementById('principal-email-input');
-                principalEmailInput.removeAttribute('required');
-                principalEmailInput.disabled = true;
-
-                // Remove any existing alerts
-                const existingAlert = document.querySelector('.registrar-alert');
-                if (existingAlert) {
-                    existingAlert.remove();
-                }
-
-                // Update form action based on role
-                const form = document.getElementById('loginForm');
-
-                // Show appropriate container based on role
-                if (this.value === 'admin') {
-                    usernameContainer.style.display = 'block';
-                    usernameInput.setAttribute('required', '');
-                    usernameInput.disabled = false; // Enable the field
-                    // Don't clear the username if it's already filled
-                    if (!usernameInput.value) {
-                        usernameInput.value = '';
-                    }
-                    passwordInput.placeholder = 'Admin Password';
-                    form.action = "{{ route('admin.login.post') }}";
-                    console.log('Admin form action set to:', form.action);
-                } else if (this.value === 'teacher') {
-                    emailContainer.style.display = 'block';
-                    emailInput.setAttribute('required', '');
-                    emailInput.disabled = false; // Enable the field
-                    emailInput.value = '';
-                    passwordInput.placeholder = 'Password';
-                    form.action = "{{ route('login') }}";
-                } else if (this.value === 'student') {
-                    studentIdContainer.style.display = 'block';
-                    studentIdInput.setAttribute('required', '');
-                    studentIdInput.disabled = false; // Enable the field
-                    studentIdInput.value = '';
-                    passwordInput.placeholder = 'Password';
-                    form.action = "{{ route('login') }}";
-                    console.log('Student form action set to:', form.action);
-                } else if (this.value === 'registrar') {
-                    registrarEmailContainer.style.display = 'block';
-                    registrarEmailInput.setAttribute('required', '');
-                    registrarEmailInput.disabled = false; // Enable the field
-                    // Don't clear the email field - let user keep their input
-                    passwordInput.placeholder = 'Registrar Password';
-                    form.action = "{{ route('login') }}";
-                    console.log('Registrar login - form action set to:', form.action);
-                    console.log('Registrar email container displayed:', registrarEmailContainer.style.display);
-                    console.log('Registrar email input required:', registrarEmailInput.hasAttribute('required'));
-                    console.log('Registrar email input enabled:', !registrarEmailInput.disabled);
-                } else if (this.value === 'principal') {
-                    // Hide regular email container and show principal-specific email container
-                    emailContainer.style.display = 'none';
-                    const principalEmailContainer = document.getElementById('principal-email-container');
-                    principalEmailContainer.style.display = 'block';
-                    const principalEmailInput = document.getElementById('principal-email-input');
-                    principalEmailInput.setAttribute('required', '');
-                    principalEmailInput.disabled = false; // Enable the field
-                    // Clear any existing values
-                    principalEmailInput.value = '';
-                    form.action = "{{ route('principal.login') }}";
-                }
-            });
-        });
-
-        // Initialize the form when page loads
+        // Minimal client-side validation for unified form
         document.addEventListener('DOMContentLoaded', function() {
-            // Set up initial state for admin (default selected)
-            const adminRadio = document.querySelector('input[name="role"][value="admin"]');
-            if (adminRadio && adminRadio.checked) {
-                const form = document.getElementById('loginForm');
-                form.action = "{{ route('admin.login.post') }}";
-
-                // Ensure admin fields are visible and others are hidden
-                const usernameContainer = document.getElementById('username-container');
-                const emailContainer = document.getElementById('email-container');
-                const registrarEmailContainer = document.getElementById('registrar-email-container');
-                const studentIdContainer = document.getElementById('student-id-container');
-                const principalEmailContainer = document.getElementById('principal-email-container');
-
-                usernameContainer.style.display = 'block';
-                emailContainer.style.display = 'none';
-                registrarEmailContainer.style.display = 'none';
-                studentIdContainer.style.display = 'none';
-                principalEmailContainer.style.display = 'none';
-
-                // Set up initial field states for admin
-                const usernameInput = document.getElementById('username-input');
-                const emailInput = document.getElementById('email-input');
-                const registrarEmailInput = document.getElementById('registrar-email-input');
-                const studentIdInput = document.getElementById('student-id-input');
-                const principalEmailInput = document.getElementById('principal-email-input');
-
-                // Disable all fields initially except username (admin is default)
-                usernameInput.disabled = false;
-                emailInput.disabled = true;
-                registrarEmailInput.disabled = true;
-                studentIdInput.disabled = true;
-                principalEmailInput.disabled = true;
-
-                // Remove any existing alerts
-                const existingAlert = document.querySelector('.registrar-alert');
-                if (existingAlert) {
-                    existingAlert.remove();
-                }
-
-                console.log('Initial admin setup complete. Form action:', form.action);
-            }
-
-            // Add form submission handler for debugging
             const form = document.getElementById('loginForm');
-            if (form) {
-                form.addEventListener('submit', function(e) {
-                    console.log('Form submitting...');
-                    const selectedRole = document.querySelector('input[name="role"]:checked');
-                    const password = document.querySelector('input[name="password"]').value;
-
-                    if (!selectedRole) {
-                        e.preventDefault();
-                        alert('Please select a role');
-                        return false;
-                    }
-
-                    if (!password) {
-                        e.preventDefault();
-                        alert('Please enter your password');
-                        return false;
-                    }
-
-                    // Role-specific validation
-                    if (selectedRole.value === 'registrar') {
-                        const email = document.getElementById('registrar-email-input').value;
-                        if (!email) {
-                            e.preventDefault();
-                            alert('Please enter your email address');
-                            return false;
-                        }
-                        console.log('Registrar login attempt:', { email: email, hasPassword: !!password });
-                    } else if (selectedRole.value === 'admin') {
-                        const username = document.getElementById('username-input').value;
-                        if (!username) {
-                            e.preventDefault();
-                            alert('Please enter your username');
-                            return false;
-                        }
-                    } else if (selectedRole.value === 'teacher') {
-                        const email = document.getElementById('email-input').value;
-                        if (!email) {
-                            e.preventDefault();
-                            alert('Please enter your email address');
-                            return false;
-                        }
-                    } else if (selectedRole.value === 'student') {
-                        const studentId = document.getElementById('student-id-input').value;
-                        if (!studentId) {
-                            e.preventDefault();
-                            alert('Please enter your student ID');
-                            return false;
-                        }
-                    }
-
-                    console.log('Form validation passed, submitting...');
-                    return true;
-                });
-            }
+            if (!form) return;
+            form.addEventListener('submit', function(e) {
+                const identifier = document.getElementById('identifier-input').value.trim();
+                const password = document.querySelector('input[name="password"]').value.trim();
+                if (!identifier) {
+                    e.preventDefault();
+                    alert('Please enter your username, email or student ID');
+                    return false;
+                }
+                if (!password) {
+                    e.preventDefault();
+                    alert('Please enter your password');
+                    return false;
+                }
+                return true;
+            });
         });
     </script>
 </body>

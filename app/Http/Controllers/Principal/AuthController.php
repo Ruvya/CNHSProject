@@ -11,7 +11,7 @@ class AuthController extends Controller
 {
     public function showLoginForm()
     {
-        return view('Principal.auth.login');
+        return redirect()->route('login');
     }
 
     public function login(Request $request)

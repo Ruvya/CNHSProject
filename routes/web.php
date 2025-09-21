@@ -25,6 +25,7 @@ use App\Http\Controllers\Registrar\StudentSubjectAssignmentController;
 use App\Http\Controllers\Registrar\AutomaticSubjectAssignmentController;
 use App\Http\Controllers\Registrar\StudentYearlyRecordController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\SchoolYearController;
 use App\Http\Controllers\Principal\PagesController as PrincipalPagesController;
 use App\Http\Controllers\PrincipalAuthController;
 use App\Http\Controllers\MailController;
@@ -14978,8 +14979,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard/pass-fail-stats', [App\Http\Controllers\Admin\DashboardController::class, 'getPassFailStats'])->name('admin.dashboard.pass-fail-stats');
         Route::get('dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
+        // School Year Management
+        Route::get('school-years', [SchoolYearController::class, 'index'])->name('school-years.index');
+        Route::get('school-years/{schoolYear}', [SchoolYearController::class, 'show'])->name('school-years.show');
+        Route::post('school-years', [SchoolYearController::class, 'store'])->name('school-years.store');
+        Route::post('school-years/{schoolYear}/activate', [SchoolYearController::class, 'activate'])->name('school-years.activate');
+        Route::post('school-years/{schoolYear}/close', [SchoolYearController::class, 'close'])->name('school-years.close');
+        Route::post('school-years/{schoolYear}/archive', [SchoolYearController::class, 'archive'])->name('school-years.archive');
+        Route::post('school-years/{schoolYear}/reopen', [SchoolYearController::class, 'reopen'])->name('school-years.reopen');
+
         // API routes for dashboard analytics
         Route::get('api/sections', [App\Http\Controllers\Admin\DashboardController::class, 'getSections'])->name('api.sections');
+        // Admin API - sections by filters
+        Route::get('api/sections-by-filters', [App\Http\Controllers\Admin\SectionController::class, 'apiSectionsByFilters'])->name('api.sections-by-filters');
         Route::get('api/subjects', [App\Http\Controllers\Admin\DashboardController::class, 'getSubjects'])->name('api.subjects');
         Route::get('api/grading-scale-data', [App\Http\Controllers\Admin\DashboardController::class, 'getGradingScaleData'])->name('api.grading-scale-data');
 
@@ -15053,6 +15065,17 @@ Route::get('subjects/{subject}/edit', [App\Http\Controllers\Admin\SubjectControl
 Route::put('subjects/{subject}', [App\Http\Controllers\Admin\SubjectController::class, 'update'])->name('subjects.update');
 Route::delete('subjects/{subject}', [App\Http\Controllers\Admin\SubjectController::class, 'destroy'])->name('subjects.destroy');
         Route::post('users/students/{student}/reset-password', [App\Http\Controllers\Admin\UserController::class, 'resetStudentPassword'])->name('users.students.reset-password');
+
+        // Sections Management
+        Route::get('sections', [App\Http\Controllers\Admin\SectionController::class, 'index'])->name('sections.index');
+        Route::get('sections/create', [App\Http\Controllers\Admin\SectionController::class, 'create'])->name('sections.create');
+        Route::post('sections', [App\Http\Controllers\Admin\SectionController::class, 'store'])->name('sections.store');
+        Route::get('sections/{section}/edit', [App\Http\Controllers\Admin\SectionController::class, 'edit'])->name('sections.edit');
+        Route::put('sections/{section}', [App\Http\Controllers\Admin\SectionController::class, 'update'])->name('sections.update');
+        Route::delete('sections/{section}', [App\Http\Controllers\Admin\SectionController::class, 'destroy'])->name('sections.destroy');
+        Route::patch('sections/{section}/toggle-status', [App\Http\Controllers\Admin\SectionController::class, 'toggleStatus'])->name('sections.toggle-status');
+        Route::delete('sections/{section}/hard', [App\Http\Controllers\Admin\SectionController::class, 'hardDelete'])->name('sections.hard-delete');
+        Route::get('sections/report/per-strand', [App\Http\Controllers\Admin\SectionController::class, 'reportPerStrand'])->name('sections.report.per-strand');
 
         // Profile Management Routes
         Route::get('profile', [App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('profile.index');

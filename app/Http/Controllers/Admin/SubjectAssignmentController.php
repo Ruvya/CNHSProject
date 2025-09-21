@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\TeacherAssignment;
 use App\Models\Teacher;
 use App\Models\Subject;
+use App\Models\Section;
 
 class SubjectAssignmentController extends Controller
 {
@@ -58,9 +59,10 @@ class SubjectAssignmentController extends Controller
     {
         $teachers = Teacher::where('status', 'active')->orderBy('name')->get();
         $subjects = Subject::orderBy('name')->get();
+        $sections = Section::orderBy('track')->orderBy('strand')->orderBy('grade_level')->orderBy('name')->get();
         $selectedSubjectId = $request->get('subject_id');
 
-        return view('admin.subject-assignments.create', compact('teachers', 'subjects', 'selectedSubjectId'));
+        return view('admin.subject-assignments.create', compact('teachers', 'subjects', 'sections', 'selectedSubjectId'));
     }
 
     public function store(Request $request)
@@ -68,8 +70,13 @@ class SubjectAssignmentController extends Controller
         $validated = $request->validate([
             'teacher_id' => 'required|exists:teachers,id',
             'subject_id' => 'required|exists:subjects,id',
+            'section_id' => 'required|exists:sections,id',
             'school_year' => 'required|string',
             'grading_period' => 'required|string',
+            'schedule' => 'nullable|array',
+            'schedule.*.day' => 'nullable|string|max:255',
+            'schedule.*.start_time' => 'nullable|date_format:H:i',
+            'schedule.*.end_time' => 'nullable|date_format:H:i|after:schedule.*.start_time',
             'status' => 'required|string',
             'notes' => 'nullable|string|max:500',
         ]);
@@ -81,6 +88,7 @@ class SubjectAssignmentController extends Controller
         // Check for existing assignment to prevent duplicates
         $existingAssignment = TeacherAssignment::where('teacher_id', $validated['teacher_id'])
             ->where('subject_id', $validated['subject_id'])
+            ->where('section_id', $validated['section_id'])
             ->where('school_year', $validated['school_year'])
             ->where('grading_period', $validated['grading_period'])
             ->where('status', 'active')
@@ -104,6 +112,7 @@ class SubjectAssignmentController extends Controller
         $successMessage .= "📋 Assignment Details:\n";
         $successMessage .= "👨‍🏫 Teacher: {$teacher->name}\n";
         $successMessage .= "📚 Subject: {$subject->name} ({$subject->code})\n";
+        $successMessage .= "🏫 Section: " . optional(Section::find($validated['section_id']))->name . "\n";
         $successMessage .= "📅 School Year: {$validated['school_year']}\n";
         $successMessage .= "📊 Grading Period: {$validated['grading_period']}\n";
         $successMessage .= "📝 Status: {$validated['status']}\n";

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Registrar;
 
 use App\Http\Controllers\Controller;
 use App\Models\Student;
+use App\Models\Section;
 use App\Models\Subject;
 use App\Models\Grade;
 use App\Models\TemporaryStudentCredential;
@@ -123,6 +124,21 @@ class StudentController extends Controller
         $studentData = $request->all();
         $studentData['password'] = Hash::make($request->password);
 
+        // Validate section-strand consistency when provided
+        if (!empty($studentData['section'])) {
+            $sectionModel = Section::where('name', $studentData['section'])->first();
+            if ($sectionModel) {
+                $sectionStrand = $sectionModel->strand ?: $sectionModel->track;
+                $studentStrand = $studentData['strand'] ?: ($studentData['track'] ?? null);
+                if ($studentStrand && strcasecmp($sectionStrand, $studentStrand) !== 0) {
+                    return back()->withErrors(['section' => "Selected section does not belong to the student's strand."])::withInput();
+                }
+                if (method_exists($sectionModel, 'isFull') && $sectionModel->isFull()) {
+                    return back()->withErrors(['section' => 'Selected section is already full.'])->withInput();
+                }
+            }
+        }
+
         $student = Student::create($studentData);
 
         return redirect()->route('registrar.students.index')
@@ -219,6 +235,21 @@ class StudentController extends Controller
         if ($request->filled('password')) {
             $request->validate(['password' => 'min:8']);
             $studentData['password'] = Hash::make($request->password);
+        }
+
+        // Validate section-strand consistency when provided
+        if (!empty($studentData['section'])) {
+            $sectionModel = Section::where('name', $studentData['section'])->first();
+            if ($sectionModel) {
+                $sectionStrand = $sectionModel->strand ?: $sectionModel->track;
+                $studentStrand = $studentData['strand'] ?: ($studentData['track'] ?? null);
+                if ($studentStrand && strcasecmp($sectionStrand, $studentStrand) !== 0) {
+                    return back()->withErrors(['section' => "Selected section does not belong to the student's strand."])::withInput();
+                }
+                if (method_exists($sectionModel, 'isFull') && $sectionModel->isFull()) {
+                    return back()->withErrors(['section' => 'Selected section is already full.'])->withInput();
+                }
+            }
         }
 
         $student->update($studentData);

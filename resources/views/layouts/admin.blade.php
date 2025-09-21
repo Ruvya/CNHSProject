@@ -498,6 +498,16 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('admin.school-years.index') }}" class="{{ request()->routeIs('admin.school-years*') ? 'active' : '' }}">
+                    <i class="fas fa-calendar"></i> School Years
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.sections.index') }}" class="{{ request()->routeIs('admin.sections*') ? 'active' : '' }}">
+                    <i class="fas fa-layer-group"></i> Sections
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.subject-assignments.index') }}" class="{{ request()->routeIs('admin.subject-assignments*') ? 'active' : '' }}">
                     <i class="fas fa-chalkboard-teacher"></i> Subject Assignment
                 </a>

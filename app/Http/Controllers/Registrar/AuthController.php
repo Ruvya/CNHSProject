@@ -12,7 +12,7 @@ class AuthController extends Controller
 {
     public function showLoginForm()
     {
-        return view('registrar.auth.login');
+        return redirect()->route('login');
     }
 
     public function login(Request $request)

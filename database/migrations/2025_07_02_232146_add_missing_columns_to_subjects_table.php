@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::table('subjects', function (Blueprint $table) {
             // Add missing columns that the Subject model expects
-            $table->string('cluster')->nullable()->after('strand');
+            // Place after an existing column; original table has 'track' but not 'strand'
+            $table->string('cluster')->nullable()->after('track');
             $table->string('specialization')->nullable()->after('cluster');
             $table->string('grading')->nullable()->after('specialization');
             $table->boolean('is_core_subject')->default(false)->after('is_master_subject');
