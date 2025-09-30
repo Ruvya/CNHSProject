@@ -148,42 +148,54 @@ class StudentController extends Controller
     /**
      * Display the specified student
      */
-    public function show(Student $student)
+    public function show(Student $student, Request $request)
     {
+        // Determine selected school year (from query or active)
+        $selectedYear = $request->query('school_year');
+        if (!$selectedYear) {
+            $selectedYear = optional(\App\Models\SchoolYear::active()->first())->name;
+        }
+
         // Check if grades table exists before trying to load grades
         $hasGradesTable = \Illuminate\Support\Facades\Schema::hasTable('grades');
 
+        // Eager load subjects limited to the selected school year and their grades for this student
+        $student->load(['subjects' => function ($q) use ($selectedYear) {
+            if ($selectedYear) {
+                $q->wherePivot('school_year', $selectedYear);
+            }
+        }]);
+
         if ($hasGradesTable) {
-            $student->load(['subjects.grades' => function($query) use ($student) {
-                $query->where('student_id', $student->id);
+            $student->load(['grades' => function($q) use ($selectedYear) {
+                if ($selectedYear) {
+                    $q->where('school_year', $selectedYear);
+                }
             }, 'grades.subject']);
-        } else {
-            $student->load(['subjects']);
         }
 
-        // Calculate academic statistics
-        $totalSubjects = $student->subjects()->count();
+        // Calculate academic statistics based on the selected school year
         $enrolledSubjects = $student->subjects;
+        $totalSubjects = $enrolledSubjects->count();
 
-        // Get grades from pivot table and grades table
         $allGrades = collect();
-
-        // From pivot table
         foreach ($enrolledSubjects as $subject) {
-            if ($subject->pivot && $subject->pivot->grade) {
-                $allGrades->push($subject->pivot->grade);
+            if ($subject->pivot && $subject->pivot->grade !== null) {
+                $allGrades->push((float)$subject->pivot->grade);
             }
         }
-
-        // From grades table (only if table exists)
         if ($hasGradesTable) {
-            $gradeRecords = $student->grades()->whereNotNull('final_grade')->get();
+            $gradeRecords = $student->grades()->when($selectedYear, function($q) use ($selectedYear){
+                    $q->where('school_year', $selectedYear);
+                })
+                ->whereNotNull('final_grade')
+                ->get();
             foreach ($gradeRecords as $grade) {
-                $allGrades->push($grade->final_grade);
+                $allGrades->push((float)$grade->final_grade);
             }
         }
 
-        $averageGrade = $allGrades->count() > 0 ? $allGrades->avg() : null;
+        $averageGrade = $allGrades->count() > 0 ? round($allGrades->avg(), 2) : null;
         $passedSubjects = $allGrades->filter(function($grade) {
             return $grade >= 75;
         })->count();
@@ -191,13 +203,14 @@ class StudentController extends Controller
             return $grade < 75;
         })->count();
 
-        return view('registrar.students.show', compact(
-            'student',
-            'totalSubjects',
-            'averageGrade',
-            'passedSubjects',
-            'failedSubjects'
-        ));
+        return view('registrar.students.show', [
+            'student' => $student,
+            'totalSubjects' => $totalSubjects,
+            'averageGrade' => $averageGrade,
+            'passedSubjects' => $passedSubjects,
+            'failedSubjects' => $failedSubjects,
+            'schoolYear' => $selectedYear,
+        ]);
     }
 
     /**

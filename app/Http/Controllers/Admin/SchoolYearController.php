@@ -12,6 +12,8 @@ use App\Models\TeacherYearlyRecord;
 use App\Models\Section;
 use App\Models\TeacherAssignment;
 use App\Models\Subject;
+use App\Models\Schedule;
+use App\Services\YearlyRecordService;
 
 class SchoolYearController extends Controller
 {
@@ -42,6 +44,9 @@ class SchoolYearController extends Controller
 			SchoolYear::where('id', '!=', $schoolYear->id)
 				->where('status', SchoolYear::STATUS_ACTIVE)
 				->update(['status' => SchoolYear::STATUS_CLOSED]);
+
+			// Ensure yearly records are created for the newly active school year
+			app(YearlyRecordService::class)->ensureForSchoolYear($schoolYear->name);
 		}
 
 		return back()->with('success', 'School year created successfully.');
@@ -51,22 +56,28 @@ class SchoolYearController extends Controller
 	{
 		$yearKey = $schoolYear->name;
 
-		$studentYearlyRecords = StudentYearlyRecord::with('student')
-			->where('school_year', $yearKey)
+		// Load all related data using the model relationships
+		$studentYearlyRecords = $schoolYear->studentYearlyRecords()
+			->with('student')
 			->orderBy('grade_level')
 			->get();
 
-		$teacherYearlyRecords = TeacherYearlyRecord::with('teacher')
-			->where('school_year', $yearKey)
+		$teacherYearlyRecords = $schoolYear->teacherYearlyRecords()
+			->with('teacher')
 			->get();
 
-		$sections = Section::where('school_year', $yearKey)
+		$sections = $schoolYear->sections()
+			->with('adviser')
 			->orderBy('grade_level')
 			->orderBy('name')
 			->get();
 
-		$assignments = TeacherAssignment::with(['teacher', 'subject'])
-			->where('school_year', $yearKey)
+		$assignments = $schoolYear->teacherAssignments()
+			->with(['teacher', 'subject'])
+			->get();
+
+		$schedules = $schoolYear->schedules()
+			->with(['teacher', 'subject', 'section'])
 			->get();
 
 		$subjects = Subject::whereHas('students', function($q) use ($yearKey) {
@@ -77,13 +88,30 @@ class SchoolYearController extends Controller
 		}])
 		->get();
 
-		$summary = [
-			'total_students' => $studentYearlyRecords->count(),
-			'total_teachers' => $teacherYearlyRecords->count(),
-			'total_sections' => $sections->count(),
-			'total_assignments' => $assignments->count(),
-			'total_subjects' => $subjects->count(),
-		];
+		// Get summary using the model's summary attribute
+		$summary = $schoolYear->summary;
+
+		// Add additional summary data
+		$summary['total_schedules'] = $schedules->count();
+		$summary['total_subjects'] = $subjects->count();
+
+		// Get grade level distribution
+		$gradeDistribution = $studentYearlyRecords->groupBy('grade_level')
+			->map(function($students) {
+				return $students->count();
+			});
+
+		// Get section capacity analysis
+		$sectionAnalysis = $sections->map(function($section) {
+			return [
+				'name' => $section->name,
+				'grade_level' => $section->grade_level,
+				'current_enrollment' => $section->current_enrollment,
+				'max_capacity' => $section->max_capacity,
+				'utilization' => $section->max_capacity > 0 ? round(($section->current_enrollment / $section->max_capacity) * 100, 2) : 0,
+				'status' => $section->status
+			];
+		});
 
 		return view('admin.school_years.show', compact(
 			'schoolYear',
@@ -91,8 +119,11 @@ class SchoolYearController extends Controller
 			'teacherYearlyRecords',
 			'sections',
 			'assignments',
+			'schedules',
 			'subjects',
-			'summary'
+			'summary',
+			'gradeDistribution',
+			'sectionAnalysis'
 		));
 	}
 
@@ -102,6 +133,9 @@ class SchoolYearController extends Controller
 			->update(['status' => SchoolYear::STATUS_CLOSED]);
 
 		$schoolYear->update(['status' => SchoolYear::STATUS_ACTIVE]);
+
+		// Ensure yearly records exist for this active school year
+		app(YearlyRecordService::class)->ensureForSchoolYear($schoolYear->name);
 
 		return back()->with('success', 'School year activated.');
 	}
@@ -122,6 +156,95 @@ class SchoolYearController extends Controller
 	{
 		$schoolYear->update(['status' => SchoolYear::STATUS_CLOSED]);
 		return back()->with('success', 'School year reopened for viewing. Activate to make it current.');
+	}
+
+	/**
+	 * Update school year details
+	 */
+	public function update(Request $request, SchoolYear $schoolYear): RedirectResponse
+	{
+		$validated = $request->validate([
+			'name' => 'required|string|unique:school_years,name,' . $schoolYear->id,
+			'start_year' => 'required|integer|min:2000|max:3000',
+			'end_year' => 'required|integer|min:2000|max:3000|gt:start_year',
+		]);
+
+		$schoolYear->update($validated);
+
+		return back()->with('success', 'School year updated successfully.');
+	}
+
+	/**
+	 * Delete school year (only if no records exist)
+	 */
+	public function destroy(SchoolYear $schoolYear): RedirectResponse
+	{
+		// Check if school year has any records
+		$hasRecords = $schoolYear->studentYearlyRecords()->exists() ||
+			$schoolYear->teacherYearlyRecords()->exists() ||
+			$schoolYear->sections()->exists() ||
+			$schoolYear->teacherAssignments()->exists() ||
+			$schoolYear->schedules()->exists();
+
+		if ($hasRecords) {
+			return back()->with('error', 'Cannot delete school year with existing records. Archive it instead.');
+		}
+
+		$schoolYear->delete();
+
+		return redirect()->route('admin.school-years.index')
+			->with('success', 'School year deleted successfully.');
+	}
+
+	/**
+	 * Get school year statistics
+	 */
+	public function statistics(SchoolYear $schoolYear): View
+	{
+		$yearKey = $schoolYear->name;
+
+		// Get detailed statistics
+		$studentStats = $schoolYear->studentYearlyRecords()
+			->selectRaw('grade_level, COUNT(*) as count')
+			->groupBy('grade_level')
+			->orderBy('grade_level')
+			->get();
+
+		$teacherStats = $schoolYear->teacherYearlyRecords()
+			->selectRaw('department, COUNT(*) as count')
+			->groupBy('department')
+			->orderBy('department')
+			->get();
+
+		$sectionStats = $schoolYear->sections()
+			->selectRaw('grade_level, track, COUNT(*) as count')
+			->groupBy('grade_level', 'track')
+			->orderBy('grade_level')
+			->get();
+
+		$assignmentStats = $schoolYear->teacherAssignments()
+			->selectRaw('grading_period, COUNT(*) as count')
+			->groupBy('grading_period')
+			->orderBy('grading_period')
+			->get();
+
+		return view('admin.school_years.statistics', compact(
+			'schoolYear',
+			'studentStats',
+			'teacherStats',
+			'sectionStats',
+			'assignmentStats'
+		));
+	}
+
+	/**
+	 * Export school year data
+	 */
+	public function export(SchoolYear $schoolYear)
+	{
+		// This would implement data export functionality
+		// For now, return a simple response
+		return back()->with('info', 'Export functionality will be implemented.');
 	}
 }
 

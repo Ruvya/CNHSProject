@@ -14,7 +14,9 @@ class Grade extends Model
         'quarter3',
         'quarter4',
         'final_grade',
-        'remarks'
+        'remarks',
+        'school_year',
+        'semester'
     ];
 
     protected $casts = [

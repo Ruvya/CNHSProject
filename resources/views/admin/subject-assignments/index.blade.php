@@ -18,6 +18,8 @@
         </div>
     </div>
 
+    @include('admin.partials.semester-notice')
+
     <!-- Filters -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
@@ -94,6 +96,7 @@
                                 <th>Grade Level</th>
                                 <th>Track</th>
                                 <th>Cluster</th>
+                                <th>Semester</th>
                                 <th>Schedule</th>
                                 <th>Assigned Date</th>
                                 <th>Assigned By</th>
@@ -126,6 +129,13 @@
                                     </td>
                                     <td>
                                         {{ $assignment->subject->cluster ?? '' }}
+                                    </td>
+                                    <td>
+                                        @if($assignment->semester)
+                                            <span class="badge bg-primary">{{ $assignment->semester }}</span>
+                                        @else
+                                            <span class="text-muted">Not specified</span>
+                                        @endif
                                     </td>
                                     <td>
                                         <small class="text-muted">{{ $assignment->formatted_schedule ?? '' }}</small>

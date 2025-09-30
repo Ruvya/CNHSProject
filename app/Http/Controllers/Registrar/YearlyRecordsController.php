@@ -7,6 +7,9 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\StudentYearlyRecord;
 use App\Models\TeacherYearlyRecord;
+use App\Models\Section;
+use App\Models\Subject;
+use App\Models\SchoolYear;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -17,32 +20,13 @@ class YearlyRecordsController extends Controller
      */
     public function index()
     {
-        // Check if tables exist and create them if they don't
-        $this->ensureTablesExist();
+        // Source of truth for school years is Admin-managed SchoolYear model
+        $allYears = SchoolYear::notArchived()
+            ->orderByDesc('start_year')
+            ->pluck('name');
 
-        // Get available school years from both student and teacher records with error handling
-        try {
-            $studentYears = StudentYearlyRecord::select('school_year')
-                ->distinct()
-                ->orderBy('school_year', 'desc')
-                ->pluck('school_year');
-        } catch (\Exception $e) {
-            $studentYears = collect([]);
-        }
-
-        try {
-            $teacherYears = TeacherYearlyRecord::select('school_year')
-                ->distinct()
-                ->orderBy('school_year', 'desc')
-                ->pluck('school_year');
-        } catch (\Exception $e) {
-            $teacherYears = collect([]);
-        }
-            
-        $allYears = $studentYears->merge($teacherYears)->unique()->sort()->reverse()->values();
-        
-        // Get current school year
-        $currentSchoolYear = $this->getCurrentSchoolYear();
+        // Current school year is the active SchoolYear if available; fallback to computed
+        $currentSchoolYear = optional(SchoolYear::active()->first())->name ?? $this->getCurrentSchoolYear();
         
         // Get statistics for current year
         $currentYearStats = [
@@ -79,27 +63,111 @@ class YearlyRecordsController extends Controller
     /**
      * Show records for a specific school year
      */
-    public function show($schoolYear)
+    public function show(Request $request, $schoolYear)
     {
-        // Validate school year format
-        if (!preg_match('/^\d{4}-\d{4}$/', $schoolYear)) {
+        // Ensure the school year exists and is not archived (allow any admin-defined name)
+        $year = SchoolYear::notArchived()->where('name', $schoolYear)->first();
+        if (!$year) {
             return redirect()->route('registrar.yearly-records.index')
-                ->with('error', 'Invalid school year format.');
+                ->with('error', 'Selected school year does not exist or is archived.');
         }
         
-        // Get student records for the year
-        $studentRecords = StudentYearlyRecord::with('student')
+        // Read filters
+        $selectedGrade = $request->get('grade_level');
+        $selectedSection = $request->get('section');
+
+        // Get sections for the year (respect filters if provided)
+        $sectionsQuery = Section::where('school_year', $schoolYear)
+            ->with(['adviser'])
+            ->orderBy('grade_level')
+            ->orderBy('name');
+
+        if ($selectedGrade) {
+            $sectionsQuery->where('grade_level', $selectedGrade);
+        }
+        if ($selectedSection) {
+            $sectionsQuery->where('name', $selectedSection);
+        }
+
+        $sections = $sectionsQuery->get();
+
+        // Get student records for the year grouped by section
+        $studentRecordsQuery = StudentYearlyRecord::with(['student' => function($q) use ($schoolYear) {
+                $q->with(['subjects' => function($sq) use ($schoolYear) {
+                    $sq->wherePivot('school_year', $schoolYear);
+                }]);
+            }])
             ->where('school_year', $schoolYear)
             ->orderBy('grade_level')
+            ->orderBy('section');
+
+        if ($selectedGrade) {
+            $studentRecordsQuery->where('grade_level', $selectedGrade);
+        }
+        if ($selectedSection) {
+            $studentRecordsQuery->where('section', $selectedSection);
+        }
+
+        $studentRecords = $studentRecordsQuery->get()->groupBy('section');
+
+        // Fallback collections for views
+        // 1) All student records for this school year (flat list)
+        $allStudentRecordsQuery = StudentYearlyRecord::with(['student' => function($q) use ($schoolYear) {
+                $q->with(['subjects' => function($sq) use ($schoolYear) {
+                    $sq->wherePivot('school_year', $schoolYear);
+                }]);
+            }])
+            ->where('school_year', $schoolYear)
+            ->orderBy('grade_level');
+
+        if ($selectedGrade) {
+            $allStudentRecordsQuery->where('grade_level', $selectedGrade);
+        }
+        if ($selectedSection) {
+            $allStudentRecordsQuery->where('section', $selectedSection);
+        }
+
+        $allStudentRecords = $allStudentRecordsQuery->get();
+
+        // 2) Students without an assigned section for this year
+        $unsectionedStudentRecordsQuery = StudentYearlyRecord::with(['student' => function($q) use ($schoolYear) {
+                $q->with(['subjects' => function($sq) use ($schoolYear) {
+                    $sq->wherePivot('school_year', $schoolYear);
+                }]);
+            }])
+            ->where('school_year', $schoolYear)
+            ->where(function($q) {
+                $q->whereNull('section')->orWhere('section', '');
+            })
+            ->orderBy('grade_level');
+
+        if ($selectedGrade) {
+            $unsectionedStudentRecordsQuery->where('grade_level', $selectedGrade);
+        }
+
+        $unsectionedStudentRecords = $unsectionedStudentRecordsQuery->get();
+
+        // Filter dropdown options
+        $availableGradeLevels = StudentYearlyRecord::where('school_year', $schoolYear)
+            ->select('grade_level')
+            ->distinct()
+            ->orderBy('grade_level')
+            ->pluck('grade_level');
+
+        $availableSections = StudentYearlyRecord::where('school_year', $schoolYear)
+            ->whereNotNull('section')
+            ->where('section', '!=', '')
+            ->select('section')
+            ->distinct()
             ->orderBy('section')
-            ->paginate(20, ['*'], 'students_page');
-            
-        // Get teacher records for the year
+            ->pluck('section');
+
+        // Get teacher records for the year (paginated for view links())
         $teacherRecords = TeacherYearlyRecord::with('teacher')
             ->where('school_year', $schoolYear)
             ->orderBy('department')
             ->orderBy('position')
-            ->paginate(20, ['*'], 'teachers_page');
+            ->paginate(15);
             
         // Get statistics for this year
         $yearStats = [
@@ -127,9 +195,16 @@ class YearlyRecordsController extends Controller
         
         return view('registrar.yearly-records.show', compact(
             'schoolYear',
+            'sections',
             'studentRecords',
+            'allStudentRecords',
+            'unsectionedStudentRecords',
             'teacherRecords',
-            'yearStats'
+            'yearStats',
+            'availableGradeLevels',
+            'availableSections',
+            'selectedGrade',
+            'selectedSection'
         ));
     }
 

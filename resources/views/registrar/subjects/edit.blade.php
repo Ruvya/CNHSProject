@@ -251,6 +251,101 @@
                             </div>
                         </div>
 
+                        <!-- Schedule Section -->
+                        <div class="form-section mb-4">
+                            <h6 class="section-title border-bottom pb-2 mb-3">
+                                <i class="fas fa-clock me-2 text-success"></i>
+                                Class Schedule
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="schedule_days" class="form-label fw-semibold">
+                                        Days of the Week
+                                    </label>
+                                    <div class="row">
+                                        @php
+                                            $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                                            $oldDays = old('schedule_days', $subject->schedule_days_array);
+                                        @endphp
+                                        @foreach($days as $day)
+                                            <div class="col-md-3 col-sm-4 col-6 mb-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           name="schedule_days[]" 
+                                                           value="{{ $day }}" 
+                                                           id="day_{{ strtolower($day) }}"
+                                                           {{ in_array($day, $oldDays) ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="day_{{ strtolower($day) }}">
+                                                        {{ $day }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    @error('schedule_days')
+                                        <div class="text-danger small">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="start_time" class="form-label fw-semibold">
+                                        Start Time
+                                    </label>
+                                    <input type="time" 
+                                           class="form-control @error('start_time') is-invalid @enderror"
+                                           id="start_time"
+                                           name="start_time"
+                                           value="{{ old('start_time', $subject->start_time) }}">
+                                    @error('start_time')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="end_time" class="form-label fw-semibold">
+                                        End Time
+                                    </label>
+                                    <input type="time" 
+                                           class="form-control @error('end_time') is-invalid @enderror"
+                                           id="end_time"
+                                           name="end_time"
+                                           value="{{ old('end_time', $subject->end_time) }}">
+                                    @error('end_time')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="room" class="form-label fw-semibold">
+                                        Room/Venue
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control @error('room') is-invalid @enderror"
+                                           id="room"
+                                           name="room"
+                                           value="{{ old('room', $subject->room) }}"
+                                           placeholder="e.g., Room 101, Computer Lab">
+                                    @error('room')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="schedule_notes" class="form-label fw-semibold">
+                                        Schedule Notes
+                                    </label>
+                                    <textarea class="form-control @error('schedule_notes') is-invalid @enderror"
+                                              id="schedule_notes"
+                                              name="schedule_notes"
+                                              rows="2"
+                                              placeholder="Additional schedule information (e.g., 'First half of semester only', 'Alternating weeks')">{{ old('schedule_notes', $subject->schedule_notes) }}</textarea>
+                                    @error('schedule_notes')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Form Actions -->
                         <div class="d-flex justify-content-between">
                             <a href="{{ route('registrar.subjects.index') }}" class="btn btn-secondary">
@@ -424,72 +519,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // Core Subject auto-assign logic
     coreSubjectCheckbox.addEventListener('change', function() {
         if (this.checked) {
-            gradeLevelSelect.value = 'Grade 11';
-            gradeLevelSelect.style.backgroundColor = '#e9ecef';
-            gradeLevelSelect.style.pointerEvents = 'none';
-            trackSelect.value = 'All';
-            trackSelect.style.backgroundColor = '#e9ecef';
-            trackSelect.style.pointerEvents = 'none';
-            clusterSelect.value = 'All';
-            clusterSelect.style.backgroundColor = '#e9ecef';
-            clusterSelect.style.pointerEvents = 'none';
-            gradingSelect.value = 'All Gradings';
-            gradingSelect.style.backgroundColor = '#e9ecef';
-            gradingSelect.style.pointerEvents = 'none';
-            // Disable and uncheck Elective Subject
-            electiveSubjectCheckbox.checked = false;
-            electiveSubjectCheckbox.setAttribute('disabled', 'disabled');
-        } else {
-            gradeLevelSelect.style.backgroundColor = '';
-            gradeLevelSelect.style.pointerEvents = '';
-            trackSelect.style.backgroundColor = '';
-            trackSelect.style.pointerEvents = '';
-            clusterSelect.style.backgroundColor = '';
-            clusterSelect.style.pointerEvents = '';
-            gradingSelect.style.backgroundColor = '';
-            gradingSelect.style.pointerEvents = '';
-            // Enable Elective Subject
-            electiveSubjectCheckbox.removeAttribute('disabled');
+            // Auto-assign default values but keep fields enabled and editable
+            if (!gradeLevelSelect.value) gradeLevelSelect.value = 'Grade 11';
+            if (!trackSelect.value) trackSelect.value = 'All';
+            if (!clusterSelect.value) clusterSelect.value = 'All';
+            if (!gradingSelect.value) gradingSelect.value = 'All Gradings';
+            // Note: All fields remain enabled and editable
+            // Note: Elective Subject remains enabled and clickable
         }
+        // Fields remain fully functional regardless of Core Subject selection
     });
 
-    // Elective Subject logic
+    // Elective Subject logic - now independent of Core Subject
     electiveSubjectCheckbox.addEventListener('change', function() {
-        if (this.checked) {
-            // Disable and uncheck Core Subject
-            coreSubjectCheckbox.checked = false;
-            coreSubjectCheckbox.setAttribute('disabled', 'disabled');
-        } else {
-            // Enable Core Subject
-            coreSubjectCheckbox.removeAttribute('disabled');
-        }
+        // Elective subjects can be selected independently
+        // No longer disables Core Subject checkbox
     });
 
     // On page load, if checked, apply logic
     if (coreSubjectCheckbox.checked) {
-        gradeLevelSelect.value = 'Grade 11';
-        gradeLevelSelect.style.backgroundColor = '#e9ecef';
-        gradeLevelSelect.style.pointerEvents = 'none';
-        trackSelect.value = 'All';
-        trackSelect.style.backgroundColor = '#e9ecef';
-        trackSelect.style.pointerEvents = 'none';
-        clusterSelect.value = 'All';
-        clusterSelect.style.backgroundColor = '#e9ecef';
-        clusterSelect.style.pointerEvents = 'none';
-        gradingSelect.value = 'All Gradings';
-        gradingSelect.style.backgroundColor = '#e9ecef';
-        gradingSelect.style.pointerEvents = 'none';
-        // Disable and uncheck Elective Subject
-        electiveSubjectCheckbox.checked = false;
-        electiveSubjectCheckbox.setAttribute('disabled', 'disabled');
-    } else if (electiveSubjectCheckbox.checked) {
-        // Disable and uncheck Core Subject
-        coreSubjectCheckbox.checked = false;
-        coreSubjectCheckbox.setAttribute('disabled', 'disabled');
-    } else {
-        electiveSubjectCheckbox.removeAttribute('disabled');
-        coreSubjectCheckbox.removeAttribute('disabled');
+        // Auto-assign default values but keep fields enabled and editable
+        if (!gradeLevelSelect.value) gradeLevelSelect.value = 'Grade 11';
+        if (!trackSelect.value) trackSelect.value = 'All';
+        if (!clusterSelect.value) clusterSelect.value = 'All';
+        if (!gradingSelect.value) gradingSelect.value = 'All Gradings';
+        // Note: All fields remain enabled and editable
+        // Note: Elective Subject remains enabled and clickable
     }
+    // Both checkboxes remain enabled and independent
+    // All curriculum fields remain fully functional
 
     // Form validation
     document.getElementById('subjectForm').addEventListener('submit', function(e) {

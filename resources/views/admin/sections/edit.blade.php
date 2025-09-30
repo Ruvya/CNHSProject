@@ -31,7 +31,7 @@
                 </select>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Strand</label>
+                <label class="form-label">Cluster</label>
                 <select name="track" class="form-select" required>
                     @foreach($tracks as $t)
                         <option value="{{ $t }}" @selected(old('track', $section->track)===$t)>{{ $t }}</option>

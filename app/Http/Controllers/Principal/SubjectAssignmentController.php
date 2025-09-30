@@ -21,7 +21,7 @@ class SubjectAssignmentController extends Controller
         $selectedGradeLevel = $request->get('grade_level');
         $selectedTrack = $request->get('track');
         $schoolYear = $request->get('school_year', $this->getCurrentSchoolYear());
-        $gradingPeriod = $request->get('grading_period', $this->getCurrentGradingPeriod());
+        $semester = $request->get('semester', $this->getCurrentSemester());
 
         // Get all teachers and subjects for dropdowns
         $teachers = Teacher::where('status', 'active')->orderBy('name')->get();
@@ -53,8 +53,8 @@ class SubjectAssignmentController extends Controller
             });
         }
 
-        if ($gradingPeriod) {
-            $query->where('grading_period', $gradingPeriod);
+        if ($semester) {
+            $query->where('semester', $semester);
         }
 
         $assignments = $query->latest()->paginate(20);
@@ -121,21 +121,27 @@ class SubjectAssignmentController extends Controller
     }
 
     /**
-     * Get current grading period
+     * Get current semester
      */
-    private function getCurrentGradingPeriod()
+    private function getCurrentSemester()
     {
         $currentMonth = date('n');
         
-        // Rough estimation of grading periods
-        if ($currentMonth >= 6 && $currentMonth <= 8) {
-            return '1st Quarter';
-        } elseif ($currentMonth >= 9 && $currentMonth <= 11) {
-            return '2nd Quarter';
-        } elseif ($currentMonth >= 12 || $currentMonth <= 2) {
-            return '3rd Quarter';
+        // Determine semester based on month
+        // 1st Semester: June to December (months 6-12)
+        // 2nd Semester: January to May (months 1-5)
+        if ($currentMonth >= 6 && $currentMonth <= 12) {
+            return '1st Semester';
         } else {
-            return '4th Quarter';
+            return '2nd Semester';
         }
+    }
+
+    /**
+     * Get current grading period (deprecated - use getCurrentSemester)
+     */
+    private function getCurrentGradingPeriod()
+    {
+        return $this->getCurrentSemester();
     }
 }

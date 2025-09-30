@@ -38,6 +38,8 @@
         </div>
     @endif
 
+    @include('admin.partials.semester-notice')
+
     <!-- Subject Statistics Cards removed as per request -->
 
     <!-- Subjects Table -->

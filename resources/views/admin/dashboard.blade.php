@@ -3,6 +3,9 @@
 @section('title', 'Dashboard')
 
 @section('content')
+<!-- Semester System Notice -->
+@include('admin.partials.semester-notice')
+
 <!-- Modern Angled Dashboard Header -->
 <div class="angled-header-card mb-4">
     <div class="header-left-content">
@@ -28,6 +31,8 @@
     </div>
 </div>
 --}}
+
+@include('admin.partials.semester-notice')
 
 <!-- Main Statistics Cards -->
 <div class="stat-cards-row mb-3">

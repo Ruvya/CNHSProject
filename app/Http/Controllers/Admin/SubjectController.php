@@ -57,15 +57,23 @@ class SubjectController extends Controller
         if (!$isCoreSubject) {
             $validationRules['grade_level'] = 'required|string';
             $validationRules['track'] = 'required|string|max:100';
-            $validationRules['grading'] = 'required|string';
+            $validationRules['semester'] = 'required|in:1st Semester,2nd Semester,Both Semesters';
         } else {
             $validationRules['grade_level'] = 'nullable|string';
             $validationRules['track'] = 'nullable|string|max:100';
-            $validationRules['grading'] = 'nullable|string';
+            $validationRules['semester'] = 'nullable|in:1st Semester,2nd Semester,Both Semesters';
         }
 
         $validationRules['cluster'] = 'nullable|string|max:100';
         $validationRules['specialization'] = 'nullable|string|max:100';
+        
+        // Schedule validation rules
+        $validationRules['schedule_days'] = 'nullable|array';
+        $validationRules['schedule_days.*'] = 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday';
+        $validationRules['start_time'] = 'nullable|date_format:H:i';
+        $validationRules['end_time'] = 'nullable|date_format:H:i|after:start_time';
+        $validationRules['room'] = 'nullable|string|max:100';
+        $validationRules['schedule_notes'] = 'nullable|string|max:500';
 
         $validated = $request->validate($validationRules);
 
@@ -82,6 +90,12 @@ class SubjectController extends Controller
         }
 
         $validated['code'] = strtoupper($validated['code']);
+        
+        // Process schedule days - convert array to comma-separated string
+        if (isset($validated['schedule_days']) && is_array($validated['schedule_days'])) {
+            $validated['schedule_days'] = implode(',', $validated['schedule_days']);
+        }
+        
         Subject::create($validated);
         return redirect()->route('admin.subjects.index')->with('success', 'Subject created successfully.');
     }
@@ -114,15 +128,23 @@ class SubjectController extends Controller
         if (!$isCoreSubject) {
             $validationRules['grade_level'] = 'required|string';
             $validationRules['track'] = 'required|string|max:100';
-            $validationRules['grading'] = 'required|string';
+            $validationRules['semester'] = 'required|in:1st Semester,2nd Semester,Both Semesters';
         } else {
             $validationRules['grade_level'] = 'nullable|string';
             $validationRules['track'] = 'nullable|string|max:100';
-            $validationRules['grading'] = 'nullable|string';
+            $validationRules['semester'] = 'nullable|in:1st Semester,2nd Semester,Both Semesters';
         }
 
         $validationRules['cluster'] = 'nullable|string|max:100';
         $validationRules['specialization'] = 'nullable|string|max:100';
+        
+        // Schedule validation rules
+        $validationRules['schedule_days'] = 'nullable|array';
+        $validationRules['schedule_days.*'] = 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday';
+        $validationRules['start_time'] = 'nullable|date_format:H:i';
+        $validationRules['end_time'] = 'nullable|date_format:H:i|after:start_time';
+        $validationRules['room'] = 'nullable|string|max:100';
+        $validationRules['schedule_notes'] = 'nullable|string|max:500';
 
         $validated = $request->validate($validationRules);
 
@@ -139,6 +161,12 @@ class SubjectController extends Controller
         }
 
         $validated['code'] = strtoupper($validated['code']);
+        
+        // Process schedule days - convert array to comma-separated string
+        if (isset($validated['schedule_days']) && is_array($validated['schedule_days'])) {
+            $validated['schedule_days'] = implode(',', $validated['schedule_days']);
+        }
+        
         $subject->update($validated);
         return redirect()->route('admin.subjects.index')->with('success', 'Subject updated successfully.');
     }

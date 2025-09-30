@@ -513,6 +513,12 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('admin.scheduling.index') }}" class="{{ request()->routeIs('admin.scheduling*') ? 'active' : '' }}">
+                    <i class="fas fa-calendar-alt"></i> Class Scheduling
+                </a>
+            </li>
+            {{-- Room Management removed per system update request --}}
+            <li>
                 <a href="{{ route('admin.users') }}" class="{{ (request()->routeIs('admin.users') || request()->routeIs('admin.users.index')) ? 'active' : '' }}">
                     <i class="fas fa-users"></i> User Management
                 </a>

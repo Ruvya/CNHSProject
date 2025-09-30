@@ -41,4 +41,53 @@
 <div class="mb-3">
     <label for="is_master_subject" class="form-label">Is Master Subject</label>
     <input type="checkbox" name="is_master_subject" id="is_master_subject" value="1" {{ old('is_master_subject', $subject->is_master_subject ?? false) ? 'checked' : '' }}>
+</div>
+
+<!-- Schedule Section -->
+<div class="mb-4">
+    <h5 class="border-bottom pb-2 mb-3">Class Schedule</h5>
+    
+    <div class="mb-3">
+        <label class="form-label">Days of the Week</label>
+        <div class="row">
+            @php
+                $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                $oldDays = old('schedule_days', $subject->schedule_days_array ?? []);
+            @endphp
+            @foreach($days as $day)
+                <div class="col-md-3 col-sm-4 col-6 mb-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" 
+                               name="schedule_days[]" 
+                               value="{{ $day }}" 
+                               id="day_{{ strtolower($day) }}"
+                               {{ in_array($day, $oldDays) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="day_{{ strtolower($day) }}">
+                            {{ $day }}
+                        </label>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label for="start_time" class="form-label">Start Time</label>
+            <input type="time" name="start_time" id="start_time" class="form-control" value="{{ old('start_time', $subject->start_time ?? '') }}">
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="end_time" class="form-label">End Time</label>
+            <input type="time" name="end_time" id="end_time" class="form-control" value="{{ old('end_time', $subject->end_time ?? '') }}">
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="room" class="form-label">Room/Venue</label>
+            <input type="text" name="room" id="room" class="form-control" value="{{ old('room', $subject->room ?? '') }}" placeholder="e.g., Room 101, Computer Lab">
+        </div>
+    </div>
+    
+    <div class="mb-3">
+        <label for="schedule_notes" class="form-label">Schedule Notes</label>
+        <textarea name="schedule_notes" id="schedule_notes" class="form-control" rows="2" placeholder="Additional schedule information">{{ old('schedule_notes', $subject->schedule_notes ?? '') }}</textarea>
+    </div>
 </div> 

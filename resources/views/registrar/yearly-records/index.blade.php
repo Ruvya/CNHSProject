@@ -100,9 +100,9 @@
             </div>
         </div>
         <div class="header-right-content">
-            <button type="button" class="angled-header-btn" data-bs-toggle="modal" data-bs-target="#createNewYearModal">
-                <i class="fas fa-plus me-2"></i> Create New School Year
-            </button>
+            <a href="{{ route('registrar.yearly-records.show', $currentSchoolYear) }}" class="angled-header-btn">
+                <i class="fas fa-calendar-check me-2"></i> View Current Year
+            </a>
         </div>
     </div>
 
@@ -281,50 +281,5 @@
     </div>
 </div>
 
-<!-- Create New Year Modal -->
-<div class="modal fade" id="createNewYearModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="{{ route('registrar.yearly-records.create-new-year') }}" method="POST">
-                @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title">Create New School Year</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="school_year" class="form-label">School Year</label>
-                        <input type="text" class="form-control" id="school_year" name="school_year" 
-                               placeholder="e.g., 2024-2025" pattern="\d{4}-\d{4}" required>
-                        <div class="form-text">Format: YYYY-YYYY (e.g., 2024-2025)</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="copy_from_year" class="form-label">Copy from Previous Year (Optional)</label>
-                        <select class="form-select" id="copy_from_year" name="copy_from_year">
-                            <option value="">Create fresh records</option>
-                            @foreach($allYears as $year)
-                                <option value="{{ $year }}">{{ $year }}</option>
-                            @endforeach
-                        </select>
-                        <div class="form-text">If selected, students will be promoted and teachers will be carried over</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create School Year</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-generate school year based on current year
-    const schoolYearInput = document.getElementById('school_year');
-    const currentYear = new Date().getFullYear();
-    const nextYear = currentYear + 1;
-    schoolYearInput.placeholder = `${currentYear}-${nextYear}`;
-});
-</script>
+<!-- Registrar cannot create School Years. Admin manages School Years. -->
 @endsection

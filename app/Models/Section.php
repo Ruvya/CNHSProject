@@ -37,6 +37,16 @@ class Section extends Model
     }
 
 
+    /**
+     * Students whose textual `section` matches this section's `name`.
+     * Uses non-standard key mapping: Student.section (text) -> Section.name (text).
+     */
+    public function students(): HasMany
+    {
+        return $this->hasMany(Student::class, 'section', 'name');
+    }
+
+
 
     /**
      * Get all teacher assignments for this section
@@ -69,9 +79,8 @@ class Section extends Model
      */
     public function updateEnrollmentCount(): void
     {
-        $this->current_enrollment = $this->studentAssignments()
-            ->where('status', 'active')
-            ->count();
+        // Count students whose textual section equals this section's name
+        $this->current_enrollment = $this->students()->count();
 
         // Update status based on capacity
         if ($this->current_enrollment >= $this->max_capacity) {
