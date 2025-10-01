@@ -77,21 +77,7 @@
                         @enderror
                     </div>
 
-                    <!-- Room Selection -->
-                    <div class="col-md-6">
-                        <label for="room_id" class="form-label">Room <span class="text-danger">*</span></label>
-                        <select name="room_id" id="room_id" class="form-select" required>
-                            <option value="">Select Room</option>
-                            @foreach($rooms as $room)
-                                <option value="{{ $room->id }}" {{ $schedule->room_id == $room->id ? 'selected' : '' }}>
-                                    {{ $room->code }} - {{ $room->name }} ({{ ucfirst(str_replace('_', ' ', $room->type)) }}, Capacity: {{ $room->capacity }})
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('room_id')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
-                        @enderror
-                    </div>
+                    <!-- Room removed -->
 
                     <!-- Day Selection -->
                     <div class="col-md-4">

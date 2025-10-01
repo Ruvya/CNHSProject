@@ -18,6 +18,7 @@ class Schedule extends Model
         'end_time',
         'school_year',
         'grading_period',
+        'semester',
         'status',
         'notes',
         'created_by'
@@ -106,8 +107,13 @@ class Schedule extends Model
         $query = self::where('teacher_id', $this->teacher_id)
             ->where('day', $this->day)
             ->where('status', 'active')
-            ->where('school_year', $this->school_year)
-            ->where('grading_period', $this->grading_period);
+            ->where('school_year', $this->school_year);
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+            $query->where('semester', $this->semester ?? $this->grading_period);
+        } else {
+            $query->where('grading_period', $this->grading_period);
+        }
 
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
@@ -138,8 +144,13 @@ class Schedule extends Model
         $query = self::where('section_id', $this->section_id)
             ->where('day', $this->day)
             ->where('status', 'active')
-            ->where('school_year', $this->school_year)
-            ->where('grading_period', $this->grading_period);
+            ->where('school_year', $this->school_year);
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+            $query->where('semester', $this->semester ?? $this->grading_period);
+        } else {
+            $query->where('grading_period', $this->grading_period);
+        }
 
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
@@ -169,8 +180,13 @@ class Schedule extends Model
         $query = self::where('room_id', $this->room_id)
             ->where('day', $this->day)
             ->where('status', 'active')
-            ->where('school_year', $this->school_year)
-            ->where('grading_period', $this->grading_period);
+            ->where('school_year', $this->school_year);
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+            $query->where('semester', $this->semester ?? $this->grading_period);
+        } else {
+            $query->where('grading_period', $this->grading_period);
+        }
 
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
@@ -220,9 +236,15 @@ class Schedule extends Model
     {
         $weeklyHours = self::where('teacher_id', $this->teacher_id)
             ->where('status', 'active')
-            ->where('school_year', $this->school_year)
-            ->where('grading_period', $this->grading_period)
-            ->get()
+            ->where('school_year', $this->school_year);
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+            $weeklyHours->where('semester', $this->semester ?? $this->grading_period);
+        } else {
+            $weeklyHours->where('grading_period', $this->grading_period);
+        }
+
+        $weeklyHours = $weeklyHours->get()
             ->sum(function($schedule) {
                 $start = strtotime($schedule->start_time);
                 $end = strtotime($schedule->end_time);

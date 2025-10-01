@@ -12,20 +12,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // First, add the new semester columns
-        Schema::table('sections', function (Blueprint $table) {
-            $table->enum('semester', ['1st Semester', '2nd Semester'])->nullable()->after('school_year');
-        });
+        // First, add the new semester columns (idempotent)
+        if (!Schema::hasColumn('sections', 'semester')) {
+            Schema::table('sections', function (Blueprint $table) {
+                $table->enum('semester', ['1st Semester', '2nd Semester'])->nullable()->after('school_year');
+            });
+        }
 
-        Schema::table('teacher_assignments', function (Blueprint $table) {
-            $table->enum('semester', ['1st Semester', '2nd Semester'])->nullable()->after('school_year');
-        });
+        if (!Schema::hasColumn('teacher_assignments', 'semester')) {
+            Schema::table('teacher_assignments', function (Blueprint $table) {
+                $table->enum('semester', ['1st Semester', '2nd Semester'])->nullable()->after('school_year');
+            });
+        }
 
-        Schema::table('grades', function (Blueprint $table) {
-            $table->enum('semester', ['1st Semester', '2nd Semester'])->nullable()->after('school_year');
-        });
+        if (!Schema::hasColumn('grades', 'semester')) {
+            Schema::table('grades', function (Blueprint $table) {
+                $table->enum('semester', ['1st Semester', '2nd Semester'])->nullable()->after('school_year');
+            });
+        }
 
-        if (Schema::hasTable('schedules')) {
+        if (Schema::hasTable('schedules') && !Schema::hasColumn('schedules', 'semester')) {
             Schema::table('schedules', function (Blueprint $table) {
                 $table->enum('semester', ['1st Semester', '2nd Semester'])->nullable()->after('school_year');
             });
@@ -34,7 +40,7 @@ return new class extends Migration
         // Convert existing data from quarterly to semester system
         $this->convertQuarterlyToSemester();
 
-        // Now drop the old grading_period columns
+        // Now drop the old grading_period columns (safe if already dropped)
         if (Schema::hasColumn('sections', 'grading_period')) {
             Schema::table('sections', function (Blueprint $table) {
                 $table->dropColumn('grading_period');
@@ -93,34 +99,40 @@ return new class extends Migration
     private function convertQuarterlyToSemester(): void
     {
         // Convert sections
-        DB::table('sections')
-            ->whereIn('grading_period', ['First Grading', 'Second Grading'])
-            ->update(['semester' => '1st Semester']);
+        if (Schema::hasColumn('sections', 'grading_period')) {
+            DB::table('sections')
+                ->whereIn('grading_period', ['First Grading', 'Second Grading'])
+                ->update(['semester' => '1st Semester']);
 
-        DB::table('sections')
-            ->whereIn('grading_period', ['Third Grading', 'Fourth Grading'])
-            ->update(['semester' => '2nd Semester']);
+            DB::table('sections')
+                ->whereIn('grading_period', ['Third Grading', 'Fourth Grading'])
+                ->update(['semester' => '2nd Semester']);
+        }
 
         // Convert teacher assignments
-        DB::table('teacher_assignments')
-            ->whereIn('grading_period', ['First Grading', 'Second Grading'])
-            ->update(['semester' => '1st Semester']);
+        if (Schema::hasColumn('teacher_assignments', 'grading_period')) {
+            DB::table('teacher_assignments')
+                ->whereIn('grading_period', ['First Grading', 'Second Grading'])
+                ->update(['semester' => '1st Semester']);
 
-        DB::table('teacher_assignments')
-            ->whereIn('grading_period', ['Third Grading', 'Fourth Grading'])
-            ->update(['semester' => '2nd Semester']);
+            DB::table('teacher_assignments')
+                ->whereIn('grading_period', ['Third Grading', 'Fourth Grading'])
+                ->update(['semester' => '2nd Semester']);
+        }
 
         // Convert grades
-        DB::table('grades')
-            ->whereIn('grading_period', ['First Grading', 'Second Grading'])
-            ->update(['semester' => '1st Semester']);
+        if (Schema::hasColumn('grades', 'grading_period')) {
+            DB::table('grades')
+                ->whereIn('grading_period', ['First Grading', 'Second Grading'])
+                ->update(['semester' => '1st Semester']);
 
-        DB::table('grades')
-            ->whereIn('grading_period', ['Third Grading', 'Fourth Grading'])
-            ->update(['semester' => '2nd Semester']);
+            DB::table('grades')
+                ->whereIn('grading_period', ['Third Grading', 'Fourth Grading'])
+                ->update(['semester' => '2nd Semester']);
+        }
 
         // Convert schedules
-        if (Schema::hasTable('schedules')) {
+        if (Schema::hasTable('schedules') && Schema::hasColumn('schedules', 'grading_period')) {
             DB::table('schedules')
                 ->whereIn('grading_period', ['First Grading', 'Second Grading'])
                 ->update(['semester' => '1st Semester']);

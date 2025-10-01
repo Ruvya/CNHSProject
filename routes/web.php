@@ -14916,6 +14916,7 @@ Route::middleware(['auth:teacher'])->group(function () {
 Route::middleware(['auth:teacher'])->group(function () {
     Route::get('/teacher/dashboard', [App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('teacher.dashboard');
     Route::get('/teacher/subjects', [App\Http\Controllers\Teacher\SubjectController::class, 'index'])->name('teacher.subjects');
+    Route::get('/teacher/schedule', [App\Http\Controllers\Teacher\ScheduleController::class, 'index'])->name('teacher.schedule');
 
     // Subject Management Routes
     Route::get('/teacher/subjects/{subject}/students', [App\Http\Controllers\Teacher\SubjectController::class, 'viewStudents'])->name('teacher.subjects.students');

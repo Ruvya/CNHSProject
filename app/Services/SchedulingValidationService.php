@@ -42,23 +42,7 @@ class SchedulingValidationService
             $errors[] = "Section conflict: " . implode(', ', $sectionConflicts);
         }
 
-        // Room is optional: only validate room-related constraints if provided
-        if (!empty($scheduleData['room_id'])) {
-            $roomAvailability = $this->checkRoomAvailability($scheduleData, $excludeScheduleId);
-            if (!$roomAvailability['available']) {
-                $errors[] = $roomAvailability['message'];
-            }
-
-            $roomSuitability = $this->checkRoomSuitability($scheduleData['room_id'], $scheduleData['subject_id']);
-            if (!$roomSuitability['suitable']) {
-                $warnings[] = $roomSuitability['message'];
-            }
-
-            $roomCapacity = $this->checkRoomCapacity($scheduleData['room_id'], $scheduleData['section_id']);
-            if (!$roomCapacity['sufficient']) {
-                $warnings[] = $roomCapacity['message'];
-            }
-        }
+        // Room checks removed from scheduling flow
 
         return [
             'valid' => empty($errors),
@@ -83,8 +67,19 @@ class SchedulingValidationService
         $query = Schedule::where('teacher_id', $scheduleData['teacher_id'])
             ->where('day', $scheduleData['day'])
             ->where('status', 'active')
-            ->where('school_year', $scheduleData['school_year'])
-            ->where('grading_period', $scheduleData['grading_period']);
+            ->where('school_year', $scheduleData['school_year']);
+
+        // Support either semester or grading_period depending on schema/input
+        $periodValue = $scheduleData['semester'] ?? ($scheduleData['grading_period'] ?? null);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+            if ($periodValue !== null) {
+                $query->where('semester', $periodValue);
+            }
+        } else {
+            if ($periodValue !== null) {
+                $query->where('grading_period', $periodValue);
+            }
+        }
 
         if ($excludeScheduleId) {
             $query->where('id', '!=', $excludeScheduleId);
@@ -115,8 +110,18 @@ class SchedulingValidationService
 
         $weeklyHours = Schedule::where('teacher_id', $scheduleData['teacher_id'])
             ->where('status', 'active')
-            ->where('school_year', $scheduleData['school_year'])
-            ->where('grading_period', $scheduleData['grading_period']);
+            ->where('school_year', $scheduleData['school_year']);
+
+        $periodValue = $scheduleData['semester'] ?? ($scheduleData['grading_period'] ?? null);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+            if ($periodValue !== null) {
+                $weeklyHours->where('semester', $periodValue);
+            }
+        } else {
+            if ($periodValue !== null) {
+                $weeklyHours->where('grading_period', $periodValue);
+            }
+        }
 
         if ($excludeScheduleId) {
             $weeklyHours->where('id', '!=', $excludeScheduleId);
@@ -152,8 +157,18 @@ class SchedulingValidationService
         $query = Schedule::where('section_id', $scheduleData['section_id'])
             ->where('day', $scheduleData['day'])
             ->where('status', 'active')
-            ->where('school_year', $scheduleData['school_year'])
-            ->where('grading_period', $scheduleData['grading_period']);
+            ->where('school_year', $scheduleData['school_year']);
+
+        $periodValue = $scheduleData['semester'] ?? ($scheduleData['grading_period'] ?? null);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+            if ($periodValue !== null) {
+                $query->where('semester', $periodValue);
+            }
+        } else {
+            if ($periodValue !== null) {
+                $query->where('grading_period', $periodValue);
+            }
+        }
 
         if ($excludeScheduleId) {
             $query->where('id', '!=', $excludeScheduleId);
@@ -176,7 +191,14 @@ class SchedulingValidationService
      */
     public function checkRoomAvailability($scheduleData, $excludeScheduleId = null)
     {
-        $room = Room::find($scheduleData['room_id']);
+        // Guard against missing room_id
+        $roomId = $scheduleData['room_id'] ?? null;
+        if (empty($roomId)) {
+            // No room specified means no room availability conflict to check
+            return ['available' => true];
+        }
+
+        $room = Room::find($roomId);
         
         if (!$room || !$room->is_available) {
             return [
@@ -185,7 +207,7 @@ class SchedulingValidationService
             ];
         }
 
-        $query = Schedule::where('room_id', $scheduleData['room_id'])
+        $query = Schedule::where('room_id', $roomId)
             ->where('day', $scheduleData['day'])
             ->where('status', 'active')
             ->where('school_year', $scheduleData['school_year'])
@@ -311,8 +333,13 @@ class SchedulingValidationService
         $existingSchedules = Schedule::where('teacher_id', $teacherId)
             ->where('day', $day)
             ->where('status', 'active')
-            ->where('school_year', $schoolYear)
-            ->where('grading_period', $gradingPeriod);
+            ->where('school_year', $schoolYear);
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+            $existingSchedules->where('semester', $gradingPeriod);
+        } else {
+            $existingSchedules->where('grading_period', $gradingPeriod);
+        }
 
         if ($excludeScheduleId) {
             $existingSchedules->where('id', '!=', $excludeScheduleId);
@@ -356,8 +383,13 @@ class SchedulingValidationService
     {
         $conflictingSchedules = Schedule::where('day', $day)
             ->where('status', 'active')
-            ->where('school_year', $schoolYear)
-            ->where('grading_period', $gradingPeriod);
+            ->where('school_year', $schoolYear);
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+            $conflictingSchedules->where('semester', $gradingPeriod);
+        } else {
+            $conflictingSchedules->where('grading_period', $gradingPeriod);
+        }
 
         if ($excludeScheduleId) {
             $conflictingSchedules->where('id', '!=', $excludeScheduleId);

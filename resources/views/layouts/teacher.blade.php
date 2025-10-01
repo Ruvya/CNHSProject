@@ -509,6 +509,11 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('teacher.schedule') }}" class="{{ request()->routeIs('teacher.schedule') ? 'active' : '' }}">
+                    <i class="fas fa-calendar-alt"></i> Schedule
+                </a>
+            </li>
+            <li>
                 <a href="#classListSubmenu"  aria-expanded="{{ request()->routeIs('teacher.classlist*') ? 'true' : 'false' }}">
                     <i class="fas fa-users"></i> Class List
                 </a>

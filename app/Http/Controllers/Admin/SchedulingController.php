@@ -29,7 +29,8 @@ class SchedulingController extends Controller
         $selectedTeacher = $request->get('teacher_id');
         $selectedSubject = $request->get('subject_id');
         $selectedSection = $request->get('section_id');
-        $selectedRoom = $request->get('room_id');
+        // Room removed from filters
+        $selectedRoom = null;
         $selectedDay = $request->get('day');
         $schoolYear = $request->get('school_year');
         $gradingPeriod = $request->get('grading_period');
@@ -43,8 +44,10 @@ class SchedulingController extends Controller
         $teachers = Teacher::where('status', 'active')->orderBy('name')->get();
         $subjects = Subject::orderBy('name')->get();
         $sections = Section::orderBy('grade_level')->orderBy('name')->get();
-        $rooms = Room::where('is_available', true)->orderBy('name')->get();
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+        // Determine period column (semester vs grading_period)
+        $periodColumn = \Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester') ? 'semester' : 'grading_period';
 
         // Get schedules with filters
         $schedulesQuery = Schedule::with(['teacher', 'subject', 'section', 'room'])
@@ -54,7 +57,7 @@ class SchedulingController extends Controller
             $schedulesQuery->where('school_year', $schoolYear);
         }
         if ($gradingPeriod) {
-            $schedulesQuery->where('grading_period', $gradingPeriod);
+            $schedulesQuery->where($periodColumn, $gradingPeriod);
         }
         if ($selectedTeacher) {
             $schedulesQuery->where('teacher_id', $selectedTeacher);
@@ -65,9 +68,7 @@ class SchedulingController extends Controller
         if ($selectedSection) {
             $schedulesQuery->where('section_id', $selectedSection);
         }
-        if ($selectedRoom) {
-            $schedulesQuery->where('room_id', $selectedRoom);
-        }
+        // Room removed from filters
         if ($selectedDay) {
             $schedulesQuery->where('day', $selectedDay);
         }
@@ -82,12 +83,11 @@ class SchedulingController extends Controller
             'total_teachers' => Teacher::where('status', 'active')->count(),
             'total_subjects' => Subject::count(),
             'total_sections' => Section::count(),
-            'total_rooms' => Room::where('is_available', true)->count(),
         ];
 
         return view('admin.scheduling.index', compact(
-            'teachers', 'subjects', 'sections', 'rooms', 'days', 'schedules', 'stats',
-            'selectedTeacher', 'selectedSubject', 'selectedSection', 'selectedRoom', 
+            'teachers', 'subjects', 'sections', 'days', 'schedules', 'stats',
+            'selectedTeacher', 'selectedSubject', 'selectedSection', 
             'selectedDay', 'schoolYear', 'gradingPeriod'
         ));
     }
@@ -100,7 +100,6 @@ class SchedulingController extends Controller
         $teachers = Teacher::where('status', 'active')->orderBy('name')->get();
         $subjects = Subject::orderBy('name')->get();
         $sections = Section::orderBy('grade_level')->orderBy('name')->get();
-        $rooms = Room::where('is_available', true)->orderBy('name')->get();
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
         // Pre-select values if provided
@@ -109,7 +108,7 @@ class SchedulingController extends Controller
         $selectedSection = $request->get('section_id');
 
         return view('admin.scheduling.create', compact(
-            'teachers', 'subjects', 'sections', 'rooms', 'days',
+            'teachers', 'subjects', 'sections', 'days',
             'selectedTeacher', 'selectedSubject', 'selectedSection'
         ));
     }
@@ -123,7 +122,7 @@ class SchedulingController extends Controller
             'teacher_id' => 'required|exists:teachers,id',
             'subject_id' => 'required|exists:subjects,id',
             'section_id' => 'required|exists:sections,id',
-            'room_id' => 'nullable|exists:rooms,id',
+            // Room removed from scheduling flow
             'day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
@@ -151,7 +150,43 @@ class SchedulingController extends Controller
         $validated['created_by'] = auth()->guard('admin')->id() ?? 1;
         $validated['status'] = 'active';
 
-        // Validate schedule for conflicts
+        // Room removed: ensure DB insert includes room_id as null for legacy schemas
+        $validated['room_id'] = null;
+
+        // Validate schedule for conflicts (map period to semester if applicable)
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+                $validated['semester'] = $validated['grading_period'] ?? null;
+                unset($validated['grading_period']);
+            }
+        } catch (\Throwable $e) {}
+
+        // Enforce: a teacher can only be assigned to one section per school year and semester
+        try {
+            $periodColumn = \Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester') ? 'semester' : 'grading_period';
+            $periodValue = $validated[$periodColumn] ?? null;
+
+            $existingSectionId = Schedule::where('teacher_id', $validated['teacher_id'])
+                ->where('status', 'active')
+                ->where('school_year', $validated['school_year'])
+                ->when($periodValue, function($q) use ($periodColumn, $periodValue) {
+                    $q->where($periodColumn, $periodValue);
+                })
+                ->value('section_id');
+
+            if ($existingSectionId && (int)$existingSectionId !== (int)$validated['section_id']) {
+                $message = 'This teacher is already assigned to another section for the selected school year and semester.';
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Validation failed',
+                        'errors' => ['section_id' => [$message]],
+                    ], 422);
+                }
+                return redirect()->back()->withInput()->withErrors(['section_id' => $message]);
+            }
+        } catch (\Throwable $e) {}
+
         $validation = $this->validationService->validateSchedule($validated);
 
         if (!$validation['valid']) {
@@ -176,20 +211,17 @@ class SchedulingController extends Controller
         $teacher = Teacher::find($validated['teacher_id']);
         $subject = Subject::find($validated['subject_id']);
         $section = Section::find($validated['section_id']);
-        $room = isset($validated['room_id']) ? Room::find($validated['room_id']) : null;
 
         $successMessage = "✅ Schedule Created Successfully!\n\n";
         $successMessage .= "📋 Schedule Details:\n";
         $successMessage .= "👨‍🏫 Teacher: {$teacher->name}\n";
         $successMessage .= "📚 Subject: {$subject->name} ({$subject->code})\n";
         $successMessage .= "🏫 Section: {$section->name}\n";
-        if ($room) {
-            $successMessage .= "🏢 Room: {$room->name}" . ($room->code ? " ({$room->code})" : '') . "\n";
-        }
+        // Room removed from schedule details
         $successMessage .= "📅 Day: {$validated['day']}\n";
         $successMessage .= "🕒 Time: " . date('g:i A', strtotime($validated['start_time'])) . " - " . date('g:i A', strtotime($validated['end_time'])) . "\n";
         $successMessage .= "📊 School Year: {$validated['school_year']}\n";
-        $successMessage .= "📝 Grading Period: {$validated['grading_period']}\n";
+        $successMessage .= "📝 Grading Period: " . ($validated['semester'] ?? ($validated['grading_period'] ?? '')) . "\n";
         $successMessage .= "🕒 Created on: " . now()->format('M d, Y h:i A');
 
         // If AJAX request, return JSON with redirect URL
@@ -212,7 +244,7 @@ class SchedulingController extends Controller
      */
     public function show(Schedule $schedule)
     {
-        $schedule->load(['teacher', 'subject', 'section', 'room', 'createdBy']);
+        $schedule->load(['teacher', 'subject', 'section', 'createdBy']);
         return view('admin.scheduling.show', compact('schedule'));
     }
 
@@ -224,10 +256,9 @@ class SchedulingController extends Controller
         $teachers = Teacher::where('status', 'active')->orderBy('name')->get();
         $subjects = Subject::orderBy('name')->get();
         $sections = Section::orderBy('grade_level')->orderBy('name')->get();
-        $rooms = Room::where('is_available', true)->orderBy('name')->get();
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-        return view('admin.scheduling.edit', compact('schedule', 'teachers', 'subjects', 'sections', 'rooms', 'days'));
+        return view('admin.scheduling.edit', compact('schedule', 'teachers', 'subjects', 'sections', 'days'));
     }
 
     /**
@@ -235,19 +266,34 @@ class SchedulingController extends Controller
      */
     public function update(Request $request, Schedule $schedule)
     {
-        $validated = $request->validate([
+        $rules = [
             'teacher_id' => 'required|exists:teachers,id',
             'subject_id' => 'required|exists:subjects,id',
             'section_id' => 'required|exists:sections,id',
-            'room_id' => 'required|exists:rooms,id',
             'day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'school_year' => 'required|string',
-            'grading_period' => 'required|in:1st Semester,2nd Semester',
             'status' => 'required|in:active,inactive,cancelled',
             'notes' => 'nullable|string|max:500',
-        ]);
+        ];
+
+        // Validate correct period field depending on schema
+        if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+            $rules['semester'] = 'required|in:1st Semester,2nd Semester';
+        } else {
+            $rules['grading_period'] = 'required|in:1st Semester,2nd Semester';
+        }
+
+        $validated = $request->validate($rules);
+
+        // Map to semester column if present
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+                $validated['semester'] = $validated['grading_period'] ?? null;
+                unset($validated['grading_period']);
+            }
+        } catch (\Throwable $e) {}
 
         // Validate schedule for conflicts (excluding current schedule)
         $validation = $this->validationService->validateSchedule($validated, $schedule->id);
@@ -264,6 +310,27 @@ class SchedulingController extends Controller
             $request->session()->flash('warning', 'Warnings: ' . implode(', ', $validation['warnings']));
         }
 
+        // Enforce: a teacher can only be assigned to one section per school year and semester (excluding current)
+        try {
+            $periodColumn = \Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester') ? 'semester' : 'grading_period';
+            $periodValue = $validated[$periodColumn] ?? null;
+
+            $existingSectionId = Schedule::where('teacher_id', $validated['teacher_id'])
+                ->where('status', 'active')
+                ->where('school_year', $validated['school_year'])
+                ->when($periodValue, function($q) use ($periodColumn, $periodValue) {
+                    $q->where($periodColumn, $periodValue);
+                })
+                ->where('id', '!=', $schedule->id)
+                ->value('section_id');
+
+            if ($existingSectionId && (int)$existingSectionId !== (int)$validated['section_id']) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['section_id' => 'This teacher is already assigned to another section for the selected school year and semester.']);
+            }
+        } catch (\Throwable $e) {}
+
         // Update the schedule
         $schedule->update($validated);
 
@@ -271,18 +338,18 @@ class SchedulingController extends Controller
         $teacher = Teacher::find($validated['teacher_id']);
         $subject = Subject::find($validated['subject_id']);
         $section = Section::find($validated['section_id']);
-        $room = Room::find($validated['room_id']);
+        // Room removed
 
         $successMessage = "✅ Schedule Updated Successfully!\n\n";
         $successMessage .= "📋 Updated Schedule Details:\n";
         $successMessage .= "👨‍🏫 Teacher: {$teacher->name}\n";
         $successMessage .= "📚 Subject: {$subject->name} ({$subject->code})\n";
         $successMessage .= "🏫 Section: {$section->name}\n";
-        $successMessage .= "🏢 Room: {$room->name} ({$room->code})\n";
+        // Room removed from schedule details
         $successMessage .= "📅 Day: {$validated['day']}\n";
         $successMessage .= "🕒 Time: " . date('g:i A', strtotime($validated['start_time'])) . " - " . date('g:i A', strtotime($validated['end_time'])) . "\n";
         $successMessage .= "📊 School Year: {$validated['school_year']}\n";
-        $successMessage .= "📝 Grading Period: {$validated['grading_period']}\n";
+        $successMessage .= "📝 Grading Period: " . ($validated['semester'] ?? ($validated['grading_period'] ?? '')) . "\n";
         $successMessage .= "📝 Status: {$validated['status']}\n";
         $successMessage .= "🕒 Updated on: " . now()->format('M d, Y h:i A');
 
@@ -372,8 +439,8 @@ class SchedulingController extends Controller
     public function validateConflicts(Request $request)
     {
         $scheduleData = $request->only([
-            'teacher_id', 'subject_id', 'section_id', 'room_id',
-            'day', 'start_time', 'end_time', 'school_year', 'grading_period'
+            'teacher_id', 'subject_id', 'section_id',
+            'day', 'start_time', 'end_time', 'school_year', 'grading_period', 'semester'
         ]);
 
         $excludeScheduleId = $request->get('exclude_schedule_id');

@@ -119,11 +119,11 @@
                         @enderror
                     </div>
 
-                    <!-- Grading Period (Semestral) -->
+					<!-- Semester -->
                     <div class="col-md-6">
-                        <label for="grading_period" class="form-label">Grading Period (Semestral) <span class="text-danger">*</span></label>
+						<label for="grading_period" class="form-label">Semester <span class="text-danger">*</span></label>
                         <select name="grading_period" id="grading_period" class="form-select" required>
-                            <option value="">Select Period</option>
+							<option value="">Select Semester</option>
                             <option value="1st Semester">1st Semester</option>
                             <option value="2nd Semester">2nd Semester</option>
                         </select>

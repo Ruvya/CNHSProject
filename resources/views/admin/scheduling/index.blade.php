@@ -8,7 +8,7 @@
             <span class="icon"><i class="fas fa-calendar-alt"></i></span>
             <div>
                 <span class="title">Class Scheduling Management</span>
-                <span class="subtitle">Manage class schedules, rooms, and time slots{{ isset($schoolYear) && isset($gradingPeriod) ? ' for ' . $schoolYear . ' - ' . $gradingPeriod : '' }}</span>
+                <span class="subtitle">Manage class schedules and time slots{{ isset($schoolYear) && isset($gradingPeriod) ? ' for ' . $schoolYear . ' - ' . $gradingPeriod : '' }}</span>
             </div>
         </div>
         <div class="header-right-content">
@@ -81,7 +81,7 @@
                 </div>
                 <div class="row g-3 mt-2">
                     <div class="col-md-2">
-                        <label for="grading_period" class="form-label">Grading Period (Semestral)</label>
+                        <label for="grading_period" class="form-label">Semester</label>
                         <select name="grading_period" id="grading_period" class="form-select">
                             <option value="">All Periods</option>
                             <option value="1st Semester" {{ (isset($gradingPeriod) && $gradingPeriod == '1st Semester') ? 'selected' : '' }}>1st Semester</option>
@@ -122,7 +122,7 @@
                                 <th>Section</th>
                                 
                                 <th>School Year</th>
-                                <th>Grading Period</th>
+                                <th>Semester</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -162,7 +162,7 @@
                                         <span class="badge bg-secondary">{{ $schedule->school_year }}</span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-warning">{{ $schedule->grading_period }}</span>
+                                        <span class="badge bg-warning">{{ $schedule->semester ?? $schedule->grading_period }}</span>
                                     </td>
                                     <td>
                                         @if($schedule->status == 'active')
