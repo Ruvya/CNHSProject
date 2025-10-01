@@ -42,22 +42,22 @@ class SchedulingValidationService
             $errors[] = "Section conflict: " . implode(', ', $sectionConflicts);
         }
 
-        // Check room availability
-        $roomAvailability = $this->checkRoomAvailability($scheduleData, $excludeScheduleId);
-        if (!$roomAvailability['available']) {
-            $errors[] = $roomAvailability['message'];
-        }
+        // Room is optional: only validate room-related constraints if provided
+        if (!empty($scheduleData['room_id'])) {
+            $roomAvailability = $this->checkRoomAvailability($scheduleData, $excludeScheduleId);
+            if (!$roomAvailability['available']) {
+                $errors[] = $roomAvailability['message'];
+            }
 
-        // Check room suitability
-        $roomSuitability = $this->checkRoomSuitability($scheduleData['room_id'], $scheduleData['subject_id']);
-        if (!$roomSuitability['suitable']) {
-            $warnings[] = $roomSuitability['message'];
-        }
+            $roomSuitability = $this->checkRoomSuitability($scheduleData['room_id'], $scheduleData['subject_id']);
+            if (!$roomSuitability['suitable']) {
+                $warnings[] = $roomSuitability['message'];
+            }
 
-        // Check room capacity
-        $roomCapacity = $this->checkRoomCapacity($scheduleData['room_id'], $scheduleData['section_id']);
-        if (!$roomCapacity['sufficient']) {
-            $warnings[] = $roomCapacity['message'];
+            $roomCapacity = $this->checkRoomCapacity($scheduleData['room_id'], $scheduleData['section_id']);
+            if (!$roomCapacity['sufficient']) {
+                $warnings[] = $roomCapacity['message'];
+            }
         }
 
         return [
@@ -94,9 +94,10 @@ class SchedulingValidationService
 
         foreach ($conflictingSchedules as $schedule) {
             if ($this->timeSlotsOverlap($scheduleData['start_time'], $scheduleData['end_time'], $schedule->start_time, $schedule->end_time)) {
+                $roomPart = $schedule->room ? ' in ' . $schedule->room->name : '';
                 return [
                     'available' => false,
-                    'message' => "Teacher is already scheduled for {$schedule->subject->name} in {$schedule->room->name} at the same time."
+                    'message' => "Teacher is already scheduled for {$schedule->subject->name}{$roomPart} at the same time."
                 ];
             }
         }

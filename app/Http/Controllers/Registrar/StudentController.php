@@ -131,7 +131,7 @@ class StudentController extends Controller
                 $sectionStrand = $sectionModel->strand ?: $sectionModel->track;
                 $studentStrand = $studentData['strand'] ?: ($studentData['track'] ?? null);
                 if ($studentStrand && strcasecmp($sectionStrand, $studentStrand) !== 0) {
-                    return back()->withErrors(['section' => "Selected section does not belong to the student's strand."])::withInput();
+                    return back()->withErrors(['section' => "Selected section does not belong to the student's strand."])->withInput();
                 }
                 if (method_exists($sectionModel, 'isFull') && $sectionModel->isFull()) {
                     return back()->withErrors(['section' => 'Selected section is already full.'])->withInput();
@@ -166,13 +166,28 @@ class StudentController extends Controller
             }
         }]);
 
+        // Load yearly record for the selected school year
+        $yearlyRecord = \App\Models\StudentYearlyRecord::where('student_id', $student->id)
+            ->when($selectedYear, function($q) use ($selectedYear) {
+                $q->where('school_year', $selectedYear);
+            })
+            ->first();
+
+        // Load grades and map by subject for quick lookup in the view
+        $gradesBySubject = collect();
         if ($hasGradesTable) {
             $student->load(['grades' => function($q) use ($selectedYear) {
                 if ($selectedYear) {
                     $q->where('school_year', $selectedYear);
                 }
             }, 'grades.subject']);
+            $gradesBySubject = $student->grades->keyBy('subject_id');
         }
+
+        // Determine available school years for this student (for quick switching)
+        $availableSchoolYears = \App\Models\StudentYearlyRecord::where('student_id', $student->id)
+            ->orderByDesc('school_year')
+            ->pluck('school_year');
 
         // Calculate academic statistics based on the selected school year
         $enrolledSubjects = $student->subjects;
@@ -210,6 +225,9 @@ class StudentController extends Controller
             'passedSubjects' => $passedSubjects,
             'failedSubjects' => $failedSubjects,
             'schoolYear' => $selectedYear,
+            'yearlyRecord' => $yearlyRecord,
+            'gradesBySubject' => $gradesBySubject,
+            'availableSchoolYears' => $availableSchoolYears,
         ]);
     }
 
@@ -257,7 +275,7 @@ class StudentController extends Controller
                 $sectionStrand = $sectionModel->strand ?: $sectionModel->track;
                 $studentStrand = $studentData['strand'] ?: ($studentData['track'] ?? null);
                 if ($studentStrand && strcasecmp($sectionStrand, $studentStrand) !== 0) {
-                    return back()->withErrors(['section' => "Selected section does not belong to the student's strand."])::withInput();
+                    return back()->withErrors(['section' => "Selected section does not belong to the student's strand."])->withInput();
                 }
                 if (method_exists($sectionModel, 'isFull') && $sectionModel->isFull()) {
                     return back()->withErrors(['section' => 'Selected section is already full.'])->withInput();

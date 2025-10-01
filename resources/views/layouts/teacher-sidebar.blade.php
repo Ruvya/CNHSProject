@@ -31,6 +31,11 @@
             </a>
         </li>
         <li>
+            <a href="{{ route('teacher.sections.index') }}" class="{{ request()->routeIs('teacher.sections.*') ? 'active' : '' }}">
+                <i class="fas fa-layer-group"></i> Section
+            </a>
+        </li>
+        <li>
             <a href="{{ route('teacher.subjects') }}" class="{{ request()->routeIs('teacher.subjects') ? 'active' : '' }}">
                 <i class="fas fa-chalkboard-teacher"></i> My Subjects
             </a>

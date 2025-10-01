@@ -51,11 +51,11 @@
                 </select>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Grading Period</label>
-                @php $periods = ['First Grading','Second Grading','Third Grading','Fourth Grading']; @endphp
-                <select name="grading_period" class="form-select">
-                    @foreach($periods as $p)
-                        <option value="{{ $p }}" @selected(old('grading_period','First Grading')===$p)>{{ $p }}</option>
+                <label class="form-label">Semester</label>
+                @php $semesters = ['1st Semester','2nd Semester']; @endphp
+                <select name="semester" class="form-select">
+                    @foreach($semesters as $s)
+                        <option value="{{ $s }}" @selected(old('semester','1st Semester')===$s)>{{ $s }}</option>
                     @endforeach
                 </select>
             </div>

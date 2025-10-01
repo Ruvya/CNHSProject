@@ -114,6 +114,8 @@ Route::middleware(['auth:student'])->prefix('student')->name('student.')->group(
     Route::get('/profile/complete', [App\Http\Controllers\Student\ProfileController::class, 'showCompleteForm'])->name('profile.complete');
     Route::post('/profile/complete', [App\Http\Controllers\Student\ProfileController::class, 'completeProfile'])->name('profile.complete.store');
     Route::get('/schedule', [App\Http\Controllers\Student\ScheduleController::class, 'index'])->name('schedule');
+    // Student Section & Classmates
+    Route::get('/section', [App\Http\Controllers\Student\SectionController::class, 'index'])->name('section');
 });
 
 // Teacher Routes (consolidated)
@@ -14932,6 +14934,9 @@ Route::middleware(['auth:teacher'])->group(function () {
     Route::get('/teacher/profile', [App\Http\Controllers\Teacher\ProfileController::class, 'index'])->name('teacher.profile');
     Route::post('/teacher/profile', [App\Http\Controllers\Teacher\ProfileController::class, 'update'])->name('teacher.update-profile');
     Route::post('/teacher/profile/upload', [App\Http\Controllers\Teacher\ProfileController::class, 'uploadProfilePicture'])->name('teacher.profile.upload');
+    // Teacher Sections (adviser)
+    Route::get('/teacher/sections', [App\Http\Controllers\Teacher\SectionController::class, 'index'])->name('teacher.sections.index');
+    Route::get('/teacher/sections/{section}', [App\Http\Controllers\Teacher\SectionController::class, 'show'])->name('teacher.sections.show');
 
     // Teacher Announcement Routes
     Route::get('/teacher/announcements', [App\Http\Controllers\Teacher\AnnouncementController::class, 'index'])->name('teacher.announcements.index');
@@ -15158,6 +15163,9 @@ Route::prefix('registrar')->name('registrar.')->group(function () {
         Route::get('/api/tracks-by-grade', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'getTracksByGrade'])->name('api.tracks-by-grade');
         Route::get('/api/clusters-by-grade-track', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'getClustersByGradeAndTrack'])->name('api.clusters-by-grade-track');
         Route::get('/api/subjects-by-filters', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'getSubjectsByFilters'])->name('api.subjects-by-filters');
+
+        // Sections API for Registrar (reuses Admin controller logic)
+        Route::get('/api/sections-by-filters', [App\Http\Controllers\Admin\SectionController::class, 'apiSectionsByFilters'])->name('api.sections-by-filters');
 
         // Legacy routes for backward compatibility (redirect to new unified routes)
         Route::get('/subjects', function() { return redirect()->route('registrar.subject-management.index'); });

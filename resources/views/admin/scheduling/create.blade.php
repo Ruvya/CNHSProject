@@ -8,7 +8,7 @@
             <span class="icon"><i class="fas fa-calendar-plus"></i></span>
             <div>
                 <span class="title">Create Class Schedule</span>
-                <span class="subtitle">Assign teachers to subjects, sections, timeslots, and rooms</span>
+                <span class="subtitle">Assign teachers to subjects, sections, and timeslots</span>
             </div>
         </div>
         <div class="header-right-content">
@@ -76,21 +76,7 @@
                         @enderror
                     </div>
 
-                    <!-- Room Selection -->
-                    <div class="col-md-6">
-                        <label for="room_id" class="form-label">Room <span class="text-danger">*</span></label>
-                        <select name="room_id" id="room_id" class="form-select" required>
-                            <option value="">Select Room</option>
-                            @foreach($rooms as $room)
-                                <option value="{{ $room->id }}">
-                                    {{ $room->code }} - {{ $room->name }} ({{ ucfirst(str_replace('_', ' ', $room->type)) }}, Capacity: {{ $room->capacity }})
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('room_id')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
-                        @enderror
-                    </div>
+                    
 
                     <!-- Day Selection -->
                     <div class="col-md-4">
@@ -133,15 +119,15 @@
                         @enderror
                     </div>
 
-                    <!-- Semester -->
+                    <!-- Grading Period (Semestral) -->
                     <div class="col-md-6">
-                        <label for="semester" class="form-label">Semester <span class="text-danger">*</span></label>
-                        <select name="semester" id="semester" class="form-select" required>
-                            <option value="">Select Semester</option>
+                        <label for="grading_period" class="form-label">Grading Period (Semestral) <span class="text-danger">*</span></label>
+                        <select name="grading_period" id="grading_period" class="form-select" required>
+                            <option value="">Select Period</option>
                             <option value="1st Semester">1st Semester</option>
                             <option value="2nd Semester">2nd Semester</option>
                         </select>
-                        @error('semester')
+                        @error('grading_period')
                             <div class="text-danger small mt-1">{{ $message }}</div>
                         @enderror
                     </div>
@@ -176,7 +162,7 @@
                                 <button type="button" id="validateBtn" class="btn btn-outline-primary me-2">
                                     <i class="fas fa-check-circle me-2"></i>Validate Schedule
                                 </button>
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" id="submitBtn" class="btn btn-primary">
                                     <i class="fas fa-save me-2"></i>Create Schedule
                                 </button>
                             </div>
@@ -189,11 +175,21 @@
 </div>
 
 <script>
+// Expose URLs for use inside verbatim JS block
+window.SCHED_URLS = {
+    validateConflicts: "{{ route('admin.scheduling.validate-conflicts') }}",
+    index: "{{ route('admin.scheduling.index') }}",
+    store: "{{ route('admin.scheduling.store') }}"
+};
+</script>
+<script>
+@verbatim
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('scheduleForm');
     const validateBtn = document.getElementById('validateBtn');
     const conflictValidation = document.getElementById('conflictValidation');
     const validationResults = document.getElementById('validationResults');
+    const submitBtn = document.getElementById('submitBtn');
 
     // Validate schedule conflicts
     validateBtn.addEventListener('click', function() {
@@ -204,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
         validateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Validating...';
         validateBtn.disabled = true;
 
-        fetch('{{ route("admin.scheduling.validate-conflicts") }}', {
+        fetch(window.SCHED_URLS.validateConflicts, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -248,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Auto-validate when key fields change
-    const keyFields = ['teacher_id', 'subject_id', 'section_id', 'room_id', 'day', 'start_time', 'end_time'];
+    const keyFields = ['teacher_id', 'subject_id', 'section_id', 'day', 'start_time', 'end_time'];
     keyFields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (field) {
@@ -269,6 +265,91 @@ document.addEventListener('DOMContentLoaded', function() {
             endTimeInput.value = '';
         }
     });
+
+    // Intercept form submit to prevent full page reload
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Clear previous inline errors
+        form.querySelectorAll('.text-danger.small').forEach(el => { el.textContent = ''; });
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        submitBtn.disabled = true;
+        const originalHtml = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating...';
+
+        fetch(window.SCHED_URLS.store, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(data)
+        })
+        .then(async (response) => {
+            const json = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw { status: response.status, body: json };
+            }
+            return json;
+        })
+        .then(result => {
+            // If there are warnings from earlier validation, keep showing them
+            if (result.message) {
+                // Optionally show a toast/alert. For now, redirect.
+            }
+            if (result.redirect) {
+                window.location.href = result.redirect;
+            } else {
+                // Fallback: reload index
+                window.location.href = window.SCHED_URLS.index;
+            }
+        })
+        .catch(err => {
+            // Handle validation errors
+            if (err && err.status === 422 && err.body) {
+                const errors = err.body.errors || err.body;
+                // Map known fields
+                const fields = ['teacher_id','subject_id','section_id','day','start_time','end_time','school_year','grading_period','notes'];
+                fields.forEach(field => {
+                    const input = document.getElementById(field);
+                    if (input) {
+                        // Find the next sibling error container from Blade (@error blocks)
+                        const group = input.closest('.col-md-6, .col-md-4, .col-12');
+                        if (group) {
+                            let errorEl = group.querySelector('.text-danger.small');
+                            if (!errorEl) {
+                                errorEl = document.createElement('div');
+                                errorEl.className = 'text-danger small mt-1';
+                                group.appendChild(errorEl);
+                            }
+                            if (errors[field]) {
+                                errorEl.textContent = Array.isArray(errors[field]) ? errors[field][0] : errors[field];
+                            }
+                        }
+                    }
+                });
+
+                // Show conflict messages if provided as plain array
+                if (Array.isArray(err.body.errors)) {
+                    conflictValidation.style.display = 'block';
+                    validationResults.innerHTML = '<div class="text-danger"><strong>Conflicts detected:</strong><ul class="mb-0 mt-2">' +
+                        err.body.errors.map(e => `<li>${e}</li>`).join('') + '</ul></div>';
+                }
+            } else {
+                alert('An unexpected error occurred. Please try again.');
+                console.error(err);
+            }
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalHtml;
+        });
+    });
 });
+@endverbatim
 </script>
 @endsection

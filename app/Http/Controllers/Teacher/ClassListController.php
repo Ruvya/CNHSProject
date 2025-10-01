@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Subject;
 use App\Models\Student;
 use App\Models\Grade;
+use App\Models\Section;
 use Illuminate\Support\Facades\Auth;
 
 class ClassListController extends Controller
@@ -190,6 +191,14 @@ class ClassListController extends Controller
 
         // Verify teacher has access to this student
         $hasAccess = $student->subjects->whereIn('id', $allSubjectIds)->count() > 0;
+
+        // Also allow access if teacher is the adviser of the student's section (by section name)
+        if (!$hasAccess && $student->section) {
+            $advisesSection = Section::where('name', $student->section)
+                ->where('adviser_id', $teacher->id)
+                ->exists();
+            $hasAccess = $hasAccess || $advisesSection;
+        }
 
         if (!$hasAccess) {
             abort(403, 'You do not have access to this student.');

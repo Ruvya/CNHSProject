@@ -119,20 +119,35 @@ class SchedulingController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'teacher_id' => 'required|exists:teachers,id',
             'subject_id' => 'required|exists:subjects,id',
             'section_id' => 'required|exists:sections,id',
-            'room_id' => 'required|exists:rooms,id',
+            'room_id' => 'nullable|exists:rooms,id',
             'day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'school_year' => 'required|string',
-            'semester' => 'required|in:1st Semester,2nd Semester',
+            'grading_period' => 'required|in:1st Semester,2nd Semester',
             'notes' => 'nullable|string|max:500',
-        ]);
+        ];
 
-        // Add created_by field
+        // For AJAX requests, return JSON with validation errors instead of redirect
+        if ($request->wantsJson()) {
+            $validator = \Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+            $validated = $validator->validated();
+        } else {
+            $validated = $request->validate($rules);
+        }
+
+        // Add created_by and status
         $validated['created_by'] = auth()->guard('admin')->id() ?? 1;
         $validated['status'] = 'active';
 
@@ -140,38 +155,54 @@ class SchedulingController extends Controller
         $validation = $this->validationService->validateSchedule($validated);
 
         if (!$validation['valid']) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Schedule validation failed',
+                    'errors' => $validation['errors'],
+                ], 422);
+            }
+
             return redirect()->back()
                 ->withInput()
                 ->withErrors($validation['errors'])
                 ->with('error', 'Schedule validation failed: ' . implode(', ', $validation['errors']));
         }
 
-        // Show warnings if any
-        if (!empty($validation['warnings'])) {
-            $request->session()->flash('warning', 'Warnings: ' . implode(', ', $validation['warnings']));
-        }
-
         // Create the schedule
         $schedule = Schedule::create($validated);
 
-        // Get related models for success message
+        // Prepare success message
         $teacher = Teacher::find($validated['teacher_id']);
         $subject = Subject::find($validated['subject_id']);
         $section = Section::find($validated['section_id']);
-        $room = Room::find($validated['room_id']);
+        $room = isset($validated['room_id']) ? Room::find($validated['room_id']) : null;
 
         $successMessage = "✅ Schedule Created Successfully!\n\n";
         $successMessage .= "📋 Schedule Details:\n";
         $successMessage .= "👨‍🏫 Teacher: {$teacher->name}\n";
         $successMessage .= "📚 Subject: {$subject->name} ({$subject->code})\n";
         $successMessage .= "🏫 Section: {$section->name}\n";
-        $successMessage .= "🏢 Room: {$room->name} ({$room->code})\n";
+        if ($room) {
+            $successMessage .= "🏢 Room: {$room->name}" . ($room->code ? " ({$room->code})" : '') . "\n";
+        }
         $successMessage .= "📅 Day: {$validated['day']}\n";
         $successMessage .= "🕒 Time: " . date('g:i A', strtotime($validated['start_time'])) . " - " . date('g:i A', strtotime($validated['end_time'])) . "\n";
         $successMessage .= "📊 School Year: {$validated['school_year']}\n";
         $successMessage .= "📝 Grading Period: {$validated['grading_period']}\n";
         $successMessage .= "🕒 Created on: " . now()->format('M d, Y h:i A');
 
+        // If AJAX request, return JSON with redirect URL
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMessage,
+                'redirect' => route('admin.scheduling.index'),
+                'schedule_id' => $schedule->id,
+            ]);
+        }
+
+        // Non-AJAX fallback
         return redirect()->route('admin.scheduling.index')
             ->with('success', $successMessage);
     }
@@ -213,7 +244,7 @@ class SchedulingController extends Controller
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'school_year' => 'required|string',
-            'semester' => 'required|in:1st Semester,2nd Semester',
+            'grading_period' => 'required|in:1st Semester,2nd Semester',
             'status' => 'required|in:active,inactive,cancelled',
             'notes' => 'nullable|string|max:500',
         ]);

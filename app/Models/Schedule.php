@@ -23,10 +23,10 @@ class Schedule extends Model
         'created_by'
     ];
 
-    protected $casts = [
-        'start_time' => 'datetime:H:i',
-        'end_time' => 'datetime:H:i',
-    ];
+    // Important: keep times as raw strings (DB columns are TIME)
+    // Casting to datetime would turn them into DateTime objects and
+    // break comparisons that rely on string times with strtotime().
+    protected $casts = [];
 
     /**
      * Get the teacher for this schedule
@@ -88,9 +88,11 @@ class Schedule extends Model
         }
 
         // Check room conflicts
-        $roomConflicts = $this->getRoomConflicts($excludeId);
-        if (!empty($roomConflicts)) {
-            $conflicts['room'] = $roomConflicts;
+        if (!empty($this->room_id)) {
+            $roomConflicts = $this->getRoomConflicts($excludeId);
+            if (!empty($roomConflicts)) {
+                $conflicts['room'] = $roomConflicts;
+            }
         }
 
         return $conflicts;
@@ -116,10 +118,11 @@ class Schedule extends Model
 
         foreach ($schedules as $schedule) {
             if ($this->timeSlotsOverlap($this->start_time, $this->end_time, $schedule->start_time, $schedule->end_time)) {
+                $roomPart = $schedule->room ? ' in ' . $schedule->room->name : '';
                 $conflicts[] = [
                     'schedule' => $schedule,
                     'conflict_type' => 'teacher_double_booking',
-                    'message' => "Teacher is already scheduled for {$schedule->subject->name} in {$schedule->room->name} at the same time"
+                    'message' => "Teacher is already scheduled for {$schedule->subject->name}{$roomPart} at the same time"
                 ];
             }
         }

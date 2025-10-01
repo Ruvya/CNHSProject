@@ -18,64 +18,7 @@
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-2">
-            <div class="stat-card">
-                <div class="stat-icon bg-primary">
-                    <i class="fas fa-calendar-check"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">{{ $stats['total_schedules'] }}</div>
-                    <div class="stat-label">Total Schedules</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="stat-card">
-                <div class="stat-icon bg-success">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">{{ $stats['total_teachers'] }}</div>
-                    <div class="stat-label">Active Teachers</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="stat-card">
-                <div class="stat-icon bg-info">
-                    <i class="fas fa-book"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">{{ $stats['total_subjects'] }}</div>
-                    <div class="stat-label">Subjects</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="stat-card">
-                <div class="stat-icon bg-warning">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">{{ $stats['total_sections'] }}</div>
-                    <div class="stat-label">Sections</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="stat-card">
-                <div class="stat-icon bg-secondary">
-                    <i class="fas fa-door-open"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">{{ $stats['total_rooms'] }}</div>
-                    <div class="stat-label">Available Rooms</div>
-                </div>
-            </div>
-        </div>
-    </div>
+    
 
     <!-- Filters -->
     <div class="card shadow-sm mb-4">
@@ -118,17 +61,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-2">
-                        <label for="room_id" class="form-label">Room</label>
-                        <select name="room_id" id="room_id" class="form-select">
-                            <option value="">All Rooms</option>
-                            @foreach($rooms as $room)
-                                <option value="{{ $room->id }}" {{ (isset($selectedRoom) && $selectedRoom == $room->id) ? 'selected' : '' }}>
-                                    {{ $room->code }} - {{ $room->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    
                     <div class="col-md-2">
                         <label for="day" class="form-label">Day</label>
                         <select name="day" id="day" class="form-select">
@@ -148,13 +81,11 @@
                 </div>
                 <div class="row g-3 mt-2">
                     <div class="col-md-2">
-                        <label for="grading_period" class="form-label">Grading Period</label>
+                        <label for="grading_period" class="form-label">Grading Period (Semestral)</label>
                         <select name="grading_period" id="grading_period" class="form-select">
                             <option value="">All Periods</option>
-                            <option value="First Grading" {{ (isset($gradingPeriod) && $gradingPeriod == 'First Grading') ? 'selected' : '' }}>First Grading</option>
-                            <option value="Second Grading" {{ (isset($gradingPeriod) && $gradingPeriod == 'Second Grading') ? 'selected' : '' }}>Second Grading</option>
-                            <option value="Third Grading" {{ (isset($gradingPeriod) && $gradingPeriod == 'Third Grading') ? 'selected' : '' }}>Third Grading</option>
-                            <option value="Fourth Grading" {{ (isset($gradingPeriod) && $gradingPeriod == 'Fourth Grading') ? 'selected' : '' }}>Fourth Grading</option>
+                            <option value="1st Semester" {{ (isset($gradingPeriod) && $gradingPeriod == '1st Semester') ? 'selected' : '' }}>1st Semester</option>
+                            <option value="2nd Semester" {{ (isset($gradingPeriod) && $gradingPeriod == '2nd Semester') ? 'selected' : '' }}>2nd Semester</option>
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -189,7 +120,7 @@
                                 <th>Teacher</th>
                                 <th>Subject</th>
                                 <th>Section</th>
-                                <th>Room</th>
+                                
                                 <th>School Year</th>
                                 <th>Grading Period</th>
                                 <th>Status</th>
@@ -226,12 +157,7 @@
                                     <td>
                                         <span class="badge bg-info">{{ $schedule->section->name }}</span>
                                     </td>
-                                    <td>
-                                        <div>
-                                            <div class="fw-medium">{{ $schedule->room->name }}</div>
-                                            <small class="text-muted">{{ $schedule->room->code }} ({{ ucfirst(str_replace('_', ' ', $schedule->room->type)) }})</small>
-                                        </div>
-                                    </td>
+                                    
                                     <td>
                                         <span class="badge bg-secondary">{{ $schedule->school_year }}</span>
                                     </td>

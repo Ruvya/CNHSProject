@@ -16,7 +16,7 @@ class Section extends Model
         'max_capacity',
         'current_enrollment',
         'school_year',
-        'grading_period',
+        'semester',
         'adviser_id',
         'room',
         'status',

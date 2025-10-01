@@ -112,17 +112,17 @@ class SectionController extends Controller
             'max_capacity' => 'nullable|integer|min:1',
             'status' => 'nullable|in:active,inactive,full',
             'school_year' => 'nullable|string|exists:school_years,name',
-            'grading_period' => 'nullable|string|in:First Grading,Second Grading,Third Grading,Fourth Grading',
+            'semester' => 'nullable|string|in:1st Semester,2nd Semester',
         ]);
 
         $data['max_capacity'] = $data['max_capacity'] ?? 40;
         $data['school_year'] = $data['school_year'] ?? $this->currentSchoolYear();
-        $data['grading_period'] = $data['grading_period'] ?? 'First Grading';
+        $data['semester'] = $data['semester'] ?? '1st Semester';
 
         // Unique name within strand/track for current term
         $exists = Section::where('name', $data['name'])
             ->where('school_year', $data['school_year'])
-            ->where('grading_period', $data['grading_period'])
+            ->where('semester', $data['semester'])
             ->exists();
         if ($exists) {
             return back()->withErrors(['name' => 'Section name already exists for the current term.'])->withInput();
@@ -290,7 +290,7 @@ class SectionController extends Controller
                 'track' => $section->track,
                 'strand' => $section->strand,
                 'school_year' => $section->school_year,
-                'grading_period' => $section->grading_period,
+                'semester' => $section->semester,
                 'status' => $section->status,
             ],
             'adviser' => $adviser,

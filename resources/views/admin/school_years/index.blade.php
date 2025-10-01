@@ -62,7 +62,6 @@
 							<th>Name</th>
 							<th>Years</th>
 							<th>Status</th>
-							<th>Records</th>
 							<th>Created</th>
 							<th>Actions</th>
 						</tr>
@@ -80,21 +79,10 @@
 							<td>
 								<span class="badge bg-{{ $year->status === 'active' ? 'success' : ($year->status === 'closed' ? 'secondary' : 'dark') }}">{{ ucfirst($year->status) }}</span>
 							</td>
-							<td>
-								@php
-									$summary = $year->summary;
-								@endphp
-								<small class="text-muted">
-									Students: {{ $summary['total_students'] }} | 
-									Teachers: {{ $summary['total_teachers'] }} | 
-									Sections: {{ $summary['total_sections'] }}
-								</small>
-							</td>
 							<td>{{ $year->created_at->format('M d, Y') }}</td>
 							<td>
 								<div class="btn-group" role="group">
 									<a href="{{ route('admin.school-years.show', $year) }}" class="btn btn-sm btn-primary">View</a>
-									<a href="{{ route('admin.school-years.statistics', $year) }}" class="btn btn-sm btn-info">Stats</a>
 									@if($year->status !== 'active')
 										<form method="POST" action="{{ route('admin.school-years.activate', $year) }}" class="d-inline">
 											@csrf

@@ -134,13 +134,13 @@ class Teacher extends Authenticatable
     {
         return $this->belongsToMany(Subject::class, 'teacher_assignments', 'teacher_id', 'subject_id')
             ->wherePivot('status', 'active')
-            ->withPivot('school_year', 'grading_period', 'schedule', 'assignment_date', 'notes');
+            ->withPivot('school_year', 'semester', 'schedule', 'assignment_date', 'notes');
     }
 
     /**
      * Get current active assigned subjects for the current school year
      */
-    public function currentAssignedSubjects($schoolYear = null, $gradingPeriod = null)
+    public function currentAssignedSubjects($schoolYear = null, $semester = null)
     {
         $query = $this->belongsToMany(Subject::class, 'teacher_assignments', 'teacher_id', 'subject_id')
             ->wherePivot('status', 'active');
@@ -149,11 +149,11 @@ class Teacher extends Authenticatable
             $query->wherePivot('school_year', $schoolYear);
         }
 
-        if ($gradingPeriod) {
-            $query->wherePivot('grading_period', $gradingPeriod);
+        if ($semester) {
+            $query->wherePivot('semester', $semester);
         }
 
-        return $query->withPivot('school_year', 'grading_period', 'schedule', 'assignment_date', 'notes');
+        return $query->withPivot('school_year', 'semester', 'schedule', 'assignment_date', 'notes');
     }
 
     /**
