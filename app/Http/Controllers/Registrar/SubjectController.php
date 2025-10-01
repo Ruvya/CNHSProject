@@ -149,7 +149,7 @@ class SubjectController extends Controller
         if (!$isCoreSubject) {
             $validationRules['grade_level'] = 'required|in:Grade 11,Grade 12';
             $validationRules['track'] = 'required|string|max:100';
-            $validationRules['grading'] = 'required|in:First Grading,Second Grading,Third Grading,Fourth Grading,All Gradings';
+            $validationRules['semester'] = 'required|in:1st Semester,2nd Semester,Both Semesters';
         } else {
             $validationRules['grade_level'] = 'nullable|in:Grade 11,Grade 12';
             $validationRules['track'] = 'nullable|string|max:100';
@@ -158,6 +158,14 @@ class SubjectController extends Controller
 
         $validationRules['cluster'] = 'nullable|string|max:100';
         $validationRules['specialization'] = 'nullable|string|max:100';
+        
+        // Schedule validation rules
+        $validationRules['schedule_days'] = 'nullable|array';
+        $validationRules['schedule_days.*'] = 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday';
+        $validationRules['start_time'] = 'nullable|date_format:H:i';
+        $validationRules['end_time'] = 'nullable|date_format:H:i|after:start_time';
+        $validationRules['room'] = 'nullable|string|max:100';
+        $validationRules['schedule_notes'] = 'nullable|string|max:500';
 
         $validated = $request->validate($validationRules);
 
@@ -184,6 +192,11 @@ class SubjectController extends Controller
 
         // Ensure code is uppercase
         $validated['code'] = strtoupper($validated['code']);
+
+        // Process schedule days - convert array to comma-separated string
+        if (isset($validated['schedule_days']) && is_array($validated['schedule_days'])) {
+            $validated['schedule_days'] = implode(',', $validated['schedule_days']);
+        }
 
         // Units removed - not applicable for senior high school
 
@@ -228,7 +241,7 @@ class SubjectController extends Controller
         if (!$isCoreSubject) {
             $validationRules['grade_level'] = 'required|in:Grade 11,Grade 12';
             $validationRules['track'] = 'required|string|max:100';
-            $validationRules['grading'] = 'required|in:First Grading,Second Grading,Third Grading,Fourth Grading,All Gradings';
+            $validationRules['semester'] = 'required|in:1st Semester,2nd Semester,Both Semesters';
         } else {
             $validationRules['grade_level'] = 'nullable|in:Grade 11,Grade 12';
             $validationRules['track'] = 'nullable|string|max:100';
@@ -237,6 +250,14 @@ class SubjectController extends Controller
 
         $validationRules['cluster'] = 'nullable|string|max:100';
         $validationRules['specialization'] = 'nullable|string|max:100';
+        
+        // Schedule validation rules
+        $validationRules['schedule_days'] = 'nullable|array';
+        $validationRules['schedule_days.*'] = 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday';
+        $validationRules['start_time'] = 'nullable|date_format:H:i';
+        $validationRules['end_time'] = 'nullable|date_format:H:i|after:start_time';
+        $validationRules['room'] = 'nullable|string|max:100';
+        $validationRules['schedule_notes'] = 'nullable|string|max:500';
 
         $validated = $request->validate($validationRules);
 
@@ -254,6 +275,11 @@ class SubjectController extends Controller
 
         // Ensure code is uppercase
         $validated['code'] = strtoupper($validated['code']);
+
+        // Process schedule days - convert array to comma-separated string
+        if (isset($validated['schedule_days']) && is_array($validated['schedule_days'])) {
+            $validated['schedule_days'] = implode(',', $validated['schedule_days']);
+        }
 
         // Add default units value since we removed it from the form
         $validated['units'] = $subject->units ?? 3; // Keep existing units or default to 3

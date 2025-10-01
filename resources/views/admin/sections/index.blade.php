@@ -14,6 +14,8 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
+    @include('admin.partials.semester-notice')
+
     @forelse($sections as $strand => $group)
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -37,7 +39,9 @@
                     <tbody>
                         @foreach($group as $section)
                             <tr>
-                                <td>{{ $section->name }}</td>
+                                <td>
+                                    <a href="{{ route('admin.sections.show', $section) }}">{{ $section->name }}</a>
+                                </td>
                                 <td>{{ $section->grade_level }}</td>
                                 <td>{{ $section->strand ?: $section->track }}</td>
                                 <td>{{ optional($section->adviser)->name ?: '—' }}</td>
@@ -47,6 +51,7 @@
                                     <span class="badge {{ $section->status === 'active' ? 'bg-success' : ($section->status === 'full' ? 'bg-warning text-dark' : 'bg-secondary') }}">{{ ucfirst($section->status) }}</span>
                                 </td>
                                 <td class="d-flex gap-2">
+                                    <a href="{{ route('admin.sections.show', $section) }}" class="btn btn-sm btn-outline-success">Manage</a>
                                     <a href="{{ route('admin.sections.edit', $section) }}" class="btn btn-sm btn-outline-primary">Edit</a>
                                     <form method="POST" action="{{ route('admin.sections.toggle-status', $section) }}" onsubmit="return confirm('Toggle status for this section?');">
                                         @csrf

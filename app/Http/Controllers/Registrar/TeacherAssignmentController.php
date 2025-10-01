@@ -162,7 +162,7 @@ class TeacherAssignmentController extends Controller
             'teacher_id' => 'required|exists:teachers,id',
             'subject_id' => 'required|exists:subjects,id',
             'school_year' => 'required|string',
-            'grading_period' => 'required|string',
+            'semester' => 'required|in:1st Semester,2nd Semester',
             'schedule' => 'nullable|array',
             'schedule.*.day' => 'nullable|string|max:255',
             'schedule.*.start_time' => 'nullable|date_format:H:i',
@@ -384,21 +384,27 @@ class TeacherAssignmentController extends Controller
     }
 
     /**
-     * Get current grading period
+     * Get current semester
      */
-    private function getCurrentGradingPeriod(): string
+    private function getCurrentSemester(): string
     {
         $currentMonth = date('n');
 
-        // Determine grading period based on month
-        if ($currentMonth >= 6 && $currentMonth <= 8) {
-            return 'First Grading';
-        } elseif ($currentMonth >= 9 && $currentMonth <= 11) {
-            return 'Second Grading';
-        } elseif ($currentMonth == 12 || $currentMonth <= 2) {
-            return 'Third Grading';
+        // Determine semester based on month
+        // 1st Semester: June to December (months 6-12)
+        // 2nd Semester: January to May (months 1-5)
+        if ($currentMonth >= 6 && $currentMonth <= 12) {
+            return '1st Semester';
         } else {
-            return 'Fourth Grading';
+            return '2nd Semester';
         }
+    }
+
+    /**
+     * Get current grading period (deprecated - use getCurrentSemester)
+     */
+    private function getCurrentGradingPeriod(): string
+    {
+        return $this->getCurrentSemester();
     }
 }

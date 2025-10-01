@@ -12,6 +12,16 @@
 				<button class="btn btn-success">Activate</button>
 			</form>
 		@endif
+		<a href="{{ route('admin.school-years.statistics', $schoolYear) }}" class="btn btn-info">Statistics</a>
+		<a href="{{ route('admin.school-years.export', $schoolYear) }}" class="btn btn-outline-primary">Export Data</a>
+		<button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
+		@if($schoolYear->studentYearlyRecords()->count() == 0 && $schoolYear->teacherYearlyRecords()->count() == 0)
+			<form method="POST" action="{{ route('admin.school-years.destroy', $schoolYear) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this school year?')">
+				@csrf
+				@method('DELETE')
+				<button class="btn btn-danger">Delete</button>
+			</form>
+		@endif
 	</div>
 
 	<div class="row g-3">
@@ -22,24 +32,30 @@
 					<div class="row text-center">
 						<div class="col">
 							<strong>Students</strong>
-							<div>{{ $summary['total_students'] }}</div>
+							<div class="h4 text-primary">{{ $summary['total_students'] }}</div>
 						</div>
 						<div class="col">
 							<strong>Teachers</strong>
-							<div>{{ $summary['total_teachers'] }}</div>
+							<div class="h4 text-success">{{ $summary['total_teachers'] }}</div>
 						</div>
 						<div class="col">
 							<strong>Sections</strong>
-							<div>{{ $summary['total_sections'] }}</div>
+							<div class="h4 text-info">{{ $summary['total_sections'] }}</div>
 						</div>
 						<div class="col">
 							<strong>Assignments</strong>
-							<div>{{ $summary['total_assignments'] }}</div>
+							<div class="h4 text-warning">{{ $summary['total_assignments'] }}</div>
 						</div>
 						<div class="col">
 							<strong>Subjects</strong>
-							<div>{{ $summary['total_subjects'] }}</div>
+							<div class="h4 text-secondary">{{ $summary['total_subjects'] }}</div>
 						</div>
+						@if(isset($summary['total_schedules']))
+						<div class="col">
+							<strong>Schedules</strong>
+							<div class="h4 text-dark">{{ $summary['total_schedules'] }}</div>
+						</div>
+						@endif
 					</div>
 				</div>
 			</div>
@@ -195,6 +211,109 @@
 					</table>
 				</div>
 			</div>
+		</div>
+
+		@if(isset($gradeDistribution) && $gradeDistribution->count() > 0)
+		<div class="col-md-12">
+			<div class="card mt-3">
+				<div class="card-header">Grade Level Distribution</div>
+				<div class="card-body">
+					<div class="row">
+						@foreach($gradeDistribution as $grade => $count)
+						<div class="col-md-2 text-center">
+							<div class="card bg-light">
+								<div class="card-body">
+									<h5 class="card-title">Grade {{ $grade }}</h5>
+									<p class="card-text h4">{{ $count }} students</p>
+								</div>
+							</div>
+						</div>
+						@endforeach
+					</div>
+				</div>
+			</div>
+		</div>
+		@endif
+
+		@if(isset($sectionAnalysis) && $sectionAnalysis->count() > 0)
+		<div class="col-md-12">
+			<div class="card mt-3">
+				<div class="card-header">Section Capacity Analysis</div>
+				<div class="card-body">
+					<div class="table-responsive">
+						<table class="table table-sm">
+							<thead>
+								<tr>
+									<th>Section</th>
+									<th>Grade</th>
+									<th>Enrollment</th>
+									<th>Capacity</th>
+									<th>Utilization</th>
+									<th>Status</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach($sectionAnalysis as $section)
+								<tr>
+									<td>{{ $section['name'] }}</td>
+									<td>{{ $section['grade_level'] }}</td>
+									<td>{{ $section['current_enrollment'] }}</td>
+									<td>{{ $section['max_capacity'] }}</td>
+									<td>
+										<div class="progress" style="height: 20px;">
+											<div class="progress-bar {{ $section['utilization'] > 90 ? 'bg-danger' : ($section['utilization'] > 70 ? 'bg-warning' : 'bg-success') }}" 
+												 style="width: {{ $section['utilization'] }}%">
+												{{ $section['utilization'] }}%
+											</div>
+										</div>
+									</td>
+									<td>
+										<span class="badge bg-{{ $section['status'] === 'active' ? 'success' : ($section['status'] === 'full' ? 'danger' : 'secondary') }}">
+											{{ ucfirst($section['status']) }}
+										</span>
+									</td>
+								</tr>
+								@endforeach
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+		@endif
+	</div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="editModalLabel">Edit School Year</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<form method="POST" action="{{ route('admin.school-years.update', $schoolYear) }}">
+				@csrf
+				@method('PUT')
+				<div class="modal-body">
+					<div class="mb-3">
+						<label for="name" class="form-label">Name</label>
+						<input type="text" class="form-control" id="name" name="name" value="{{ $schoolYear->name }}" required>
+					</div>
+					<div class="mb-3">
+						<label for="start_year" class="form-label">Start Year</label>
+						<input type="number" class="form-control" id="start_year" name="start_year" value="{{ $schoolYear->start_year }}" min="2000" max="3000" required>
+					</div>
+					<div class="mb-3">
+						<label for="end_year" class="form-label">End Year</label>
+						<input type="number" class="form-control" id="end_year" name="end_year" value="{{ $schoolYear->end_year }}" min="2000" max="3000" required>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="submit" class="btn btn-primary">Update</button>
+				</div>
+			</form>
 		</div>
 	</div>
 </div>

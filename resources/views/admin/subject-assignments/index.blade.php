@@ -18,6 +18,8 @@
         </div>
     </div>
 
+    @include('admin.partials.semester-notice')
+
     <!-- Filters -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
@@ -56,12 +58,10 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <label for="grading_period" class="form-label">Grading Period</label>
+                        <label for="grading_period" class="form-label">Grading Period (Semestral)</label>
                         <select name="grading_period" id="grading_period" class="form-select">
-                            <option value="First Grading" {{ (isset($gradingPeriod) && $gradingPeriod == 'First Grading') ? 'selected' : '' }}>First Grading</option>
-                            <option value="Second Grading" {{ (isset($gradingPeriod) && $gradingPeriod == 'Second Grading') ? 'selected' : '' }}>Second Grading</option>
-                            <option value="Third Grading" {{ (isset($gradingPeriod) && $gradingPeriod == 'Third Grading') ? 'selected' : '' }}>Third Grading</option>
-                            <option value="Fourth Grading" {{ (isset($gradingPeriod) && $gradingPeriod == 'Fourth Grading') ? 'selected' : '' }}>Fourth Grading</option>
+                            <option value="1st Semester" {{ (isset($gradingPeriod) && $gradingPeriod == '1st Semester') ? 'selected' : '' }}>1st Semester</option>
+                            <option value="2nd Semester" {{ (isset($gradingPeriod) && $gradingPeriod == '2nd Semester') ? 'selected' : '' }}>2nd Semester</option>
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -94,6 +94,7 @@
                                 <th>Grade Level</th>
                                 <th>Track</th>
                                 <th>Cluster</th>
+                                <th>Semester</th>
                                 <th>Schedule</th>
                                 <th>Assigned Date</th>
                                 <th>Assigned By</th>
@@ -126,6 +127,13 @@
                                     </td>
                                     <td>
                                         {{ $assignment->subject->cluster ?? '' }}
+                                    </td>
+                                    <td>
+                                        @if($assignment->semester)
+                                            <span class="badge bg-primary">{{ $assignment->semester }}</span>
+                                        @else
+                                            <span class="text-muted">Not specified</span>
+                                        @endif
                                     </td>
                                     <td>
                                         <small class="text-muted">{{ $assignment->formatted_schedule ?? '' }}</small>

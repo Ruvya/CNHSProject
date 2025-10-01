@@ -31,11 +31,31 @@
                 </select>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Strand</label>
+                <label class="form-label">Cluster</label>
                 <select name="track" class="form-select" required>
-                    <option value="">Select strand</option>
+                    <option value="">Select cluster</option>
                     @foreach($tracks as $t)
                         <option value="{{ $t }}" @selected(old('track')===$t)>{{ $t }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">School Year</label>
+                <select name="school_year" class="form-select">
+                    @php $defaultYear = old('school_year', optional(\App\Models\SchoolYear::active()->first())->name); @endphp
+                    @foreach(($years ?? collect()) as $y)
+                        <option value="{{ $y->name }}" @selected($defaultYear===$y->name)>
+                            {{ $y->name }} {{ $y->status === 'active' ? '(Active)' : '' }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Semester</label>
+                @php $semesters = ['1st Semester','2nd Semester']; @endphp
+                <select name="semester" class="form-select">
+                    @foreach($semesters as $s)
+                        <option value="{{ $s }}" @selected(old('semester','1st Semester')===$s)>{{ $s }}</option>
                     @endforeach
                 </select>
             </div>

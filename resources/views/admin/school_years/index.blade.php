@@ -48,56 +48,72 @@
 	</div>
 
 	<div class="card">
-		<div class="card-header">School Years</div>
+		<div class="card-header d-flex justify-content-between align-items-center">
+			<span>School Years</span>
+			@if($active)
+				<span class="badge bg-success">Active: {{ $active->name }}</span>
+			@endif
+		</div>
 		<div class="card-body">
-			<table class="table table-striped">
-				<thead>
-					<tr>
-						<th>Name</th>
-						<th>Years</th>
-						<th>Status</th>
-						<th>Actions</th>
-					</tr>
-				</thead>
-				<tbody>
-					@foreach($years as $year)
-					<tr>
-						<td>{{ $year->name }}</td>
-						<td>{{ $year->start_year }} - {{ $year->end_year }}</td>
-						<td>
-							<span class="badge bg-{{ $year->status === 'active' ? 'success' : ($year->status === 'closed' ? 'secondary' : 'dark') }}">{{ ucfirst($year->status) }}</span>
-						</td>
-						<td>
-							<a href="{{ route('admin.school-years.show', $year) }}" class="btn btn-sm btn-primary">View</a>
-							@if($year->status !== 'active')
-								<form method="POST" action="{{ route('admin.school-years.activate', $year) }}" class="d-inline">
-									@csrf
-									<button class="btn btn-sm btn-success">Activate</button>
-								</form>
-							@endif
-							@if($year->status === 'active' || $year->status === 'closed')
-								<form method="POST" action="{{ route('admin.school-years.close', $year) }}" class="d-inline">
-									@csrf
-									<button class="btn btn-sm btn-warning">Close</button>
-								</form>
-							@endif
-							@if($year->status !== 'archived')
-								<form method="POST" action="{{ route('admin.school-years.archive', $year) }}" class="d-inline">
-									@csrf
-									<button class="btn btn-sm btn-outline-dark">Archive</button>
-								</form>
-							@endif
-							@if($year->status === 'archived')
-								<form method="POST" action="{{ route('admin.school-years.reopen', $year) }}" class="d-inline">
-									@csrf
-									<button class="btn btn-sm btn-secondary">Reopen</button>
-								</form>
-							@endif
-						</td>
-					</tr>
-					@endforeach
-				</tbody>
-			</table>
+			<div class="table-responsive">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Years</th>
+							<th>Status</th>
+							<th>Created</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						@foreach($years as $year)
+						<tr class="{{ $year->status === 'active' ? 'table-success' : '' }}">
+							<td>
+								<strong>{{ $year->name }}</strong>
+								@if($year->status === 'active')
+									<span class="badge bg-success ms-2">Current</span>
+								@endif
+							</td>
+							<td>{{ $year->start_year }} - {{ $year->end_year }}</td>
+							<td>
+								<span class="badge bg-{{ $year->status === 'active' ? 'success' : ($year->status === 'closed' ? 'secondary' : 'dark') }}">{{ ucfirst($year->status) }}</span>
+							</td>
+							<td>{{ $year->created_at->format('M d, Y') }}</td>
+							<td>
+								<div class="btn-group" role="group">
+									<a href="{{ route('admin.school-years.show', $year) }}" class="btn btn-sm btn-primary">View</a>
+									@if($year->status !== 'active')
+										<form method="POST" action="{{ route('admin.school-years.activate', $year) }}" class="d-inline">
+											@csrf
+											<button class="btn btn-sm btn-success">Activate</button>
+										</form>
+									@endif
+									@if($year->status === 'active' || $year->status === 'closed')
+										<form method="POST" action="{{ route('admin.school-years.close', $year) }}" class="d-inline">
+											@csrf
+											<button class="btn btn-sm btn-warning">Close</button>
+										</form>
+									@endif
+									@if($year->status !== 'archived')
+										<form method="POST" action="{{ route('admin.school-years.archive', $year) }}" class="d-inline">
+											@csrf
+											<button class="btn btn-sm btn-outline-dark">Archive</button>
+										</form>
+									@endif
+									@if($year->status === 'archived')
+										<form method="POST" action="{{ route('admin.school-years.reopen', $year) }}" class="d-inline">
+											@csrf
+											<button class="btn btn-sm btn-secondary">Reopen</button>
+										</form>
+									@endif
+								</div>
+							</td>
+						</tr>
+						@endforeach
+					</tbody>
+				</table>
+			</div>
 		</div>
 	</div>
 </div>

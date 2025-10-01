@@ -34,7 +34,12 @@
             </div>
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">Grade Management</h6>
+                    <div>
+                        <h6 class="m-0 font-weight-bold text-primary">Grade Management</h6>
+                        @if($subject->semester)
+                            <small class="text-muted">Semester: {{ $subject->semester }}</small>
+                        @endif
+                    </div>
                     <div>
                         <button type="button" class="btn btn-info btn-sm ms-2" onclick="refreshAllGrades()" id="refreshAllBtn">
                             <i class="fas fa-sync-alt"></i> Refresh All

@@ -26,72 +26,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // Core Subject auto-assign logic
     coreSubjectCheckbox.addEventListener('change', function() {
         if (this.checked) {
-            gradeLevelSelect.value = 'Grade 11';
-            gradeLevelSelect.style.backgroundColor = '#e9ecef';
-            gradeLevelSelect.style.pointerEvents = 'none';
-            trackSelect.value = 'All';
-            trackSelect.style.backgroundColor = '#e9ecef';
-            trackSelect.style.pointerEvents = 'none';
-            clusterSelect.value = 'All';
-            clusterSelect.style.backgroundColor = '#e9ecef';
-            clusterSelect.style.pointerEvents = 'none';
-            gradingSelect.value = 'All Gradings';
-            gradingSelect.style.backgroundColor = '#e9ecef';
-            gradingSelect.style.pointerEvents = 'none';
-            // Disable and uncheck Elective Subject
-            electiveSubjectCheckbox.checked = false;
-            electiveSubjectCheckbox.setAttribute('disabled', 'disabled');
-        } else {
-            gradeLevelSelect.style.backgroundColor = '';
-            gradeLevelSelect.style.pointerEvents = '';
-            trackSelect.style.backgroundColor = '';
-            trackSelect.style.pointerEvents = '';
-            clusterSelect.style.backgroundColor = '';
-            clusterSelect.style.pointerEvents = '';
-            gradingSelect.style.backgroundColor = '';
-            gradingSelect.style.pointerEvents = '';
-            // Enable Elective Subject
-            electiveSubjectCheckbox.removeAttribute('disabled');
+            // Auto-assign default values but keep fields enabled and editable
+            if (!gradeLevelSelect.value) gradeLevelSelect.value = 'Grade 11';
+            if (!trackSelect.value) trackSelect.value = 'All';
+            if (!clusterSelect.value) clusterSelect.value = 'All';
+            if (!gradingSelect.value) gradingSelect.value = 'All Gradings';
+            // Note: All fields remain enabled and editable
+            // Note: Elective Subject remains enabled and clickable
         }
+        // Fields remain fully functional regardless of Core Subject selection
     });
 
-    // Elective Subject logic
+    // Elective Subject logic - now independent of Core Subject
     electiveSubjectCheckbox.addEventListener('change', function() {
-        if (this.checked) {
-            // Disable and uncheck Core Subject
-            coreSubjectCheckbox.checked = false;
-            coreSubjectCheckbox.setAttribute('disabled', 'disabled');
-        } else {
-            // Enable Core Subject
-            coreSubjectCheckbox.removeAttribute('disabled');
-        }
+        // Elective subjects can be selected independently
+        // No longer disables Core Subject checkbox
     });
 
     // On page load, if checked, apply logic
     if (coreSubjectCheckbox.checked) {
-        gradeLevelSelect.value = 'Grade 11';
-        gradeLevelSelect.style.backgroundColor = '#e9ecef';
-        gradeLevelSelect.style.pointerEvents = 'none';
-        trackSelect.value = 'All';
-        trackSelect.style.backgroundColor = '#e9ecef';
-        trackSelect.style.pointerEvents = 'none';
-        clusterSelect.value = 'All';
-        clusterSelect.style.backgroundColor = '#e9ecef';
-        clusterSelect.style.pointerEvents = 'none';
-        gradingSelect.value = 'All Gradings';
-        gradingSelect.style.backgroundColor = '#e9ecef';
-        gradingSelect.style.pointerEvents = 'none';
-        // Disable and uncheck Elective Subject
-        electiveSubjectCheckbox.checked = false;
-        electiveSubjectCheckbox.setAttribute('disabled', 'disabled');
-    } else if (electiveSubjectCheckbox.checked) {
-        // Disable and uncheck Core Subject
-        coreSubjectCheckbox.checked = false;
-        coreSubjectCheckbox.setAttribute('disabled', 'disabled');
-    } else {
-        electiveSubjectCheckbox.removeAttribute('disabled');
-        coreSubjectCheckbox.removeAttribute('disabled');
+        // Auto-assign default values but keep fields enabled and editable
+        if (!gradeLevelSelect.value) gradeLevelSelect.value = 'Grade 11';
+        if (!trackSelect.value) trackSelect.value = 'All';
+        if (!clusterSelect.value) clusterSelect.value = 'All';
+        if (!gradingSelect.value) gradingSelect.value = 'All Gradings';
+        // Note: All fields remain enabled and editable
+        // Note: Elective Subject remains enabled and clickable
     }
+    // Both checkboxes remain enabled and independent
+    // All curriculum fields remain fully functional
 
     // Form validation
     document.getElementById('subjectForm').addEventListener('submit', function(e) {

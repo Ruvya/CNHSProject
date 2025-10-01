@@ -23,7 +23,12 @@ class Subject extends Model
         'semester',
         'is_master_subject',
         'is_core_subject',
-        'prerequisite_subjects'
+        'prerequisite_subjects',
+        'schedule_days',
+        'start_time',
+        'end_time',
+        'room',
+        'schedule_notes'
     ];
 
     public function teacher()
@@ -97,5 +102,39 @@ class Subject extends Model
         }
         // Fallback to direct teacher_id column
         return $this->teacher;
+    }
+
+    /**
+     * Get formatted schedule days as array
+     */
+    public function getScheduleDaysArrayAttribute()
+    {
+        if (!$this->schedule_days) {
+            return [];
+        }
+        return array_map('trim', explode(',', $this->schedule_days));
+    }
+
+    /**
+     * Get formatted schedule display
+     */
+    public function getScheduleDisplayAttribute()
+    {
+        if (!$this->schedule_days || !$this->start_time || !$this->end_time) {
+            return 'No schedule set';
+        }
+
+        $days = $this->schedule_days_array;
+        $timeRange = date('g:i A', strtotime($this->start_time)) . ' - ' . date('g:i A', strtotime($this->end_time));
+        
+        return implode(', ', $days) . ' at ' . $timeRange . ($this->room ? ' in ' . $this->room : '');
+    }
+
+    /**
+     * Check if subject has complete schedule information
+     */
+    public function hasCompleteSchedule()
+    {
+        return !empty($this->schedule_days) && !empty($this->start_time) && !empty($this->end_time);
     }
 }

@@ -114,6 +114,8 @@ Route::middleware(['auth:student'])->prefix('student')->name('student.')->group(
     Route::get('/profile/complete', [App\Http\Controllers\Student\ProfileController::class, 'showCompleteForm'])->name('profile.complete');
     Route::post('/profile/complete', [App\Http\Controllers\Student\ProfileController::class, 'completeProfile'])->name('profile.complete.store');
     Route::get('/schedule', [App\Http\Controllers\Student\ScheduleController::class, 'index'])->name('schedule');
+    // Student Section & Classmates
+    Route::get('/section', [App\Http\Controllers\Student\SectionController::class, 'index'])->name('section');
 });
 
 // Teacher Routes (consolidated)
@@ -14932,6 +14934,9 @@ Route::middleware(['auth:teacher'])->group(function () {
     Route::get('/teacher/profile', [App\Http\Controllers\Teacher\ProfileController::class, 'index'])->name('teacher.profile');
     Route::post('/teacher/profile', [App\Http\Controllers\Teacher\ProfileController::class, 'update'])->name('teacher.update-profile');
     Route::post('/teacher/profile/upload', [App\Http\Controllers\Teacher\ProfileController::class, 'uploadProfilePicture'])->name('teacher.profile.upload');
+    // Teacher Sections (adviser)
+    Route::get('/teacher/sections', [App\Http\Controllers\Teacher\SectionController::class, 'index'])->name('teacher.sections.index');
+    Route::get('/teacher/sections/{section}', [App\Http\Controllers\Teacher\SectionController::class, 'show'])->name('teacher.sections.show');
 
     // Teacher Announcement Routes
     Route::get('/teacher/announcements', [App\Http\Controllers\Teacher\AnnouncementController::class, 'index'])->name('teacher.announcements.index');
@@ -14967,6 +14972,14 @@ Route::middleware(['auth:teacher'])->group(function () {
 
 // Admin Auth Routes
 Route::prefix('admin')->name('admin.')->group(function () {
+    // Admin Student Management
+    Route::get('students', [App\Http\Controllers\Admin\StudentController::class, 'index'])->name('admin.students.index');
+    Route::get('students/create', [App\Http\Controllers\Admin\StudentController::class, 'create'])->name('admin.students.create');
+    Route::post('students', [App\Http\Controllers\Admin\StudentController::class, 'store'])->name('admin.students.store');
+    Route::get('students/{student}/edit', [App\Http\Controllers\Admin\StudentController::class, 'edit'])->name('admin.students.edit');
+    Route::put('students/{student}', [App\Http\Controllers\Admin\StudentController::class, 'update'])->name('admin.students.update');
+    Route::delete('students/{student}', [App\Http\Controllers\Admin\StudentController::class, 'destroy'])->name('admin.students.destroy');
+    Route::get('students/{student}', [App\Http\Controllers\Admin\StudentController::class, 'show'])->name('admin.students.show');
     // Test route to verify controller is working
     Route::get('test', [App\Http\Controllers\Admin\AuthController::class, 'test']);
 
@@ -14976,13 +14989,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     // Protected routes
     Route::middleware('auth:admin')->group(function () {
-        Route::get('dashboard/pass-fail-stats', [App\Http\Controllers\Admin\DashboardController::class, 'getPassFailStats'])->name('admin.dashboard.pass-fail-stats');
+    Route::get('dashboard/pass-fail-stats', [App\Http\Controllers\Admin\DashboardController::class, 'getPassFailStats'])->name('dashboard.pass-fail-stats');
         Route::get('dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
         // School Year Management
         Route::get('school-years', [SchoolYearController::class, 'index'])->name('school-years.index');
         Route::get('school-years/{schoolYear}', [SchoolYearController::class, 'show'])->name('school-years.show');
+        Route::get('school-years/{schoolYear}/statistics', [SchoolYearController::class, 'statistics'])->name('school-years.statistics');
+        Route::get('school-years/{schoolYear}/export', [SchoolYearController::class, 'export'])->name('school-years.export');
         Route::post('school-years', [SchoolYearController::class, 'store'])->name('school-years.store');
+        Route::put('school-years/{schoolYear}', [SchoolYearController::class, 'update'])->name('school-years.update');
+        Route::delete('school-years/{schoolYear}', [SchoolYearController::class, 'destroy'])->name('school-years.destroy');
         Route::post('school-years/{schoolYear}/activate', [SchoolYearController::class, 'activate'])->name('school-years.activate');
         Route::post('school-years/{schoolYear}/close', [SchoolYearController::class, 'close'])->name('school-years.close');
         Route::post('school-years/{schoolYear}/archive', [SchoolYearController::class, 'archive'])->name('school-years.archive');
@@ -14992,6 +15009,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('api/sections', [App\Http\Controllers\Admin\DashboardController::class, 'getSections'])->name('api.sections');
         // Admin API - sections by filters
         Route::get('api/sections-by-filters', [App\Http\Controllers\Admin\SectionController::class, 'apiSectionsByFilters'])->name('api.sections-by-filters');
+        // Admin API - students in a section with adviser
+        Route::get('api/sections/{section}/students', [App\Http\Controllers\Admin\SectionController::class, 'apiSectionStudents'])->name('api.section.students');
         Route::get('api/subjects', [App\Http\Controllers\Admin\DashboardController::class, 'getSubjects'])->name('api.subjects');
         Route::get('api/grading-scale-data', [App\Http\Controllers\Admin\DashboardController::class, 'getGradingScaleData'])->name('api.grading-scale-data');
 
@@ -15047,6 +15066,22 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('subject-assignments/{subjectAssignment}/edit', [App\Http\Controllers\Admin\SubjectAssignmentController::class, 'edit'])->name('subject-assignments.edit');
         Route::put('subject-assignments/{subjectAssignment}', [App\Http\Controllers\Admin\SubjectAssignmentController::class, 'update'])->name('subject-assignments.update');
         Route::delete('subject-assignments/{subjectAssignment}', [App\Http\Controllers\Admin\SubjectAssignmentController::class, 'destroy'])->name('subject-assignments.destroy');
+
+        // Scheduling Management (Admin)
+        Route::get('scheduling', [App\Http\Controllers\Admin\SchedulingController::class, 'index'])->name('scheduling.index');
+        Route::get('scheduling/create', [App\Http\Controllers\Admin\SchedulingController::class, 'create'])->name('scheduling.create');
+        Route::post('scheduling', [App\Http\Controllers\Admin\SchedulingController::class, 'store'])->name('scheduling.store');
+        Route::get('scheduling/{schedule}', [App\Http\Controllers\Admin\SchedulingController::class, 'show'])->name('scheduling.show');
+        Route::get('scheduling/{schedule}/edit', [App\Http\Controllers\Admin\SchedulingController::class, 'edit'])->name('scheduling.edit');
+        Route::put('scheduling/{schedule}', [App\Http\Controllers\Admin\SchedulingController::class, 'update'])->name('scheduling.update');
+        Route::delete('scheduling/{schedule}', [App\Http\Controllers\Admin\SchedulingController::class, 'destroy'])->name('scheduling.destroy');
+        
+        // AJAX routes for scheduling
+        Route::get('scheduling/available-time-slots', [App\Http\Controllers\Admin\SchedulingController::class, 'getAvailableTimeSlots'])->name('scheduling.available-time-slots');
+        Route::get('scheduling/available-rooms', [App\Http\Controllers\Admin\SchedulingController::class, 'getAvailableRooms'])->name('scheduling.available-rooms');
+        Route::post('scheduling/validate-conflicts', [App\Http\Controllers\Admin\SchedulingController::class, 'validateConflicts'])->name('scheduling.validate-conflicts');
+
+        // Room Management (Admin) - removed per system update request
         // Subjects Management Routes (View Only)
         // Subjects Management Routes
 Route::get('subjects', [App\Http\Controllers\Admin\SubjectController::class, 'index'])->name('subjects.index');
@@ -15076,6 +15111,9 @@ Route::delete('subjects/{subject}', [App\Http\Controllers\Admin\SubjectControlle
         Route::patch('sections/{section}/toggle-status', [App\Http\Controllers\Admin\SectionController::class, 'toggleStatus'])->name('sections.toggle-status');
         Route::delete('sections/{section}/hard', [App\Http\Controllers\Admin\SectionController::class, 'hardDelete'])->name('sections.hard-delete');
         Route::get('sections/report/per-strand', [App\Http\Controllers\Admin\SectionController::class, 'reportPerStrand'])->name('sections.report.per-strand');
+        Route::get('sections/{section}', [App\Http\Controllers\Admin\SectionController::class, 'show'])->name('sections.show');
+        Route::post('sections/{section}/assign-students', [App\Http\Controllers\Admin\SectionController::class, 'assignStudents'])->name('sections.assign-students');
+        Route::delete('sections/{section}/students/{student}', [App\Http\Controllers\Admin\SectionController::class, 'removeStudent'])->name('sections.remove-student');
 
         // Profile Management Routes
         Route::get('profile', [App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('profile.index');
@@ -15084,6 +15122,11 @@ Route::delete('subjects/{subject}', [App\Http\Controllers\Admin\SubjectControlle
         Route::post('profile/remove-picture', [App\Http\Controllers\Admin\ProfileController::class, 'removeProfilePicture'])->name('profile.remove-picture');
     });
 });
+
+    // RegistrarYear listing for registrars
+    Route::middleware('auth:registrar')->group(function () {
+        Route::get('registrar/years', [\App\Http\Controllers\Registrar\RegistrarYearController::class, 'index'])->name('registrar.years.index');
+    });
 
 // Registrar Authentication Routes
 // (Removed dedicated registrar login routes)
@@ -15103,23 +15146,34 @@ Route::prefix('registrar')->name('registrar.')->group(function () {
     Route::middleware(['admin_or_registrar'])->group(function () {
         // Other protected routes will go here
 
-        // Subject Management Routes
-        Route::get('/subjects', [RegistrarSubjectController::class, 'index'])->name('subjects.index');
-        Route::get('/subjects/create', [RegistrarSubjectController::class, 'create'])->name('subjects.create');
-        Route::post('/subjects', [RegistrarSubjectController::class, 'store'])->name('subjects.store');
-        Route::get('/subjects/{subject}', [RegistrarSubjectController::class, 'show'])->name('subjects.show');
-        Route::get('/subjects/{subject}/edit', [RegistrarSubjectController::class, 'edit'])->name('subjects.edit');
-        Route::put('/subjects/{subject}', [RegistrarSubjectController::class, 'update'])->name('subjects.update');
-        Route::delete('/subjects/{subject}', [RegistrarSubjectController::class, 'destroy'])->name('subjects.destroy');
-        Route::get('/subjects-fixed', [RegistrarSubjectController::class, 'subjectsFixed'])->name('subjects.fixed');
-        Route::get('/assign-subjects/{studentId}', [RegistrarSubjectController::class, 'assignSubjects'])->name('assign-subjects');
-        Route::post('/assign-subjects/{studentId}', [RegistrarSubjectController::class, 'storeAssignedSubjects'])->name('store-assigned-subjects');
+        // Unified Subject Management Routes (Combines Subjects + Assignments)
+        Route::get('/subject-management', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'index'])->name('subject-management.index');
+        Route::get('/subject-management/create', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'create'])->name('subject-management.create');
+        Route::post('/subject-management', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'store'])->name('subject-management.store');
+        Route::get('/subject-management/{subject}', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'show'])->name('subject-management.show');
+        Route::get('/subject-management/{subject}/edit', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'edit'])->name('subject-management.edit');
+        Route::put('/subject-management/{subject}', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'update'])->name('subject-management.update');
+        Route::delete('/subject-management/{subject}', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'destroy'])->name('subject-management.destroy');
+        
+        // Teacher Assignment Routes
+        Route::post('/subject-management/{subject}/assign-teacher', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'assignTeacher'])->name('subject-management.assign-teacher');
+        Route::delete('/subject-management/assignment/{assignment}', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'removeTeacherAssignment'])->name('subject-management.remove-assignment');
 
         // AJAX routes for dynamic filtering
-        Route::get('/api/tracks-by-grade', [RegistrarSubjectController::class, 'getTracksByGrade'])->name('api.tracks-by-grade');
-        Route::get('/api/strands-by-grade-track', [RegistrarSubjectController::class, 'getStrandsByGradeAndTrack'])->name('api.strands-by-grade-track');
-        Route::get('/api/subjects-by-filters', [RegistrarSubjectController::class, 'getSubjectsByFilters'])->name('api.subjects-by-filters');
-        Route::get('/api/clusters-by-grade', [RegistrarSubjectController::class, 'getClustersByGrade'])->name('api.clusters-by-grade');
+        Route::get('/api/tracks-by-grade', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'getTracksByGrade'])->name('api.tracks-by-grade');
+        Route::get('/api/clusters-by-grade-track', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'getClustersByGradeAndTrack'])->name('api.clusters-by-grade-track');
+        Route::get('/api/subjects-by-filters', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'getSubjectsByFilters'])->name('api.subjects-by-filters');
+
+        // Sections API for Registrar (reuses Admin controller logic)
+        Route::get('/api/sections-by-filters', [App\Http\Controllers\Admin\SectionController::class, 'apiSectionsByFilters'])->name('api.sections-by-filters');
+
+        // Legacy routes for backward compatibility (redirect to new unified routes)
+        Route::get('/subjects', function() { return redirect()->route('registrar.subject-management.index'); });
+        Route::get('/subjects/create', function() { return redirect()->route('registrar.subject-management.create'); });
+        Route::get('/subjects/{subject}', function($subject) { return redirect()->route('registrar.subject-management.show', $subject); });
+        Route::get('/subjects/{subject}/edit', function($subject) { return redirect()->route('registrar.subject-management.edit', $subject); });
+        Route::get('/subject-assignments', function() { return redirect()->route('registrar.subject-management.index'); });
+        Route::get('/subject-assignments/create', function() { return redirect()->route('registrar.subject-management.create'); });
 
 
 
@@ -15227,7 +15281,6 @@ Route::prefix('registrar')->name('registrar.')->group(function () {
         // Yearly records overview
         Route::get('/yearly-records', [\App\Http\Controllers\Registrar\YearlyRecordsController::class, 'index'])->name('yearly-records.index');
         Route::get('/yearly-records/{schoolYear}', [\App\Http\Controllers\Registrar\YearlyRecordsController::class, 'show'])->name('yearly-records.show');
-        Route::post('/yearly-records/create-new-year', [\App\Http\Controllers\Registrar\YearlyRecordsController::class, 'createNewYear'])->name('yearly-records.create-new-year');
     });
 });
 
@@ -15527,6 +15580,38 @@ Route::get('/test-fixed-form', function() {
     $output .= '</ul>';
 
     return $output;
+});
+
+// Test unified subject management functionality
+Route::get('/test-subject-management', function() {
+    try {
+        // Test if the new unified controller exists
+        $controller = new \App\Http\Controllers\Registrar\SubjectManagementController();
+        
+        // Test if routes exist
+        $routes = [
+            'index' => route('registrar.subject-management.index'),
+            'create' => route('registrar.subject-management.create'),
+        ];
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Unified Subject Management system is ready!',
+            'routes' => $routes,
+            'features' => [
+                'subject_crud' => 'Create, read, update, delete subjects',
+                'teacher_assignments' => 'Assign teachers to subjects',
+                'unified_interface' => 'Combined subject and assignment management',
+                'schedule_management' => 'Manage subject schedules',
+                'filtering' => 'Filter subjects by grade, track, assignment status'
+            ]
+        ]);
+    } catch (Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Error testing unified subject management: ' . $e->getMessage()
+        ]);
+    }
 });
 
 // Test subject assignment functionality

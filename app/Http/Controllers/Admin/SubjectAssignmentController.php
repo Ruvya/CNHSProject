@@ -17,7 +17,7 @@ class SubjectAssignmentController extends Controller
         $selectedTeacher = $request->get('teacher_id');
         $selectedSubject = $request->get('subject_id');
         $schoolYear = $request->get('school_year');
-        $gradingPeriod = $request->get('grading_period');
+        $semester = $request->get('semester');
 
         // Get all teachers and subjects for dropdowns
         $teachers = Teacher::where('status', 'active')->orderBy('name')->get();
@@ -29,8 +29,8 @@ class SubjectAssignmentController extends Controller
         if ($schoolYear) {
             $assignmentsQuery->where('school_year', $schoolYear);
         }
-        if ($gradingPeriod) {
-            $assignmentsQuery->where('grading_period', $gradingPeriod);
+        if ($semester) {
+            $assignmentsQuery->where('semester', $semester);
         }
         if ($selectedTeacher) {
             $assignmentsQuery->where('teacher_id', $selectedTeacher);
@@ -51,7 +51,7 @@ class SubjectAssignmentController extends Controller
 
         return view('admin.subject-assignments.index', compact(
             'teachers', 'subjects', 'assignments', 'stats',
-            'selectedTeacher', 'selectedSubject', 'schoolYear', 'gradingPeriod'
+            'selectedTeacher', 'selectedSubject', 'schoolYear', 'semester'
         ));
     }
 
@@ -70,9 +70,8 @@ class SubjectAssignmentController extends Controller
         $validated = $request->validate([
             'teacher_id' => 'required|exists:teachers,id',
             'subject_id' => 'required|exists:subjects,id',
-            'section_id' => 'required|exists:sections,id',
             'school_year' => 'required|string',
-            'grading_period' => 'required|string',
+            'semester' => 'required|string|in:1st Semester,2nd Semester',
             'schedule' => 'nullable|array',
             'schedule.*.day' => 'nullable|string|max:255',
             'schedule.*.start_time' => 'nullable|date_format:H:i',
@@ -85,12 +84,18 @@ class SubjectAssignmentController extends Controller
         $teacher = Teacher::findOrFail($validated['teacher_id']);
         $subject = Subject::findOrFail($validated['subject_id']);
 
+        // Validate semester assignment - ensure subject semester matches assignment semester
+        if ($subject->semester && $subject->semester !== $validated['semester']) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', "❌ Semester Mismatch: The subject '{$subject->name}' is assigned to '{$subject->semester}' but you're trying to assign it to '{$validated['semester']}'. Please ensure the semester assignment matches the subject's designated semester.");
+        }
+
         // Check for existing assignment to prevent duplicates
         $existingAssignment = TeacherAssignment::where('teacher_id', $validated['teacher_id'])
             ->where('subject_id', $validated['subject_id'])
-            ->where('section_id', $validated['section_id'])
             ->where('school_year', $validated['school_year'])
-            ->where('grading_period', $validated['grading_period'])
+            ->where('semester', $validated['semester'])
             ->where('status', 'active')
             ->first();
 
@@ -107,8 +112,16 @@ class SubjectAssignmentController extends Controller
         // Create the assignment
         $assignment = TeacherAssignment::create($validated);
 
-        // Create success message
-        $successMessage = "Subject Assignment Successful!";
+        // Create detailed success message
+        $successMessage = "✅ Subject Assignment Successful!\n\n";
+        $successMessage .= "📋 Assignment Details:\n";
+        $successMessage .= "👨‍🏫 Teacher: {$teacher->name}\n";
+        $successMessage .= "📚 Subject: {$subject->name} ({$subject->code})\n";
+        // Note: section_id was removed from teacher_assignments table
+        $successMessage .= "📅 School Year: {$validated['school_year']}\n";
+        $successMessage .= "📊 Semester: {$validated['semester']}\n";
+        $successMessage .= "📝 Status: {$validated['status']}\n";
+        $successMessage .= "🕒 Assigned on: " . now()->format('M d, Y h:i A');
 
         return redirect()->route('admin.subject-assignments.index')
             ->with('success', $successMessage);
@@ -133,7 +146,7 @@ class SubjectAssignmentController extends Controller
             'teacher_id' => 'required|exists:teachers,id',
             'subject_id' => 'required|exists:subjects,id',
             'school_year' => 'required|string',
-            'grading_period' => 'required|string',
+            'semester' => 'required|string|in:1st Semester,2nd Semester',
             'status' => 'required|string',
             'notes' => 'nullable|string|max:500',
         ]);
@@ -142,11 +155,18 @@ class SubjectAssignmentController extends Controller
         $teacher = Teacher::findOrFail($validated['teacher_id']);
         $subject = Subject::findOrFail($validated['subject_id']);
 
+        // Validate semester assignment - ensure subject semester matches assignment semester
+        if ($subject->semester && $subject->semester !== $validated['semester']) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', "❌ Semester Mismatch: The subject '{$subject->name}' is assigned to '{$subject->semester}' but you're trying to assign it to '{$validated['semester']}'. Please ensure the semester assignment matches the subject's designated semester.");
+        }
+
         // Check for existing assignment (excluding current one) to prevent duplicates
         $existingAssignment = TeacherAssignment::where('teacher_id', $validated['teacher_id'])
             ->where('subject_id', $validated['subject_id'])
             ->where('school_year', $validated['school_year'])
-            ->where('grading_period', $validated['grading_period'])
+            ->where('semester', $validated['semester'])
             ->where('status', 'active')
             ->where('id', '!=', $subjectAssignment->id)
             ->first();
@@ -166,7 +186,7 @@ class SubjectAssignmentController extends Controller
         $successMessage .= "👨‍🏫 Teacher: {$teacher->name}\n";
         $successMessage .= "📚 Subject: {$subject->name} ({$subject->code})\n";
         $successMessage .= "📅 School Year: {$validated['school_year']}\n";
-        $successMessage .= "📊 Grading Period: {$validated['grading_period']}\n";
+        $successMessage .= "📊 Semester: {$validated['semester']}\n";
         $successMessage .= "📝 Status: {$validated['status']}\n";
         $successMessage .= "🕒 Updated on: " . now()->format('M d, Y h:i A');
 
@@ -180,7 +200,7 @@ class SubjectAssignmentController extends Controller
         $teacher = $subjectAssignment->teacher;
         $subject = $subjectAssignment->subject;
         $schoolYear = $subjectAssignment->school_year;
-        $gradingPeriod = $subjectAssignment->grading_period;
+        $semester = $subjectAssignment->semester;
 
         // Delete the assignment
         $subjectAssignment->delete();
@@ -191,10 +211,43 @@ class SubjectAssignmentController extends Controller
         $successMessage .= "👨‍🏫 Teacher: {$teacher->name}\n";
         $successMessage .= "📚 Subject: {$subject->name} ({$subject->code})\n";
         $successMessage .= "📅 School Year: {$schoolYear}\n";
-        $successMessage .= "📊 Grading Period: {$gradingPeriod}\n";
+        $successMessage .= "📊 Semester: {$semester}\n";
         $successMessage .= "🕒 Removed on: " . now()->format('M d, Y h:i A');
 
         return redirect()->route('admin.subject-assignments.index')
             ->with('success', $successMessage);
+    }
+
+    /**
+     * Get current school year
+     */
+    private function getCurrentSchoolYear(): string
+    {
+        $currentYear = date('Y');
+        $currentMonth = date('n');
+
+        // School year starts in June (month 6)
+        if ($currentMonth >= 6) {
+            return $currentYear . '-' . ($currentYear + 1);
+        } else {
+            return ($currentYear - 1) . '-' . $currentYear;
+        }
+    }
+
+    /**
+     * Get current semester
+     */
+    private function getCurrentSemester(): string
+    {
+        $currentMonth = date('n');
+        
+        // Determine semester based on month
+        // 1st Semester: June to December (months 6-12)
+        // 2nd Semester: January to May (months 1-5)
+        if ($currentMonth >= 6 && $currentMonth <= 12) {
+            return '1st Semester';
+        } else {
+            return '2nd Semester';
+        }
     }
 } 

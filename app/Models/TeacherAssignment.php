@@ -10,9 +10,9 @@ class TeacherAssignment extends Model
     protected $fillable = [
         'teacher_id',
         'subject_id',
-        'section_id',
         'school_year',
         'grading_period',
+        'semester',
         'schedule',
         'assignment_date',
         'status',
@@ -41,13 +41,8 @@ class TeacherAssignment extends Model
         return $this->belongsTo(Subject::class);
     }
 
-    /**
-     * Get the section for this assignment
-     */
-     public function section(): BelongsTo
-     {
-         return $this->belongsTo(Section::class);
-     }
+    // Note: section_id column was removed from teacher_assignments table
+    // Section information is now handled through subject assignments
 
     /**
      * Get the registrar who made this assignment
@@ -75,11 +70,19 @@ class TeacherAssignment extends Model
     }
 
     /**
-     * Scope for specific grading period
+     * Scope for specific semester
+     */
+    public function scopeForSemester($query, $semester)
+    {
+        return $query->where('semester', $semester);
+    }
+
+    /**
+     * Scope for specific grading period (deprecated - use scopeForSemester)
      */
     public function scopeForGradingPeriod($query, $gradingPeriod)
     {
-        return $query->where('grading_period', $gradingPeriod);
+        return $query->where('semester', $gradingPeriod);
     }
 
     /**

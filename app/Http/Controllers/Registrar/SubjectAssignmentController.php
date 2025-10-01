@@ -27,7 +27,7 @@ class SubjectAssignmentController extends Controller
         $selectedTrack = $request->get('track');
         $selectedStrand = $request->get('strand');
         $schoolYear = $request->get('school_year', $this->getCurrentSchoolYear());
-        $gradingPeriod = $request->get('grading_period', $this->getCurrentGradingPeriod());
+        $semester = $request->get('semester', $this->getCurrentSemester());
 
         // Get all teachers and subjects for dropdowns
         $teachers = Teacher::where('status', 'active')->orderBy('name')->get();
@@ -36,7 +36,7 @@ class SubjectAssignmentController extends Controller
         // Get current assignments with filters
         $assignmentsQuery = TeacherAssignment::with(['teacher', 'subject', 'assignedBy'])
             ->where('school_year', $schoolYear)
-            ->where('grading_period', $gradingPeriod)
+            ->where('semester', $semester)
             ->where('status', 'active');
 
         if ($selectedTeacher) {
@@ -52,18 +52,18 @@ class SubjectAssignmentController extends Controller
         // Get assignment statistics
         $stats = [
             'total_assignments' => TeacherAssignment::where('school_year', $schoolYear)
-                ->where('grading_period', $gradingPeriod)
+                ->where('semester', $semester)
                 ->where('status', 'active')
                 ->count(),
             'total_teachers' => Teacher::where('status', 'active')->count(),
             'assigned_teachers' => TeacherAssignment::where('school_year', $schoolYear)
-                ->where('grading_period', $gradingPeriod)
+                ->where('semester', $semester)
                 ->where('status', 'active')
                 ->distinct('teacher_id')
                 ->count(),
             'total_subjects' => Subject::count(),
             'assigned_subjects' => TeacherAssignment::where('school_year', $schoolYear)
-                ->where('grading_period', $gradingPeriod)
+                ->where('semester', $semester)
                 ->where('status', 'active')
                 ->distinct('subject_id')
                 ->count(),
@@ -72,7 +72,7 @@ class SubjectAssignmentController extends Controller
         return view('registrar.subject-assignments.index', compact(
             'teachers', 'subjects', 'assignments', 'stats',
             'selectedTeacher', 'selectedSubject', 'selectedGradeLevel', 
-            'selectedTrack', 'selectedStrand', 'schoolYear', 'gradingPeriod'
+            'selectedTrack', 'selectedStrand', 'schoolYear', 'semester'
         ));
     }
 
@@ -85,10 +85,10 @@ class SubjectAssignmentController extends Controller
         $subjects = Subject::orderBy('name')->get();
         
         $currentSchoolYear = $this->getCurrentSchoolYear();
-        $currentGradingPeriod = $this->getCurrentGradingPeriod();
+        $currentSemester = $this->getCurrentSemester();
 
         return view('registrar.subject-assignments.create', compact(
-            'teachers', 'subjects', 'currentSchoolYear', 'currentGradingPeriod'
+            'teachers', 'subjects', 'currentSchoolYear', 'currentSemester'
         ));
     }
 
@@ -102,14 +102,14 @@ class SubjectAssignmentController extends Controller
 
         // Set default values if not provided
         $schoolYear = $request->input('school_year') ?: $this->getCurrentSchoolYear();
-        $gradingPeriod = $request->input('grading_period') ?: $this->getCurrentGradingPeriod();
+        $semester = $request->input('semester') ?: $this->getCurrentSemester();
 
         // Ensure we have values
         if (empty($schoolYear)) {
             $schoolYear = '2024-2025';
         }
-        if (empty($gradingPeriod)) {
-            $gradingPeriod = 'First Grading';
+        if (empty($semester)) {
+            $semester = '1st Semester';
         }
 
         $validated = $request->validate([
@@ -125,7 +125,7 @@ class SubjectAssignmentController extends Controller
 
         // Add the required fields with defaults
         $validated['school_year'] = $schoolYear;
-        $validated['grading_period'] = $gradingPeriod;
+        $validated['semester'] = $semester;
 
         Log::info('Final validated data', $validated);
 
@@ -133,7 +133,7 @@ class SubjectAssignmentController extends Controller
         $existingAssignment = TeacherAssignment::where('teacher_id', $validated['teacher_id'])
             ->where('subject_id', $validated['subject_id'])
             ->where('school_year', $validated['school_year'])
-            ->where('grading_period', $validated['grading_period'])
+            ->where('semester', $validated['semester'])
             ->where('status', 'active')
             ->first();
 
@@ -321,20 +321,27 @@ class SubjectAssignmentController extends Controller
     }
 
     /**
-     * Get current grading period
+     * Get current semester
      */
-    private function getCurrentGradingPeriod(): string
+    private function getCurrentSemester(): string
     {
         $currentMonth = date('n');
         
-        if ($currentMonth >= 6 && $currentMonth <= 8) {
-            return 'First Grading';
-        } elseif ($currentMonth >= 9 && $currentMonth <= 11) {
-            return 'Second Grading';
-        } elseif ($currentMonth == 12 || $currentMonth <= 2) {
-            return 'Third Grading';
+        // Determine semester based on month
+        // 1st Semester: June to December (months 6-12)
+        // 2nd Semester: January to May (months 1-5)
+        if ($currentMonth >= 6 && $currentMonth <= 12) {
+            return '1st Semester';
         } else {
-            return 'Fourth Grading';
+            return '2nd Semester';
         }
+    }
+
+    /**
+     * Get current grading period (deprecated - use getCurrentSemester)
+     */
+    private function getCurrentGradingPeriod(): string
+    {
+        return $this->getCurrentSemester();
     }
 }

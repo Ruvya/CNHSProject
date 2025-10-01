@@ -526,13 +526,8 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('registrar.subjects.index') }}" class="{{ request()->routeIs('registrar.subjects*') ? 'active' : '' }}">
-                    <i class="fas fa-book"></i> Subjects
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('registrar.subject-assignments.index') }}" class="{{ request()->routeIs('registrar.subject-assignments*') ? 'active' : '' }}">
-                    <i class="fas fa-chalkboard-teacher"></i> Subject Assignment
+                <a href="{{ route('registrar.subject-management.index') }}" class="{{ request()->routeIs('registrar.subject-management*') ? 'active' : '' }}">
+                    <i class="fas fa-book"></i> Subject Management
                 </a>
             </li>
         </ul>
