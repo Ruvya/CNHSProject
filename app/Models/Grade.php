@@ -98,4 +98,46 @@ class Grade extends Model
     {
         return $query->where('student_id', $studentId);
     }
+
+    /**
+     * Check if First Semester (Q1 and Q2) has any grades
+     */
+    public function hasFirstSemesterGrades()
+    {
+        return !is_null($this->quarter1) || !is_null($this->quarter2);
+    }
+
+    /**
+     * Check if First Semester (Q1 and Q2) is complete (both quarters have grades)
+     */
+    public function isFirstSemesterComplete()
+    {
+        return !is_null($this->quarter1) && !is_null($this->quarter2);
+    }
+
+    /**
+     * Check if Second Semester inputs should be locked
+     * Locks when there are NO inputs in First Semester
+     */
+    public function shouldLockSecondSemester()
+    {
+        return !$this->hasFirstSemesterGrades();
+    }
+
+    /**
+     * Static method to check if second semester should be locked for a student/subject
+     */
+    public static function shouldLockSecondSemesterFor($studentId, $subjectId)
+    {
+        $grade = static::where('student_id', $studentId)
+                      ->where('subject_id', $subjectId)
+                      ->first();
+        
+        // If no grade record exists, lock second semester
+        if (!$grade) {
+            return true;
+        }
+        
+        return $grade->shouldLockSecondSemester();
+    }
 }

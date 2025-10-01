@@ -229,6 +229,18 @@
             margin-bottom: 2rem;
             overflow: hidden;
         }
+        .grades-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+        .grades-table th:nth-child(1), .grades-table td:nth-child(1) { width: 32%; }
+        .grades-table th:nth-child(2), .grades-table td:nth-child(2) { width: 18%; }
+        .grades-table th:nth-child(3), .grades-table td:nth-child(3) { width: 8%; }
+        .grades-table th:nth-child(4), .grades-table td:nth-child(4) { width: 8%; }
+        .grades-table th:nth-child(5), .grades-table td:nth-child(5) { width: 8%; }
+        .grades-table th:nth-child(6), .grades-table td:nth-child(6) { width: 8%; }
+        .grades-table th:nth-child(7), .grades-table td:nth-child(7) { width: 10%; }
+        .grades-table th:nth-child(8), .grades-table td:nth-child(8) { width: 8%; }
 
         .table-header {
             margin-bottom: 1.5rem;
@@ -335,6 +347,9 @@
 
         .table-wrapper {
             overflow-x: auto;
+            margin-left: -2rem;
+            margin-right: -2rem;
+            margin-bottom: -2rem;
         }
 
         .grades-table {
@@ -706,57 +721,31 @@
     </div>
 </div>
 
-<div class="quick-stats">
-    <div class="stat-card fade-in">
-        <i class="fas fa-book"></i>
-        <div class="stat-info">
-            <h3>Total Subjects</h3>
-            <p>{{ $totalSubjects }}</p>
-        </div>
-    </div>
-    <div class="stat-card fade-in">
-        <i class="fas fa-user-check"></i>
-        <div class="stat-info">
-            <h3>Enrolled Subjects</h3>
-            <p>{{ $enrolledSubjects }}</p>
-        </div>
-    </div>
-    <div class="stat-card fade-in">
-        <i class="fas fa-chart-line"></i>
-        <div class="stat-info">
-            <h3>General Average</h3>
-            <p>{{ $generalAverage ?? '-' }}</p>
-        </div>
-    </div>
-    <div class="stat-card fade-in">
-        <i class="fas fa-trophy"></i>
-        <div class="stat-info">
-            <h3>Highest Grade</h3>
-            <p>{{ $highestGrade ?? '-' }}</p>
-        </div>
-    </div>
-</div>
+{{-- Removed quick stats cards --}}
 
 
 
 <div class="grades-table-container fade-in">
-    <div class="table-header">
-        <h3>Grade Report</h3>
-        <div class="table-actions">
-            <button type="button" class="btn btn-outline-primary btn-sm" onclick="refreshGrades()" id="refreshBtn">
-                <i class="fas fa-sync-alt"></i> Refresh Grades
-            </button>
-            <small class="text-muted ms-2" id="lastUpdated">
-                Last updated: {{ now()->format('M d, Y h:i A') }}
-            </small>
-        </div>
-        @if($enrolledSubjects < $totalSubjects)
-            <div class="enrollment-notice">
-                <i class="fas fa-info-circle"></i>
-                <span>You are enrolled in {{ $enrolledSubjects }} out of {{ $totalSubjects }} available subjects. Contact your registrar to enroll in additional subjects.</span>
-            </div>
-        @endif
-    </div>
+    	<div class="table-header">
+		<div class="table-header-left" style="display:flex; flex-direction:column; gap:8px; align-items:flex-start;">
+			<h3>Grade Report</h3>
+			<select id="semesterFilter" class="form-select" style="max-width: 220px;">
+				<option value="first">First Semester</option>
+				<option value="second">Second Semester</option>
+			</select>
+		</div>
+		<div class="table-actions">
+			<small class="text-muted ms-2" id="lastUpdated">
+				Last updated: {{ now()->format('M d, Y h:i A') }}
+			</small>
+		</div>
+		@if($enrolledSubjects < $totalSubjects)
+			<div class="enrollment-notice">
+				<i class="fas fa-info-circle"></i>
+				<span>You are enrolled in {{ $enrolledSubjects }} out of {{ $totalSubjects }} available subjects. Contact your registrar to enroll in additional subjects.</span>
+			</div>
+		@endif
+	</div>
     <div class="table-wrapper">
         <table class="grades-table">
         <thead>
@@ -801,9 +790,9 @@
                 <td class="grade-cell {{ $grade->quarter4 ? '' : 'pending' }}">
                     <span class="q4-grade">{{ $grade->quarter4 ?? '-' }}</span>
                 </td>
-                <td class="grade-cell {{ $grade->final_grade ? '' : 'pending' }}">
-                    <span class="final-grade">{{ $grade->final_grade ?? '-' }}</span>
-                </td>
+                				<td class="grade-cell {{ ($grade->final_grade && ($grade->quarter1 || $grade->quarter2 || $grade->quarter3 || $grade->quarter4)) ? '' : 'pending' }}">
+					<span class="final-grade">{{ ($grade->quarter1 || $grade->quarter2 || $grade->quarter3 || $grade->quarter4) ? ($grade->final_grade ?? '-') : '-' }}</span>
+				</td>
                 <td>
                     @if(!$grade->is_enrolled)
                         <span class="badge not-enrolled status-badge">Not Enrolled</span>
@@ -890,7 +879,7 @@
 </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -976,7 +965,32 @@
                     if (q2Cell) q2Cell.textContent = grade.quarter2 || '-';
                     if (q3Cell) q3Cell.textContent = grade.quarter3 || '-';
                     if (q4Cell) q4Cell.textContent = grade.quarter4 || '-';
-                    if (finalCell) finalCell.textContent = grade.final_grade || '-';
+
+                    // Compute final grade based on current semester selection
+                    const semesterSelect = document.getElementById('semesterFilter');
+                    const showFirst = !semesterSelect || semesterSelect.value === 'first';
+                    const values = [];
+                    if (showFirst) {
+                        const v1 = parseFloat((q1Cell ? q1Cell.textContent : '').trim());
+                        const v2 = parseFloat((q2Cell ? q2Cell.textContent : '').trim());
+                        if (!isNaN(v1)) values.push(v1);
+                        if (!isNaN(v2)) values.push(v2);
+                    } else {
+                        const v3 = parseFloat((q3Cell ? q3Cell.textContent : '').trim());
+                        const v4 = parseFloat((q4Cell ? q4Cell.textContent : '').trim());
+                        if (!isNaN(v3)) values.push(v3);
+                        if (!isNaN(v4)) values.push(v4);
+                    }
+                    if (finalCell) {
+                        if (values.length === 0) {
+                            finalCell.textContent = '-';
+                            subjectRow.querySelector('.final-grade')?.parentElement?.classList.add('pending');
+                        } else {
+                            const avg = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(2);
+                            finalCell.textContent = avg;
+                            finalCell.parentElement?.classList.remove('pending');
+                        }
+                    }
 
                     if (statusCell) {
                         statusCell.className = `badge ${grade.status_color}`;
@@ -1036,12 +1050,83 @@
         document.addEventListener('DOMContentLoaded', function() {
             const gradeLevel = document.getElementById('gradeLevel');
             const schoolYear = document.getElementById('schoolYear');
+            const semesterFilter = document.getElementById('semesterFilter');
 
             if (gradeLevel) gradeLevel.addEventListener('change', loadGrades);
             if (schoolYear) schoolYear.addEventListener('change', loadGrades);
 
-            // Auto-refresh grades every 30 seconds
-            setInterval(refreshGrades, 30000);
+            function toggleSemesterColumns(semester) {
+                const table = document.querySelector('.grades-table');
+                if (!table) return;
+                const showFirst = semester === 'first';
+                table.querySelectorAll('tr').forEach(function(row) {
+                    const cells = row.children;
+                    // 0: SUBJECTS, 1: TEACHER, 2: Q1, 3: Q2, 4: Q3, 5: Q4, 6: FINAL, 7: STATUS
+                    if (cells[2]) cells[2].style.display = showFirst ? '' : 'none';
+                    if (cells[3]) cells[3].style.display = showFirst ? '' : 'none';
+                    if (cells[4]) cells[4].style.display = showFirst ? 'none' : '';
+                    if (cells[5]) cells[5].style.display = showFirst ? 'none' : '';
+
+                    // Determine if any visible quarter cell has a grade
+                    const firstSemCells = [cells[2], cells[3]];
+                    const secondSemCells = [cells[4], cells[5]];
+                    const activeCells = showFirst ? firstSemCells : secondSemCells;
+                    const hasVisibleGrade = activeCells.some(function(c) {
+                        if (!c) return false;
+                        const span = c.querySelector('span');
+                        const val = span ? span.textContent.trim() : '';
+                        return c.style.display !== 'none' && val !== '-' && val !== '';
+                    });
+
+                    // Compute semester final grade from the visible quarters
+                    const finalCell = cells[6];
+                    const finalSpan = finalCell ? finalCell.querySelector('.final-grade') : null;
+                    if (finalSpan) {
+                        // Parse numeric values from the relevant quarter cells
+                        const values = activeCells.map(function(c) {
+                            if (!c) return null;
+                            const span = c.querySelector('span');
+                            const txt = span ? span.textContent.trim() : '';
+                            const num = parseFloat(txt);
+                            return isNaN(num) ? null : num;
+                        }).filter(v => v !== null);
+
+                        if (values.length === 0) {
+                            finalSpan.textContent = '-';
+                            finalCell.classList.add('pending');
+                        } else {
+                            const avg = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(2);
+                            finalSpan.textContent = avg;
+                            finalCell.classList.remove('pending');
+                        }
+                    }
+
+                    // Update status cell based on visible grades (skip not-enrolled rows)
+                    const statusCell = cells[7];
+                    const statusBadge = statusCell ? statusCell.querySelector('.status-badge') : null;
+                    const isNotEnrolled = row.classList.contains('not-enrolled');
+                    if (statusBadge && !isNotEnrolled) {
+                        if (!row.dataset.originalStatusHtml) {
+                            row.dataset.originalStatusHtml = statusCell.innerHTML;
+                        }
+                        if (!hasVisibleGrade) {
+                            statusCell.innerHTML = '<span class="badge pending status-badge">Pending</span>';
+                        } else {
+                            statusCell.innerHTML = row.dataset.originalStatusHtml;
+                        }
+                    }
+                });
+            }
+
+            if (semesterFilter) {
+                semesterFilter.addEventListener('change', function(e) {
+                    toggleSemesterColumns(e.target.value);
+                });
+                // Initialize on load with current selection or default to first semester
+                toggleSemesterColumns(semesterFilter.value || 'first');
+            }
+
+            
         });
 
         const quarterGrades = @json($quarterGrades);
@@ -1158,4 +1243,4 @@
         });
     }
 </script>
-@endsection
+@endpush

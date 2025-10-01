@@ -107,16 +107,8 @@ class SubjectAssignmentController extends Controller
         // Create the assignment
         $assignment = TeacherAssignment::create($validated);
 
-        // Create detailed success message
-        $successMessage = "✅ Subject Assignment Successful!\n\n";
-        $successMessage .= "📋 Assignment Details:\n";
-        $successMessage .= "👨‍🏫 Teacher: {$teacher->name}\n";
-        $successMessage .= "📚 Subject: {$subject->name} ({$subject->code})\n";
-        $successMessage .= "🏫 Section: " . optional(Section::find($validated['section_id']))->name . "\n";
-        $successMessage .= "📅 School Year: {$validated['school_year']}\n";
-        $successMessage .= "📊 Grading Period: {$validated['grading_period']}\n";
-        $successMessage .= "📝 Status: {$validated['status']}\n";
-        $successMessage .= "🕒 Assigned on: " . now()->format('M d, Y h:i A');
+        // Create success message
+        $successMessage = "Subject Assignment Successful!";
 
         return redirect()->route('admin.subject-assignments.index')
             ->with('success', $successMessage);

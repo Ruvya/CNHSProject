@@ -97,12 +97,12 @@
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="quarter1" class="form-label">1st Quarter</label>
-                                        <input type="number"
+                                        <input type="text"
+                                               inputmode="decimal"
                                                class="form-control grade-input"
                                                id="quarter1"
                                                name="quarter1"
                                                value="{{ old('quarter1', $grade->quarter1) }}"
-                                               min="0" max="100" step="0.01"
                                                placeholder="Enter grade">
                                         @error('quarter1')
                                             <div class="text-danger small">{{ $message }}</div>
@@ -111,12 +111,12 @@
 
                                     <div class="col-md-6 mb-3">
                                         <label for="quarter2" class="form-label">2nd Quarter</label>
-                                        <input type="number"
+                                        <input type="text"
+                                               inputmode="decimal"
                                                class="form-control grade-input"
                                                id="quarter2"
                                                name="quarter2"
                                                value="{{ old('quarter2', $grade->quarter2) }}"
-                                               min="0" max="100" step="0.01"
                                                placeholder="Enter grade">
                                         @error('quarter2')
                                             <div class="text-danger small">{{ $message }}</div>
@@ -125,12 +125,12 @@
 
                                     <div class="col-md-6 mb-3">
                                         <label for="quarter3" class="form-label">3rd Quarter</label>
-                                        <input type="number"
+                                        <input type="text"
+                                               inputmode="decimal"
                                                class="form-control grade-input"
                                                id="quarter3"
                                                name="quarter3"
                                                value="{{ old('quarter3', $grade->quarter3) }}"
-                                               min="0" max="100" step="0.01"
                                                placeholder="Enter grade">
                                         @error('quarter3')
                                             <div class="text-danger small">{{ $message }}</div>
@@ -139,12 +139,12 @@
 
                                     <div class="col-md-6 mb-3">
                                         <label for="quarter4" class="form-label">4th Quarter</label>
-                                        <input type="number"
+                                        <input type="text"
+                                               inputmode="decimal"
                                                class="form-control grade-input"
                                                id="quarter4"
                                                name="quarter4"
                                                value="{{ old('quarter4', $grade->quarter4) }}"
-                                               min="0" max="100" step="0.01"
                                                placeholder="Enter grade">
                                         @error('quarter4')
                                             <div class="text-danger small">{{ $message }}</div>

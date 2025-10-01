@@ -23,6 +23,15 @@
     <!-- Grades Management Form -->
     <div class="row">
         <div class="col-12">
+            <div class="d-flex justify-content-start align-items-center mb-2">
+                <div class="form-group mb-0">
+                    <label for="semesterSelect" class="me-2">Semester:</label>
+                    <select id="semesterSelect" class="form-select form-select-sm d-inline-block" style="width:auto; min-width: 180px;">
+                        <option value="1">First Semester</option>
+                        <option value="2">Second Semester</option>
+                    </select>
+                </div>
+            </div>
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">Grade Management</h6>
@@ -59,16 +68,16 @@
                                     <thead>
                                         <tr>
                                             <th rowspan="2" class="align-middle">Student</th>
-                                            <th colspan="4" class="text-center">Quarterly Grades</th>
+                                            <th id="quarterlyHeader" colspan="4" class="text-center">Quarterly Grades</th>
                                             <th rowspan="2" class="align-middle">Final Grade</th>
                                             <th rowspan="2" class="align-middle">Status</th>
                                             <th rowspan="2" class="align-middle">Actions</th>
                                         </tr>
                                         <tr>
-                                            <th class="text-center">Q1</th>
-                                            <th class="text-center">Q2</th>
-                                            <th class="text-center">Q3</th>
-                                            <th class="text-center">Q4</th>
+                                            <th class="text-center quarter-col quarter1-header">Q1</th>
+                                            <th class="text-center quarter-col quarter2-header">Q2</th>
+                                            <th class="text-center quarter-col quarter3-header">Q3</th>
+                                            <th class="text-center quarter-col quarter4-header">Q4</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -102,45 +111,45 @@
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td>
-                                                    <input type="number"
+                                                <td class="quarter-col quarter1-cell">
+                                                    <input type="text"
+                                                           inputmode="decimal"
                                                            class="form-control form-control-sm grade-input auto-save"
                                                            name="grades[{{ $student->id }}][quarter1]"
                                                            value="{{ $grade ? $grade->quarter1 : '' }}"
-                                                           min="0" max="100" step="0.01"
                                                            data-student="{{ $student->id }}"
                                                            data-quarter="quarter1"
                                                            data-subject="{{ $subject->id }}"
                                                            placeholder="0-100">
                                                 </td>
-                                                <td>
-                                                    <input type="number"
+                                                <td class="quarter-col quarter2-cell">
+                                                    <input type="text"
+                                                           inputmode="decimal"
                                                            class="form-control form-control-sm grade-input auto-save"
                                                            name="grades[{{ $student->id }}][quarter2]"
                                                            value="{{ $grade ? $grade->quarter2 : '' }}"
-                                                           min="0" max="100" step="0.01"
                                                            data-student="{{ $student->id }}"
                                                            data-quarter="quarter2"
                                                            data-subject="{{ $subject->id }}"
                                                            placeholder="0-100">
                                                 </td>
-                                                <td>
-                                                    <input type="number"
+                                                <td class="quarter-col quarter3-cell">
+                                                    <input type="text"
+                                                           inputmode="decimal"
                                                            class="form-control form-control-sm grade-input auto-save"
                                                            name="grades[{{ $student->id }}][quarter3]"
                                                            value="{{ $grade ? $grade->quarter3 : '' }}"
-                                                           min="0" max="100" step="0.01"
                                                            data-student="{{ $student->id }}"
                                                            data-quarter="quarter3"
                                                            data-subject="{{ $subject->id }}"
                                                            placeholder="0-100">
                                                 </td>
-                                                <td>
-                                                    <input type="number"
+                                                <td class="quarter-col quarter4-cell">
+                                                    <input type="text"
+                                                           inputmode="decimal"
                                                            class="form-control form-control-sm grade-input auto-save"
                                                            name="grades[{{ $student->id }}][quarter4]"
                                                            value="{{ $grade ? $grade->quarter4 : '' }}"
-                                                           min="0" max="100" step="0.01"
                                                            data-student="{{ $student->id }}"
                                                            data-quarter="quarter4"
                                                            data-subject="{{ $subject->id }}"
@@ -148,7 +157,7 @@
                                                 </td>
                                                 <td class="text-center">
                                                     <span class="final-grade-display" data-student="{{ $student->id }}">
-                                                        {{ $finalGrade ? number_format($finalGrade, 2) : '-' }}
+                                                        
                                                     </span>
                                                 </td>
                                                 <td class="text-center">
@@ -448,6 +457,23 @@
     margin-left: 0 !important;
     flex: 1;
 }
+
+/* Locked input styles */
+.locked-input {
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    border-color: #dee2e6 !important;
+}
+
+.locked-input:disabled {
+    opacity: 0.7;
+}
+
+.locked-input::placeholder {
+    color: #adb5bd !important;
+    font-style: italic;
+}
 </style>
 @endsection
 
@@ -464,7 +490,10 @@ $(document).ready(function() {
         const subjectId = $input.data('subject');
         const grade = $input.val();
 
-        // console.log('Input detected:', {studentId, quarter, subjectId, grade}); // Debug
+        // Update semester lock status when Q1 or Q2 changes
+        if (quarter === 'quarter1' || quarter === 'quarter2') {
+            updateSecondSemesterLock(studentId);
+        }
 
         // Clear previous timeout
         clearTimeout(saveTimeout);
@@ -478,7 +507,6 @@ $(document).ready(function() {
         // Auto-save after 1 second of no typing
         if (grade !== '' && grade !== null) {
             saveTimeout = setTimeout(function() {
-                // console.log('About to save grade:', {studentId, subjectId, quarter, grade}); // Debug
                 saveQuarterGrade(studentId, subjectId, quarter, grade, $input);
             }, 1000);
         }
@@ -493,8 +521,6 @@ $(document).ready(function() {
 
     // Save individual quarter grade via AJAX
     function saveQuarterGrade(studentId, subjectId, quarter, grade, $input) {
-        console.log('saveQuarterGrade called with:', {studentId, subjectId, quarter, grade}); // Debug
-
         // Show saving indicator
         $input.addClass('saving');
 
@@ -506,22 +532,17 @@ $(document).ready(function() {
             grade: grade
         };
 
-        console.log('Sending AJAX request:', requestData); // Debug
-
         $.ajax({
             url: '{{ route("teacher.save-quarter-grade") }}',
             method: 'POST',
             data: requestData,
             success: function(response) {
-                console.log('AJAX Success Response:', response); // Debug
-
                 if (response.success) {
                     $input.removeClass('saving').addClass('saved');
 
                     // Update final grade and status
-                    $(`.final-grade-display[data-student="${studentId}"]`).text(
-                        response.data.final_grade ? response.data.final_grade : '-'
-                    );
+                    // Recalculate UI from inputs to ensure semester-aware blanking
+                    calculateFinalGrade(studentId);
 
                     $(`.status-badge[data-student="${studentId}"]`)
                         .removeClass('badge-success badge-danger badge-warning')
@@ -536,16 +557,11 @@ $(document).ready(function() {
                     // Show toast notification
                     showToast('success', 'Grade saved successfully!');
                 } else {
-                    console.log('Success response but success=false:', response); // Debug
                     $input.removeClass('saving').addClass('error');
                     showToast('error', response.message || 'Failed to save grade');
                 }
             },
             error: function(xhr) {
-                console.log('AJAX Error Response:', xhr); // Debug
-                console.log('Status:', xhr.status); // Debug
-                console.log('Response Text:', xhr.responseText); // Debug
-
                 $input.removeClass('saving').addClass('error');
                 let errorMessage = 'Failed to save grade';
 
@@ -562,7 +578,7 @@ $(document).ready(function() {
                 }
 
                 showToast('error', errorMessage);
-                console.error('Full error details:', xhr); // Debug
+                console.error('Full error details:', xhr);
 
                 // Remove error class after 3 seconds
                 setTimeout(function() {
@@ -591,15 +607,21 @@ $(document).ready(function() {
 
     // Calculate final grade for a student
     function calculateFinalGrade(studentId) {
+        const selectedSemester = String($('#semesterSelect').val() || '1');
         const quarters = [];
-        ['quarter1', 'quarter2', 'quarter3', 'quarter4'].forEach(quarter => {
+
+        const quartersToUse = selectedSemester === '1'
+            ? ['quarter1', 'quarter2']
+            : ['quarter3', 'quarter4'];
+
+        quartersToUse.forEach(quarter => {
             const value = parseFloat($(`input[data-student="${studentId}"][data-quarter="${quarter}"]`).val());
             if (!isNaN(value)) {
                 quarters.push(value);
             }
         });
 
-        let finalGrade = '-';
+        let finalGrade = '';
         let status = 'Incomplete';
         let statusClass = 'warning';
 
@@ -619,8 +641,6 @@ $(document).ready(function() {
 
     // Toast notification function
     function showToast(type, message) {
-        console.log('showToast called:', type, message); // Debug
-
         // Remove existing toasts
         $('.toast-notification').remove();
 
@@ -636,7 +656,6 @@ $(document).ready(function() {
         `);
 
         $('body').append(toast);
-        console.log('Toast added to body'); // Debug
 
         // Auto-remove after 5 seconds (increased for debugging)
         setTimeout(function() {
@@ -672,7 +691,7 @@ $(document).ready(function() {
     };
 
     // Initialize DataTable
-    $('#gradesTable').DataTable({
+    const dt = $('#gradesTable').DataTable({
         "pageLength": 25,
         "order": [[ 0, "asc" ]],
         "columnDefs": [
@@ -689,8 +708,89 @@ $(document).ready(function() {
         "info": false
     });
 
+    function applySemesterView(value) {
+        const isFirst = String(value) === '1';
+        // toggle headers
+        $('.quarter1-header, .quarter2-header').toggle(isFirst);
+        $('.quarter3-header, .quarter4-header').toggle(!isFirst);
+        // toggle cells
+        $('.quarter1-cell, .quarter2-cell').toggle(isFirst);
+        $('.quarter3-cell, .quarter4-cell').toggle(!isFirst);
+        // adjust colspan
+        $('#quarterlyHeader').attr('colspan', isFirst ? 2 : 2);
+        // Redraw DataTable to recalc column widths
+        dt.columns.adjust().draw(false);
+    }
+
+    // initial apply
+    applySemesterView($('#semesterSelect').val() || '1');
+
+    // Recalculate all rows on load to ensure semester-aware blanks
+    $('#gradesTable tbody tr').each(function(){
+        const studentIdCell = $(this).find('.final-grade-display').data('student');
+        if (studentIdCell) {
+            calculateFinalGrade(studentIdCell);
+        }
+    });
+
+    // on change
+    $('#semesterSelect').on('change', function() {
+        applySemesterView($(this).val());
+        // Recalculate all rows on semester change so second semester shows blank if no Q3/Q4
+        $('#gradesTable tbody tr').each(function(){
+            const studentIdCell = $(this).find('.final-grade-display').data('student');
+            if (studentIdCell) {
+                calculateFinalGrade(studentIdCell);
+            }
+        });
+    });
+
     // Initialize tooltips for better UX
     $('[data-bs-toggle="tooltip"]').tooltip();
+
+    // Function to check and update second semester lock status
+    function updateSecondSemesterLock(studentId) {
+        const q1Input = $(`input[data-student="${studentId}"][data-quarter="quarter1"]`);
+        const q2Input = $(`input[data-student="${studentId}"][data-quarter="quarter2"]`);
+        const q3Input = $(`input[data-student="${studentId}"][data-quarter="quarter3"]`);
+        const q4Input = $(`input[data-student="${studentId}"][data-quarter="quarter4"]`);
+        
+        const q1Value = q1Input.val();
+        const q2Value = q2Input.val();
+        
+        // Check if first semester has any grades
+        const hasFirstSemesterGrades = (q1Value && q1Value.trim() !== '') || (q2Value && q2Value.trim() !== '');
+        
+        if (hasFirstSemesterGrades) {
+            // Unlock second semester inputs
+            q3Input.prop('disabled', false)
+                   .removeClass('locked-input')
+                   .attr('placeholder', '0-100')
+                   .removeAttr('title');
+            q4Input.prop('disabled', false)
+                   .removeClass('locked-input')
+                   .attr('placeholder', '0-100')
+                   .removeAttr('title');
+        } else {
+            // Lock second semester inputs
+            q3Input.prop('disabled', true)
+                   .addClass('locked-input')
+                   .attr('placeholder', 'First semester required')
+                   .attr('title', 'Enter First Semester grades first')
+                   .val(''); // Clear any existing values
+            q4Input.prop('disabled', true)
+                   .addClass('locked-input')
+                   .attr('placeholder', 'First semester required')
+                   .attr('title', 'Enter First Semester grades first')
+                   .val(''); // Clear any existing values
+        }
+    }
+
+    // Initialize semester lock status for all students
+    $('input[data-quarter="quarter1"]').each(function() {
+        const studentId = $(this).data('student');
+        updateSecondSemesterLock(studentId);
+    });
 });
 </script>
 @endsection
