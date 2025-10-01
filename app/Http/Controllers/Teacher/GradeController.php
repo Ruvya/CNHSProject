@@ -180,6 +180,16 @@ class GradeController extends Controller
             ], 403);
         }
 
+        // Check if trying to input second semester grades without first semester
+        if (in_array($request->quarter, ['quarter3', 'quarter4'])) {
+            if (Grade::shouldLockSecondSemesterFor($request->student_id, $request->subject_id)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Second semester grades are locked. Please enter First Semester grades first.'
+                ], 422);
+            }
+        }
+
         // Get or create grade record
         $grade = Grade::firstOrCreate(
             [

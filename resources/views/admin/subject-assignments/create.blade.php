@@ -188,7 +188,7 @@
                             <a href="{{ route('admin.subject-assignments.index') }}" class="btn btn-outline-secondary me-md-2">
                                 <i class="fas fa-times me-1"></i>Cancel
                             </a>
-                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <button type="button" class="btn btn-primary" id="openConfirmModal" data-bs-toggle="modal" data-bs-target="#confirmModal">
                                 <i class="fas fa-check me-1"></i>Assign Subject
                             </button>
                         </div>
@@ -199,15 +199,21 @@
 
     </div>
 </div>
-<!-- Loading Overlay -->
-<div id="loadingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style="z-index: 9999;">
-    <div class="text-center text-white">
-        <div class="spinner-border mb-3" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-        <h5>Creating Assignment...</h5>
-        <p>Please wait while we process the assignment.</p>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="confirmModalLabel">Apply Changes?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Review</button>
+        <button type="submit" form="assignmentForm" class="btn btn-primary">Yes</button>
+      </div>
     </div>
+  </div>
 </div>
 
 <style>
@@ -243,8 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const teacherSelect = document.getElementById('teacher_id');
     const subjectSelect = document.getElementById('subject_id');
     const statusSelect = document.getElementById('status');
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const loadingOverlay = document.getElementById('loadingOverlay');
+    const submitBtn = document.getElementById('openConfirmModal');
 
     // Real-time validation feedback
     function showValidationFeedback(element, isValid, message) {
@@ -311,35 +316,6 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.className = 'btn btn-secondary';
         }
     }
-
-    // Form submission with confirmation
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const teacherName = teacherSelect.options[teacherSelect.selectedIndex].text;
-        const subjectName = subjectSelect.options[subjectSelect.selectedIndex].text;
-        const statusName = statusSelect.options[statusSelect.selectedIndex].text;
-        const schoolYear = document.getElementById('school_year').value;
-        const gradingPeriod = document.getElementById('grading_period').value;
-
-        // Show confirmation dialog
-        const confirmMessage = `Are you sure you want to assign this subject?\n\n` +
-                             `👨‍🏫 Teacher: ${teacherName}\n` +
-                             `📚 Subject: ${subjectName}\n` +
-                             `📅 School Year: ${schoolYear}\n` +
-                             `📊 Grading Period: ${gradingPeriod}\n` +
-                             `📝 Status: ${statusName}`;
-
-        if (confirm(confirmMessage)) {
-            // Show loading overlay
-            loadingOverlay.classList.remove('d-none');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Creating Assignment...';
-
-            // Submit the form
-            this.submit();
-        }
-    });
 
     // Initial validation
     validateForm();

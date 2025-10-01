@@ -33,30 +33,30 @@
         z-index: 1;
     }
 
-    /* Welcome Section with Blue Wave Pattern */
+    /* Welcome Section - Orange to Blue Diagonal Banner */
     .welcome-section {
-        background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-yellow) 100%);
-        border-radius: 12px;
-        padding: 1.5rem;
+        background: linear-gradient(135deg, #ffa62b 0%, #ff7b2c 100%);
+        border-radius: 20px;
+        padding: 1.75rem 2rem;
         border: none;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 24px rgba(16, 24, 40, 0.08);
         margin-bottom: 1.5rem;
         position: relative;
         overflow: hidden;
-        color: var(--white);
+        color: #ffffff;
     }
 
-    /* Blue Wave Pattern Overlay */
+    /* Blue Right Panel with Diagonal Edge */
     .welcome-section::before {
         content: '';
         position: absolute;
         top: 0;
         right: 0;
-        width: 50%;
-        height: 100%;
-        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
-        clip-path: polygon(100% 0, 100% 100%, 0 100%, 20% 0);
-        opacity: 0.9;
+        bottom: 0;
+        width: 65%;
+        background: linear-gradient(135deg, #3961e7 0%, #2f50d1 100%);
+        clip-path: polygon(22% 0, 100% 0, 100% 100%, 0 100%);
+        opacity: 1;
         z-index: 1;
     }
 
@@ -74,9 +74,9 @@
     }
    
     .welcome-text h1 span#greeting {
-        opacity: 0.9;
-      color: white !important;
-        font-size:40px;
+        opacity: 0.95;
+        color: #ffffff !important;
+        font-size: 40px;
     }
    
   
@@ -402,7 +402,7 @@
 
 
 <!-- Welcome Section -->
-<div class="welcome-section d-flex align-items-center flex-wrap" style="position: relative; min-height: 140px; background: #FFA726;">
+<div class="welcome-section d-flex align-items-center flex-wrap" style="position: relative; min-height: 140px;">
     <div class="welcome-text flex-grow-1" style="z-index:2;">
         <h1 class="mb-1" style="font-size:2.2rem; font-weight:700; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,0.10);">
             <span id="greeting" style="font-size:1.3em; font-weight:700; color:#fff;">Good morning</span>
