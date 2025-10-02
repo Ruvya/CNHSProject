@@ -176,7 +176,7 @@
     border-radius: 12px;
     padding: 1.5rem;
     position: relative;
-    height: 300px;
+    height: 420px;
     width: 100%;
     box-shadow: 0 2px 8px rgba(30,58,138,0.04);
 }
@@ -188,7 +188,7 @@
     text-align: center;
 }
 .chart-container canvas {
-    max-height: 250px !important;
+    max-height: 360px !important;
     width: 100% !important;
 }
 .angled-header-card {
@@ -311,22 +311,12 @@
     </div>
 
     <div class="row g-4">
-        <!-- Quick Actions -->
-        <div class="col-lg-4">
-            <div class="action-group-card">
-                <div class="action-group-header"><i class="fas fa-bolt"></i><h6>Quick Actions</h6></div>
-                <div class="action-group-body">
-                    <a href="{{ route('registrar.yearly-records.index') }}" class="action-item"><i class="fas fa-calendar-alt"></i><span>Yearly Records</span></a>
-                    <a href="{{ route('registrar.students.upload') }}" class="action-item"><i class="fas fa-upload"></i><span>Upload Students</span></a>
-                    <a href="{{ route('registrar.students.create') }}" class="action-item"><i class="fas fa-user-plus"></i><span>Generate Credentials</span></a>
-                    <a href="{{ route('registrar.subject-assignments.index') }}" class="action-item"><i class="fas fa-user-tie"></i><span>Assign Subjects to Teachers</span></a>
-                </div>
-            </div>
-        </div>
+      
+        
 
-        <!-- Analytics Overview -->
-        <div class="col-lg-8">
-            <div class="analytics-card">
+        		<!-- Analytics Overview -->
+		<div class="col-lg-12">
+			<div class="analytics-card">
                 <div class="analytics-header"><h5><i class="fas fa-chart-line me-2"></i>Enrollment Analytics</h5></div>
                 <div class="analytics-body">
                     <div class="chart-container">
