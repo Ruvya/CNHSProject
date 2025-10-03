@@ -15,6 +15,28 @@
                 <div style="font-size: 0.95rem; font-family: 'Poppins', sans-serif; color: #555; font-weight: 500;">Manage teachers and students in the CNHS system</div>
             </div>
         </div>
+        <form method="GET" action="{{ route('admin.users') }}" class="mt-3 w-100">
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0"><i class="fas fa-search"></i></span>
+                        <input type="text" name="q" class="form-control" placeholder="Search teachers or students (name, email, ID)" value="{{ $query ?? '' }}">
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex">
+                    <select name="grade_level" class="form-select ms-md-2" onchange="this.form.submit()">
+                        <option value="all" {{ (!$selectedGradeLevel || $selectedGradeLevel === 'all') ? 'selected' : '' }}>All Grades</option>
+                        @foreach($availableGradeLevels as $gradeLevel)
+                            <option value="{{ $gradeLevel }}" {{ $selectedGradeLevel === $gradeLevel ? 'selected' : '' }}>{{ $gradeLevel }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex justify-content-end">
+                    <a href="{{ route('admin.users') }}" class="btn btn-outline-secondary me-2">Clear</a>
+                    <button type="submit" class="btn btn-primary">Apply</button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -146,8 +168,7 @@
                                 <th class="align-middle text-center">ID</th>
                                 <th class="align-middle">Name</th>
                                 <th class="align-middle text-center">Email</th>
-                                <th class="align-middle text-center">Strand</th>
-                                <th class="align-middle text-center">Contact</th>
+                                <th class="align-middle text-center">Cluster</th>
                                 <th class="align-middle text-center">Status</th>
                                 <th class="align-middle text-center">Actions</th>
                             </tr>
@@ -162,8 +183,7 @@
                                     </a>
                                 </td>
                                 <td class="align-middle text-center">{{ $teacher->email }}</td>
-                                <td class="align-middle text-center">{{ $teacher->strand ?? '-' }}</td>
-                                <td class="align-middle text-center">{{ $teacher->contact_number ?? '-' }}</td>
+                                <td class="align-middle text-center">{{ $teacher->cluster ?? '-' }}</td>
                                 <td class="align-middle text-center">{{ ucfirst($teacher->status) }}</td>
                                 <td class="align-middle text-center">
                                     <a href="{{ route('admin.users.teachers.edit', $teacher) }}" class="btn btn-warning btn-sm">

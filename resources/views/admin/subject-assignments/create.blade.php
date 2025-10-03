@@ -9,19 +9,23 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="page-title mb-1">
-                <i class="fas fa-plus-circle me-2 text-primary"></i>
-                Assign Subject to Teacher
-            </h1>
-            <p class="text-muted mb-0">Create a new subject assignment for a teacher</p>
-        </div>
-        <div>
-            <a href="{{ route('admin.subject-assignments.index') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Back to Assignments
-            </a>
+    <!-- Header (match User Management style) -->
+    <div class="card mb-4" style="border-radius: 14px; box-shadow: 0 8px 25px rgba(30,58,138,0.12); border: none;">
+        <div class="card-body d-flex flex-wrap align-items-center justify-content-between" style="padding: 1.2rem 1.5rem;">
+            <div class="d-flex align-items-center mb-2 mb-md-0">
+                <span style="font-size: 2rem; color: #2563eb; background: #f1f5fb; border-radius: 12px; padding: 0.7rem; margin-right: 1rem; display: flex; align-items: center;">
+                    <i class="fas fa-plus-circle"></i>
+                </span>
+                <div>
+                    <div style="font-size: 1.3rem; font-weight: bold; font-family: 'Poppins', sans-serif; color: #222;">Assign Subject to Teacher</div>
+                    <div style="font-size: 0.95rem; font-family: 'Poppins', sans-serif; color: #555; font-weight: 500;">Create a new subject assignment for a teacher</div>
+                </div>
+            </div>
+            <div class="mb-2 mb-md-0">
+                <a href="{{ route('admin.subject-assignments.index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Assignments
+                </a>
+            </div>
         </div>
     </div>
 
@@ -71,81 +75,6 @@
                             @enderror
                         </div>
                         <!-- Note: Section selection removed as section_id column was removed from teacher_assignments table -->
-                        <!-- Academic Period - REQUIRED FIELDS -->
-                        <div class="card border-warning mb-4">
-                            <div class="card-header bg-warning text-dark">
-                                <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Required: Academic Period</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label for="school_year" class="form-label fw-bold">
-                                            <i class="fas fa-calendar me-1"></i>School Year <span class="text-danger">*</span>
-                                        </label>
-                                        <select name="school_year" id="school_year" class="form-select @error('school_year') is-invalid @enderror" required>
-                                            <option value="2024-2025" {{ old('school_year', $currentSchoolYear ?? '2024-2025') == '2024-2025' ? 'selected' : '' }}>2024-2025</option>
-                                            <option value="2025-2026" {{ old('school_year', $currentSchoolYear ?? '2024-2025') == '2025-2026' ? 'selected' : '' }}>2025-2026</option>
-                                        </select>
-                                        @error('school_year')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="grading_period" class="form-label fw-bold">
-                                            <i class="fas fa-clock me-1"></i>Grading Period <span class="text-danger">*</span>
-                                        </label>
-                                        <select name="grading_period" id="grading_period" class="form-select @error('grading_period') is-invalid @enderror" required>
-                                            <option value="First Grading" {{ old('grading_period', $currentGradingPeriod ?? 'First Grading') == 'First Grading' ? 'selected' : '' }}>First Grading</option>
-                                            <option value="Second Grading" {{ old('grading_period', $currentGradingPeriod ?? 'First Grading') == 'Second Grading' ? 'selected' : '' }}>Second Grading</option>
-                                            <option value="Third Grading" {{ old('grading_period', $currentGradingPeriod ?? 'First Grading') == 'Third Grading' ? 'selected' : '' }}>Third Grading</option>
-                                            <option value="Fourth Grading" {{ old('grading_period', $currentGradingPeriod ?? 'First Grading') == 'Fourth Grading' ? 'selected' : '' }}>Fourth Grading</option>
-                                        </select>
-                                        @error('grading_period')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Schedule (Optional) -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">
-                                <i class="fas fa-schedule me-1"></i>Teaching Schedule (Optional)
-                            </label>
-                            <div id="scheduleContainer">
-                                <div class="schedule-slot border rounded p-3 mb-2">
-                                    <div class="row g-2">
-                                        <div class="col-md-4">
-                                            <label class="form-label">Day</label>
-                                            <select name="schedule[0][day]" class="form-select">
-                                                <option value="">Select Day</option>
-                                                <option value="Monday">Monday</option>
-                                                <option value="Tuesday">Tuesday</option>
-                                                <option value="Wednesday">Wednesday</option>
-                                                <option value="Thursday">Thursday</option>
-                                                <option value="Friday">Friday</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Start Time</label>
-                                            <input type="time" name="schedule[0][start_time]" class="form-control">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">End Time</label>
-                                            <input type="time" name="schedule[0][end_time]" class="form-control">
-                                        </div>
-                                        <div class="col-md-2 d-flex align-items-end">
-                                            <button type="button" class="btn btn-outline-danger btn-sm remove-schedule" style="display: none;">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="button" id="addSchedule" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-plus me-1"></i>Add Another Time Slot
-                            </button>
-                        </div>
                         <!-- Assignment Status -->
                         <div class="mb-4">
                             <label for="status" class="form-label fw-bold">

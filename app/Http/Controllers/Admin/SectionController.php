@@ -116,7 +116,11 @@ class SectionController extends Controller
         ]);
 
         $data['max_capacity'] = $data['max_capacity'] ?? 40;
-        $data['school_year'] = $data['school_year'] ?? $this->currentSchoolYear();
+        if (empty($data['school_year'])) {
+            $activeYear = \App\Models\SchoolYear::active()->first();
+            $latestYear = \App\Models\SchoolYear::orderByDesc('start_year')->first();
+            $data['school_year'] = optional($activeYear)->name ?? optional($latestYear)->name ?? $this->currentSchoolYear();
+        }
         $data['semester'] = $data['semester'] ?? '1st Semester';
 
         // Unique name within strand/track for current term

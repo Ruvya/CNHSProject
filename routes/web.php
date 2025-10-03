@@ -15147,34 +15147,8 @@ Route::prefix('registrar')->name('registrar.')->group(function () {
     Route::middleware(['admin_or_registrar'])->group(function () {
         // Other protected routes will go here
 
-        // Unified Subject Management Routes (Combines Subjects + Assignments)
-        Route::get('/subject-management', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'index'])->name('subject-management.index');
-        Route::get('/subject-management/create', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'create'])->name('subject-management.create');
-        Route::post('/subject-management', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'store'])->name('subject-management.store');
-        Route::get('/subject-management/{subject}', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'show'])->name('subject-management.show');
-        Route::get('/subject-management/{subject}/edit', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'edit'])->name('subject-management.edit');
-        Route::put('/subject-management/{subject}', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'update'])->name('subject-management.update');
-        Route::delete('/subject-management/{subject}', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'destroy'])->name('subject-management.destroy');
-        
-        // Teacher Assignment Routes
-        Route::post('/subject-management/{subject}/assign-teacher', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'assignTeacher'])->name('subject-management.assign-teacher');
-        Route::delete('/subject-management/assignment/{assignment}', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'removeTeacherAssignment'])->name('subject-management.remove-assignment');
-
-        // AJAX routes for dynamic filtering
-        Route::get('/api/tracks-by-grade', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'getTracksByGrade'])->name('api.tracks-by-grade');
-        Route::get('/api/clusters-by-grade-track', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'getClustersByGradeAndTrack'])->name('api.clusters-by-grade-track');
-        Route::get('/api/subjects-by-filters', [App\Http\Controllers\Registrar\SubjectManagementController::class, 'getSubjectsByFilters'])->name('api.subjects-by-filters');
-
-        // Sections API for Registrar (reuses Admin controller logic)
-        Route::get('/api/sections-by-filters', [App\Http\Controllers\Admin\SectionController::class, 'apiSectionsByFilters'])->name('api.sections-by-filters');
-
-        // Legacy routes for backward compatibility (redirect to new unified routes)
-        Route::get('/subjects', function() { return redirect()->route('registrar.subject-management.index'); });
-        Route::get('/subjects/create', function() { return redirect()->route('registrar.subject-management.create'); });
-        Route::get('/subjects/{subject}', function($subject) { return redirect()->route('registrar.subject-management.show', $subject); });
-        Route::get('/subjects/{subject}/edit', function($subject) { return redirect()->route('registrar.subject-management.edit', $subject); });
-        Route::get('/subject-assignments', function() { return redirect()->route('registrar.subject-management.index'); });
-        Route::get('/subject-assignments/create', function() { return redirect()->route('registrar.subject-management.create'); });
+        // Subject Management removed per request
+        // (routes disabled)
 
 
 

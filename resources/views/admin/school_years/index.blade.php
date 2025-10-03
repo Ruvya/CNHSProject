@@ -2,7 +2,20 @@
 
 @section('content')
 <div class="container mt-4">
-	<h1>School Year Management</h1>
+	<!-- Header (match User Management style) -->
+	<div class="card mb-4" style="border-radius: 14px; box-shadow: 0 8px 25px rgba(30,58,138,0.12); border: none;">
+		<div class="card-body d-flex flex-wrap align-items-center justify-content-between" style="padding: 1.2rem 1.5rem;">
+			<div class="d-flex align-items-center mb-2 mb-md-0">
+				<span style="font-size: 2rem; color: #2563eb; background: #f1f5fb; border-radius: 12px; padding: 0.7rem; margin-right: 1rem; display: flex; align-items: center;">
+					<i class="fas fa-calendar"></i>
+				</span>
+				<div>
+					<div style="font-size: 1.3rem; font-weight: bold; font-family: 'Poppins', sans-serif; color: #222;">School Year Management</div>
+					<div style="font-size: 0.95rem; font-family: 'Poppins', sans-serif; color: #555; font-weight: 500;">Create, activate, close, and archive school years</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
 	@if(session('success'))
 		<div class="alert alert-success">{{ session('success') }}</div>

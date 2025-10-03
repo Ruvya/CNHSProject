@@ -2,26 +2,36 @@
 
 @section('content')
 <div class="container mt-4">
-	<h1>School Year: {{ $schoolYear->name }}</h1>
-
-	<div class="mb-3">
-		<a href="{{ route('admin.school-years.index') }}" class="btn btn-secondary">Back</a>
-		@if($schoolYear->status !== 'active')
-			<form method="POST" action="{{ route('admin.school-years.activate', $schoolYear) }}" class="d-inline">
-				@csrf
-				<button class="btn btn-success">Activate</button>
-			</form>
-		@endif
-		<a href="{{ route('admin.school-years.statistics', $schoolYear) }}" class="btn btn-info">Statistics</a>
-		<a href="{{ route('admin.school-years.export', $schoolYear) }}" class="btn btn-outline-primary">Export Data</a>
-		<button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
-		@if($schoolYear->studentYearlyRecords()->count() == 0 && $schoolYear->teacherYearlyRecords()->count() == 0)
-			<form method="POST" action="{{ route('admin.school-years.destroy', $schoolYear) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this school year?')">
-				@csrf
-				@method('DELETE')
-				<button class="btn btn-danger">Delete</button>
-			</form>
-		@endif
+	<!-- Header (match User Management style) -->
+	<div class="card mb-4" style="border-radius: 14px; box-shadow: 0 8px 25px rgba(30,58,138,0.12); border: none;">
+		<div class="card-body d-flex flex-wrap align-items-center justify-content-between" style="padding: 1.2rem 1.5rem;">
+			<div class="d-flex align-items-center mb-2 mb-md-0">
+				<span style="font-size: 2rem; color: #2563eb; background: #f1f5fb; border-radius: 12px; padding: 0.7rem; margin-right: 1rem; display: flex; align-items: center;">
+					<i class="fas fa-calendar"></i>
+				</span>
+				<div>
+					<div style="font-size: 1.3rem; font-weight: bold; font-family: 'Poppins', sans-serif; color: #222;">School Year: {{ $schoolYear->name }}</div>
+					<div style="font-size: 0.95rem; font-family: 'Poppins', sans-serif; color: #555; font-weight: 500;">View and manage records for this school year</div>
+				</div>
+			</div>
+			<div class="mb-2 mb-md-0">
+				<a href="{{ route('admin.school-years.index') }}" class="btn btn-outline-secondary me-2">Back</a>
+				@if($schoolYear->status !== 'active')
+				<form method="POST" action="{{ route('admin.school-years.activate', $schoolYear) }}" class="d-inline">
+					@csrf
+					<button class="btn btn-success">Activate</button>
+				</form>
+				@endif
+				<button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
+				@if($schoolYear->studentYearlyRecords()->count() == 0 && $schoolYear->teacherYearlyRecords()->count() == 0)
+				<form method="POST" action="{{ route('admin.school-years.destroy', $schoolYear) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this school year?')">
+					@csrf
+					@method('DELETE')
+					<button class="btn btn-danger">Delete</button>
+				</form>
+				@endif
+			</div>
+		</div>
 	</div>
 
 	<div class="row g-3">
@@ -42,20 +52,6 @@
 							<strong>Sections</strong>
 							<div class="h4 text-info">{{ $summary['total_sections'] }}</div>
 						</div>
-						<div class="col">
-							<strong>Assignments</strong>
-							<div class="h4 text-warning">{{ $summary['total_assignments'] }}</div>
-						</div>
-						<div class="col">
-							<strong>Subjects</strong>
-							<div class="h4 text-secondary">{{ $summary['total_subjects'] }}</div>
-						</div>
-						@if(isset($summary['total_schedules']))
-						<div class="col">
-							<strong>Schedules</strong>
-							<div class="h4 text-dark">{{ $summary['total_schedules'] }}</div>
-						</div>
-						@endif
 					</div>
 				</div>
 			</div>
@@ -70,7 +66,7 @@
 							<tr>
 								<th>Grade</th>
 								<th>Section</th>
-								<th>Track/Strand</th>
+								<th>Track/Cluster</th>
 								<th>Adviser</th>
 								<th>Enrollment</th>
 							</tr>
@@ -152,135 +148,6 @@
 				</div>
 			</div>
 		</div>
-
-		<div class="col-md-12">
-			<div class="card mt-3">
-				<div class="card-header">Teacher Assignments</div>
-				<div class="card-body">
-					<table class="table table-sm table-striped">
-						<thead>
-							<tr>
-								<th>Teacher</th>
-								<th>Subject</th>
-								<th>Grading Period</th>
-								<th>Status</th>
-							</tr>
-						</thead>
-						<tbody>
-							@forelse($assignments as $asg)
-							<tr>
-								<td>{{ optional($asg->teacher)->name ?? 'Unknown' }}</td>
-								<td>{{ optional($asg->subject)->display_name ?? 'Unknown' }}</td>
-								<td>{{ $asg->grading_period }}</td>
-								<td>{{ ucfirst($asg->status ?? 'active') }}</td>
-							</tr>
-							@empty
-							<tr><td colspan="4" class="text-center">No assignments.</td></tr>
-							@endforelse
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-md-12">
-			<div class="card mt-3">
-				<div class="card-header">Subjects (with student count)</div>
-				<div class="card-body">
-					<table class="table table-sm table-striped">
-						<thead>
-							<tr>
-								<th>Subject</th>
-								<th>Code</th>
-								<th>Grade Level</th>
-								<th>Students</th>
-							</tr>
-						</thead>
-						<tbody>
-							@forelse($subjects as $sub)
-							<tr>
-								<td>{{ $sub->name }}</td>
-								<td>{{ $sub->code }}</td>
-								<td>{{ $sub->grade_level }}</td>
-								<td>{{ $sub->students_count }}</td>
-							</tr>
-							@empty
-							<tr><td colspan="4" class="text-center">No subjects.</td></tr>
-							@endforelse
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-
-		@if(isset($gradeDistribution) && $gradeDistribution->count() > 0)
-		<div class="col-md-12">
-			<div class="card mt-3">
-				<div class="card-header">Grade Level Distribution</div>
-				<div class="card-body">
-					<div class="row">
-						@foreach($gradeDistribution as $grade => $count)
-						<div class="col-md-2 text-center">
-							<div class="card bg-light">
-								<div class="card-body">
-									<h5 class="card-title">Grade {{ $grade }}</h5>
-									<p class="card-text h4">{{ $count }} students</p>
-								</div>
-							</div>
-						</div>
-						@endforeach
-					</div>
-				</div>
-			</div>
-		</div>
-		@endif
-
-		@if(isset($sectionAnalysis) && $sectionAnalysis->count() > 0)
-		<div class="col-md-12">
-			<div class="card mt-3">
-				<div class="card-header">Section Capacity Analysis</div>
-				<div class="card-body">
-					<div class="table-responsive">
-						<table class="table table-sm">
-							<thead>
-								<tr>
-									<th>Section</th>
-									<th>Grade</th>
-									<th>Enrollment</th>
-									<th>Capacity</th>
-									<th>Utilization</th>
-									<th>Status</th>
-								</tr>
-							</thead>
-							<tbody>
-								@foreach($sectionAnalysis as $section)
-								<tr>
-									<td>{{ $section['name'] }}</td>
-									<td>{{ $section['grade_level'] }}</td>
-									<td>{{ $section['current_enrollment'] }}</td>
-									<td>{{ $section['max_capacity'] }}</td>
-									<td>
-										<div class="progress" style="height: 20px;">
-											<div class="progress-bar {{ $section['utilization'] > 90 ? 'bg-danger' : ($section['utilization'] > 70 ? 'bg-warning' : 'bg-success') }}" 
-												 style="width: {{ $section['utilization'] }}%">
-												{{ $section['utilization'] }}%
-											</div>
-										</div>
-									</td>
-									<td>
-										<span class="badge bg-{{ $section['status'] === 'active' ? 'success' : ($section['status'] === 'full' ? 'danger' : 'secondary') }}">
-											{{ ucfirst($section['status']) }}
-										</span>
-									</td>
-								</tr>
-								@endforeach
-							</tbody>
-						</table>
-					</div>
-				</div>
-			</div>
-		</div>
-		@endif
 	</div>
 </div>
 

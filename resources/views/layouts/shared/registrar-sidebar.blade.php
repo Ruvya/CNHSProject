@@ -52,12 +52,6 @@
             </a>
         </li>
         <li>
-            <a href="{{ route('registrar.subject-management.index') }}" class="{{ request()->routeIs('registrar.subject-management*') ? 'active' : '' }}">
-                <i class="fas fa-book"></i>
-                <span>Subject Management</span>
-            </a>
-        </li>
-        <li>
             <a href="{{ route('registrar.automatic-subject-assignment.index') }}" class="{{ request()->routeIs('registrar.automatic-subject-assignment*') ? 'active' : '' }}">
                 <i class="fas fa-cogs"></i>
                 <span>Auto-Assign Subjects</span>

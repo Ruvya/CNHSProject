@@ -73,9 +73,16 @@
                             <tr>
                                 <td><strong>Gender:</strong></td>
                                 <td>
-                                    <span class="badge bg-{{ $student->gender === 'Male' ? 'primary' : 'pink' }}">
-                                        {{ $student->gender }}
-                                    </span>
+                                    @php
+                                        $genderValue = is_string($student->gender) ? strtolower(trim($student->gender)) : null;
+                                    @endphp
+                                    @if($genderValue === 'male' || $genderValue === 'm')
+                                        <span class=>Male</span>
+                                    @elseif($genderValue === 'female' || $genderValue === 'f')
+                                        <span class=>Female</span>
+                                    @else
+                                        <span class="text-muted">Not provided</span>
+                                    @endif
                                 </td>
                             </tr>
                         </table>
@@ -134,17 +141,17 @@
                         <table class="table table-borderless">
                             <tr>
                                 <td><strong>Student ID:</strong></td>
-                                <td><span class="badge bg-primary">{{ $student->student_id }}</span></td>
+                                <td><span class=>{{ $student->student_id }}</span></td>
                             </tr>
                             <tr>
                                 <td><strong>Grade Level:</strong></td>
-                                <td><span class="badge bg-info">{{ $student->grade_level }}</span></td>
+                                <td><span class=>{{ $student->grade_level }}</span></td>
                             </tr>
                             <tr>
                                 <td><strong>Track:</strong></td>
                                 <td>
                                     @if($student->track)
-                                        <span class="badge bg-warning text-dark">{{ $student->track }}</span>
+                                        <span class=>{{ $student->track }}</span>
                                     @else
                                         <span class="text-muted">Not assigned</span>
                                     @endif
@@ -155,10 +162,10 @@
                     <div class="col-md-6">
                         <table class="table table-borderless">
                             <tr>
-                                <td><strong>Strand:</strong></td>
+                                <td><strong>Cluster:</strong></td>
                                 <td>
-                                    @if($student->strand)
-                                        <span class="badge bg-secondary">{{ $student->strand }}</span>
+                                    @if($student->cluster)
+                                        <span class=>{{ $student->cluster }}</span>
                                     @else
                                         <span class="text-muted">Not assigned</span>
                                     @endif
@@ -168,7 +175,7 @@
                                 <td><strong>Section:</strong></td>
                                 <td>
                                     @if($student->section)
-                                        <span class="badge bg-success">{{ $student->section }}</span>
+                                        <span class=>{{ $student->section }}</span>
                                     @else
                                         <span class="text-muted">Not assigned</span>
                                     @endif

@@ -77,7 +77,7 @@
         <div class="left-content">
             <span class="icon"><i class="fas fa-users"></i></span>
             <div class="titles">
-                <span class="main-title">Student Accounts</span>
+                <span class="main-title">Student Records</span>
                 <span class="subtitle">Welcome back! Here's an overview of your classes and activities.</span>
             </div>
         </div>

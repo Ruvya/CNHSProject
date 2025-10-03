@@ -58,7 +58,7 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <label for="grading_period" class="form-label">Grading Period (Semestral)</label>
+                        <label for="grading_period" class="form-label">Semester</label>
                         <select name="grading_period" id="grading_period" class="form-select">
                             <option value="1st Semester" {{ (isset($gradingPeriod) && $gradingPeriod == '1st Semester') ? 'selected' : '' }}>1st Semester</option>
                             <option value="2nd Semester" {{ (isset($gradingPeriod) && $gradingPeriod == '2nd Semester') ? 'selected' : '' }}>2nd Semester</option>
@@ -90,14 +90,12 @@
                             <tr>
                                 <th>Teacher</th>
                                 <th>Subject</th>
-                                <th>Section</th>
                                 <th>Grade Level</th>
                                 <th>Track</th>
                                 <th>Cluster</th>
                                 <th>Semester</th>
                                 <th>Schedule</th>
                                 <th>Assigned Date</th>
-                                <th>Assigned By</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -115,9 +113,6 @@
                                             <h6 class="mb-0">{{ $assignment->subject->name }}</h6>
                                             <small class="text-muted">{{ $assignment->subject->code ?? '' }}</small>
                                         </div>
-                                    </td>
-                                    <td>
-                                        {{ optional($assignment->section)->name ?? '' }}
                                     </td>
                                     <td>
                                         {{ $assignment->subject->grade_level ?? '' }}
@@ -140,9 +135,6 @@
                                     </td>
                                     <td>
                                         <small class="text-muted">{{ $assignment->assignment_date ? $assignment->assignment_date->format('M d, Y') : '' }}</small>
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">{{ $assignment->assignedBy->full_name ?? $assignment->assignedBy->name ?? 'Admin' }}</small>
                                     </td>
                                     <td>
                                         <form method="POST" action="{{ route('admin.subject-assignments.destroy', $assignment) }}" 

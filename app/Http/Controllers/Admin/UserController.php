@@ -17,7 +17,18 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $teachers = Teacher::orderBy('name')->get();
+        // Optional text query to search users (teachers and students)
+        $query = trim((string) $request->get('q'));
+
+        // Teachers list (apply search if provided)
+        $teachersQuery = Teacher::query();
+        if ($query !== '') {
+            $teachersQuery->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('email', 'like', "%{$query}%");
+            });
+        }
+        $teachers = $teachersQuery->orderBy('name')->get();
 
         // Get all available grade levels for the filter dropdown
         $availableGradeLevels = Student::select('grade_level')
@@ -35,6 +46,16 @@ class UserController extends Controller
             $studentsQuery->where('grade_level', $selectedGradeLevel);
         }
 
+        // Apply text search to students if provided
+        if ($query !== '') {
+            $studentsQuery->where(function ($q) use ($query) {
+                $q->where('first_name', 'like', "%{$query}%")
+                  ->orWhere('last_name', 'like', "%{$query}%")
+                  ->orWhere('student_id', 'like', "%{$query}%")
+                  ->orWhere('email', 'like', "%{$query}%");
+            });
+        }
+
         $students = $studentsQuery->orderBy('first_name')->get();
 
         // Count students by grade level for statistics
@@ -48,7 +69,8 @@ class UserController extends Controller
             'students',
             'availableGradeLevels',
             'selectedGradeLevel',
-            'studentsByGrade'
+            'studentsByGrade',
+            'query'
         ));
     }
 

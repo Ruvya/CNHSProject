@@ -4,11 +4,24 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Add New Teacher</h1>
-        <a href="{{ route('admin.users') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to User Management
-        </a>
+    <!-- Header (match User Management style) -->
+    <div class="card mb-4" style="border-radius: 14px; box-shadow: 0 8px 25px rgba(30,58,138,0.12); border: none;">
+        <div class="card-body d-flex flex-wrap align-items-center justify-content-between" style="padding: 1.2rem 1.5rem;">
+            <div class="d-flex align-items-center mb-2 mb-md-0">
+                <span style="font-size: 2rem; color: #2563eb; background: #f1f5fb; border-radius: 12px; padding: 0.7rem; margin-right: 1rem; display: flex; align-items: center;">
+                    <i class="fas fa-user-plus"></i>
+                </span>
+                <div>
+                    <div style="font-size: 1.3rem; font-weight: bold; font-family: 'Poppins', sans-serif; color: #222;">Add New Teacher</div>
+                    <div style="font-size: 0.95rem; font-family: 'Poppins', sans-serif; color: #555; font-weight: 500;">Create a teacher account and set initial details</div>
+                </div>
+            </div>
+            <div class="mb-2 mb-md-0">
+                <a href="{{ route('admin.users') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to User Management
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="row">
@@ -158,52 +171,7 @@
             </div>
         </div>
 
-        <!-- Help Card -->
-        <div class="col-lg-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-info">Help & Guidelines</h6>
-                </div>
-                <div class="card-body">
-                    <h6 class="text-primary">Required Fields</h6>
-                    <ul class="small">
-                        <li>Full Name</li>
-                        <li>Email Address</li>
-                        <li>Password (minimum 8 characters)</li>
-                        <li>Status</li>
-                    </ul>
-
-                    <h6 class="text-primary mt-3">Password Requirements</h6>
-                    <ul class="small">
-                        <li>Minimum 8 characters</li>
-                        <li>Must be confirmed</li>
-                        <li>Should be secure and unique</li>
-                    </ul>
-
-                    <h6 class="text-primary mt-3">Status Options</h6>
-                    <ul class="small">
-                        <li><strong>Active:</strong> Teacher can log in and access the system</li>
-                        <li><strong>Inactive:</strong> Teacher account is disabled</li>
-                    </ul>
-
-                    <div class="alert alert-info mt-3">
-                        <h6 class="text-info"><i class="fas fa-envelope"></i> CNHS Automatic Email & Password Flow</h6>
-                        <p class="small mb-0">
-                            When you create a teacher account, login credentials will be automatically sent to their email address with CNHS branding.
-                            The email includes their username, temporary password, login link, and security instructions.
-                        </p>
-                        <p class="small mb-0 mt-1">
-                            <strong>Password Change Flow:</strong> When teachers first log in, they will be automatically redirected to change their password before accessing the dashboard.
-                        </p>
-                        <p class="small mb-0 mt-2">
-                            <a href="{{ route('admin.users.email-test') }}" class="text-info">
-                                <i class="fas fa-cog"></i> Test Email Configuration
-                            </a>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- (Help card removed as requested) -->
     </div>
 </div>
 @endsection

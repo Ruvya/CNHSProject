@@ -204,10 +204,10 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Strand:</strong></td>
+                                    <td><strong>Cluster:</strong></td>
                                     <td>
-                                        @if($student->strand)
-                                            <span class="badge bg-light text-dark">{{ $student->strand }}</span>
+                                        @if($student->cluster)
+                                            <span class="badge bg-light text-dark">{{ $student->cluster }}</span>
                                         @else
                                             <span class="text-muted">Not assigned</span>
                                         @endif

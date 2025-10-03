@@ -525,11 +525,6 @@
                     <i class="fas fa-calendar-alt"></i> Yearly Records
                 </a>
             </li>
-            <li>
-                <a href="{{ route('registrar.subject-management.index') }}" class="{{ request()->routeIs('registrar.subject-management*') ? 'active' : '' }}">
-                    <i class="fas fa-book"></i> Subject Management
-                </a>
-            </li>
         </ul>
     </div>
 

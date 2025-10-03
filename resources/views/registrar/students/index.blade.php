@@ -267,7 +267,6 @@
                             <th>Section</th>
                             <th>Track</th>
                             <th>Cluster</th>
-                            <th>Enrollment Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -311,26 +310,10 @@
                                     Not assigned
                                 @endif
                             </td>
-                            <td style="color: black;">
-                                @if($student->subjects->count() > 0)
-                                    Enrolled ({{ $student->subjects->count() }} subjects)
-                                @else
-                                    Not Enrolled
-                                @endif
-                            </td>
                             <td>
                                 <div class="btn-group" role="group">
                                     <a href="{{ route('registrar.students.show', $student) }}" class="btn btn-info btn-sm" title="View Profile">
                                         <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ route('registrar.students.edit', $student) }}" class="btn btn-primary btn-sm" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a href="{{ route('registrar.students.yearly-records.index', $student) }}" class="btn btn-secondary btn-sm" title="Yearly Records">
-                                        <i class="fas fa-history"></i>
-                                    </a>
-                                    <a href="{{ route('registrar.students.enrollment', $student) }}" class="btn btn-success btn-sm" title="Manage Enrollment">
-                                        <i class="fas fa-book"></i>
                                     </a>
                                     <form action="{{ route('registrar.students.destroy', $student) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this student?')">
                                         @csrf
