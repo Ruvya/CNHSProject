@@ -11,7 +11,6 @@ class TeacherAssignment extends Model
         'teacher_id',
         'subject_id',
         'school_year',
-        'grading_period',
         'semester',
         'schedule',
         'assignment_date',
@@ -97,7 +96,7 @@ class TeacherAssignment extends Model
         $query = self::where('teacher_id', $teacherId)
             ->where('status', 'active')
             ->where('school_year', $this->school_year)
-            ->where('grading_period', $this->grading_period);
+            ->where('semester', $this->semester);
 
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);

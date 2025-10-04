@@ -20,7 +20,15 @@ class GradeController extends Controller
         $assignedSubjects = $teacher->assignedSubjects()->get();
         $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
         $subjects = $assignedSubjects->merge($directSubjects)->unique('id');
-        $sections = ['A', 'B', 'C', 'D', 'E']; // Add more sections as needed
+        
+        // Get actual sections from database for the current school year
+        $currentSchoolYear = $this->getCurrentSchoolYear();
+        $sections = \App\Models\Section::where('school_year', $currentSchoolYear)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->pluck('name')
+            ->unique()
+            ->values();
 
         $query = Student::query()
             ->with(['grades' => function($query) use ($request) {
@@ -268,5 +276,21 @@ class GradeController extends Controller
             'averageGrade' => $totalGrades,
             'totalSubjects' => $totalSubjects,
         ]);
+    }
+
+    /**
+     * Get current school year
+     */
+    private function getCurrentSchoolYear(): string
+    {
+        $currentYear = date('Y');
+        $currentMonth = date('n');
+
+        // School year starts in June (month 6)
+        if ($currentMonth >= 6) {
+            return $currentYear . '-' . ($currentYear + 1);
+        } else {
+            return ($currentYear - 1) . '-' . $currentYear;
+        }
     }
 }

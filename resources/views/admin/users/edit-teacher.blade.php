@@ -4,15 +4,28 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Edit Teacher: {{ $teacher->name }}</h1>
-        <a href="{{ route('admin.users') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to User Management
-        </a>
+    <!-- Page Header -->
+    <div class="card mb-4" style="border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: none;">
+        <div class="card-body d-flex flex-wrap align-items-center justify-content-between" style="padding: 1.2rem 1.5rem;">
+            <div class="d-flex align-items-center mb-2 mb-md-0">
+                <span style="font-size: 2rem; color: #2563eb; background: #f1f5fb; border-radius: 12px; padding: 0.7rem; margin-right: 1rem; display: flex; align-items: center;">
+                    <i class="fas fa-user-edit"></i>
+                </span>
+                <div>
+                    <div style="font-size: 1.3rem; font-weight: bold; font-family: 'Poppins', sans-serif; color: #222;">Edit Teacher</div>
+                    <div style="font-size: 0.95rem; font-family: 'Poppins', sans-serif; color: #555; font-weight: 500;">Update teacher information for {{ $teacher->name }}</div>
+                </div>
+            </div>
+            <div class="mb-2 mb-md-0">
+                <a href="{{ route('admin.users') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to User Management
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="row">
-        <div class="col-lg-8">
+        <div class="col-lg-12">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Teacher Information</h6>
@@ -121,7 +134,6 @@
 
                         <div class="row">
                             <div class="col-md-6">
-                            <div class="col-md-6">
                                 <div class="form-group mb-3">
                                     <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
                                     <select class="form-control @error('status') is-invalid @enderror" id="status" name="status" required>
@@ -163,34 +175,6 @@
                             </div>
                         </div>
                     </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Info Card -->
-        <div class="col-lg-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-info">Teacher Details</h6>
-                </div>
-                <div class="card-body">
-                    <p><strong>Teacher ID:</strong> {{ $teacher->id }}</p>
-                    <p><strong>Created:</strong> {{ $teacher->created_at->format('M d, Y') }}</p>
-                    <p><strong>Last Updated:</strong> {{ $teacher->updated_at->format('M d, Y') }}</p>
-                </div>
-            </div>
-
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-warning">Important Notes</h6>
-                </div>
-                <div class="card-body">
-                    <ul class="small">
-                        <li>Leave password fields empty to keep current password</li>
-                        <li>Email must be unique across all teachers</li>
-                        <li>Inactive teachers cannot log in to the system</li>
-                        <li>Changes take effect immediately</li>
-                    </ul>
                 </div>
             </div>
         </div>

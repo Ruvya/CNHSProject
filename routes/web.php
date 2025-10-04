@@ -14966,6 +14966,8 @@ Route::middleware(['auth:teacher'])->group(function () {
     // AJAX routes for dynamic loading
     Route::get('/teacher/api/subjects/{gradeLevel}', [App\Http\Controllers\Teacher\ClassListController::class, 'getSubjects'])->name('teacher.api.subjects');
     Route::get('/teacher/api/students/{gradeLevel}/{subjectId}', [App\Http\Controllers\Teacher\ClassListController::class, 'getStudents'])->name('teacher.api.students');
+    Route::get('/teacher/get-subjects', [App\Http\Controllers\Teacher\ClassListController::class, 'getSubjectsForFilters'])->name('teacher.get-subjects');
+    Route::get('/teacher/get-sections', [App\Http\Controllers\Teacher\ClassListController::class, 'getSectionsForFilters'])->name('teacher.get-sections');
     Route::get('/teacher/get-students', [App\Http\Controllers\Teacher\ClassListController::class, 'getStudentsForFilters'])->name('teacher.get-students');
 });
 
@@ -15196,6 +15198,9 @@ Route::prefix('registrar')->name('registrar.')->group(function () {
 
         // AJAX routes for teacher assignments
         Route::get('/api/subjects-by-grade-level', [TeacherAssignmentController::class, 'getSubjectsByGradeLevel'])->name('api.subjects-by-grade-level');
+        
+        // AJAX routes for sections
+        Route::get('/api/sections-by-filters', [App\Http\Controllers\Admin\SectionController::class, 'apiSectionsByFilters'])->name('api.sections-by-filters');
 
         // Subject Assignment Routes (Simplified)
         Route::get('/subject-assignments', [App\Http\Controllers\Registrar\SubjectAssignmentController::class, 'index'])->name('subject-assignments.index');

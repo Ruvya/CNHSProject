@@ -55,11 +55,9 @@
                         <label for="section" class="form-label">Section</label>
                         <select id="section" class="form-select">
                             <option value="">Select Section</option>
-                            <option value="A">Section A</option>
-                            <option value="B">Section B</option>
-                            <option value="C">Section C</option>
-                            <option value="D">Section D</option>
-                            <option value="E">Section E</option>
+                            @foreach($sections as $section)
+                                <option value="{{ $section }}">{{ $section }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-md-3">

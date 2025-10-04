@@ -4,22 +4,23 @@
 
 @section('content')
 <div class="container-fluid">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ route('registrar.yearly-records.index') }}">Yearly Records</a></li>
-                    <li class="breadcrumb-item active">{{ $schoolYear }}</li>
-                </ol>
-            </nav>
-            <h1 class="h3 mb-0">School Year {{ $schoolYear }}</h1>
-            <p class="text-muted">Student and teacher records for academic year {{ $schoolYear }}</p>
-        </div>
-        <div>
-            <a href="{{ route('registrar.yearly-records.index') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Back to Overview
-            </a>
+    <!-- Header (match Admin User Management style) -->
+    <div class="card mb-4" style="border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: none;">
+        <div class="card-body d-flex flex-wrap align-items-center justify-content-between" style="padding: 1.2rem 1.5rem;">
+            <div class="d-flex align-items-center mb-2 mb-md-0">
+                <span style="font-size: 2rem; color: #2563eb; background: #f1f5fb; border-radius: 12px; padding: 0.7rem; margin-right: 1rem; display: flex; align-items: center;">
+                    <i class="fas fa-calendar-alt"></i>
+                </span>
+                <div>
+                    <div style="font-size: 1.3rem; font-weight: bold; font-family: 'Poppins', sans-serif; color: #222;">School Year {{ $schoolYear }}</div>
+                    <div style="font-size: 0.95rem; font-family: 'Poppins', sans-serif; color: #555; font-weight: 500;">Student and teacher records for academic year {{ $schoolYear }}</div>
+                </div>
+            </div>
+            <div class="mb-2 mb-md-0">
+                <a href="{{ route('registrar.yearly-records.index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Overview
+                </a>
+            </div>
         </div>
     </div>
 
@@ -51,41 +52,6 @@
         </div>
     </form>
 
-    <!-- Year Statistics -->
-    <div class="row g-4 mb-4">
-        <div class="col-lg-3 col-md-6">
-            <div class="card bg-primary text-white">
-                <div class="card-body text-center">
-                    <h3 class="mb-0">{{ $yearStats['total_students'] }}</h3>
-                    <p class="mb-0">Total Students</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card bg-success text-white">
-                <div class="card-body text-center">
-                    <h3 class="mb-0">{{ $yearStats['total_teachers'] }}</h3>
-                    <p class="mb-0">Total Teachers</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card bg-info text-white">
-                <div class="card-body text-center">
-                    <h3 class="mb-0">{{ $yearStats['students_by_grade']->count() }}</h3>
-                    <p class="mb-0">Grade Levels</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card bg-warning text-white">
-                <div class="card-body text-center">
-                    <h3 class="mb-0">{{ $yearStats['teachers_by_department']->count() }}</h3>
-                    <p class="mb-0">Departments</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Tabs for Students and Teachers -->
     <ul class="nav nav-tabs" id="recordsTabs" role="tablist">
@@ -115,7 +81,7 @@
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <div>
                                 <strong>Section:</strong> {{ $section->name }}
-                                <span class="ms-2 text-muted">Grade {{ $section->grade_level }} • {{ $section->track }} {{ $section->strand ? ' / '.$section->strand : '' }}</span>
+                                <span class="ms-2 text-muted">{{ $section->grade_level }} • {{ $section->track }} {{ $section->strand ? ' / '.$section->strand : '' }}</span>
                             </div>
                             <div>
                                 <small class="text-muted">Adviser: {{ optional($section->adviser)->name ?? '—' }}</small>
@@ -129,7 +95,6 @@
                                         <thead>
                                             <tr>
                                                 <th>Student</th>
-                                                <th>Subjects & Grades ({{ $schoolYear }})</th>
                                                 <th>Status</th>
                                                 <th>Actions</th>
                                             </tr>
@@ -148,23 +113,7 @@
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td>
-                                                        @php $subs = optional($rec->student)->subjects ?? collect(); @endphp
-                                                        @if($subs->count() > 0)
-                                                            <div class="small">
-                                                                @foreach($subs as $sub)
-                                                                    <div>
-                                                                        <strong>{{ $sub->code }}</strong> - {{ $sub->name }}
-                                                                        @if($sub->pivot && $sub->pivot->grade)
-                                                                            <span class="badge bg-{{ $sub->pivot->grade >= 75 ? 'success' : 'danger' }} ms-2">{{ $sub->pivot->grade }}</span>
-                                                                        @endif
-                                                                    </div>
-                                                                @endforeach
-                                                            </div>
-                                                        @else
-                                                            <span class="text-muted">No enrolled subjects for {{ $schoolYear }}.</span>
-                                                        @endif
-                                                    </td>
+                                                    
                                                     <td>
                                                         <span class="badge bg-{{ $rec->status === 'enrolled' ? 'success' : ($rec->status === 'graduated' ? 'primary' : 'secondary') }}">
                                                             {{ ucfirst($rec->status) }}
@@ -201,7 +150,6 @@
                                             <th>Student</th>
                                             <th>Grade Level</th>
                                             <th>Section</th>
-                                            <th>Subjects & Grades ({{ $schoolYear }})</th>
                                             <th>Status</th>
                                             <th>Actions</th>
                                         </tr>
@@ -215,23 +163,7 @@
                                                 </td>
                                                 <td>{{ $rec->grade_level }}</td>
                                                 <td>{{ $rec->section ?? '—' }}</td>
-                                                <td>
-                                                    @php $subs = optional($rec->student)->subjects ?? collect(); @endphp
-                                                    @if($subs->count() > 0)
-                                                        <div class="small">
-                                                            @foreach($subs as $sub)
-                                                                <div>
-                                                                    <strong>{{ $sub->code }}</strong> - {{ $sub->name }}
-                                                                    @if($sub->pivot && $sub->pivot->grade)
-                                                                        <span class="badge bg-{{ $sub->pivot->grade >= 75 ? 'success' : 'danger' }} ms-2">{{ $sub->pivot->grade }}</span>
-                                                                    @endif
-                                                                </div>
-                                                            @endforeach
-                                                        </div>
-                                                    @else
-                                                        <span class="text-muted">No enrolled subjects.</span>
-                                                    @endif
-                                                </td>
+                                                
                                                 <td>
                                                     <span class="badge bg-{{ $rec->status === 'enrolled' ? 'success' : ($rec->status === 'graduated' ? 'primary' : 'secondary') }}">{{ ucfirst($rec->status) }}</span>
                                                 </td>

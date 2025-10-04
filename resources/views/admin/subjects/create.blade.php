@@ -247,100 +247,6 @@
                             </div>
                         </div>
 
-                        <!-- Schedule Section -->
-                        <div class="form-section mb-4">
-                            <h6 class="section-title border-bottom pb-2 mb-3">
-                                <i class="fas fa-clock me-2 text-success"></i>
-                                Class Schedule
-                            </h6>
-                            <div class="row">
-                                <div class="col-md-12 mb-3">
-                                    <label for="schedule_days" class="form-label fw-semibold">
-                                        Days of the Week
-                                    </label>
-                                    <div class="row">
-                                        @php
-                                            $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                                            $oldDays = old('schedule_days', []);
-                                        @endphp
-                                        @foreach($days as $day)
-                                            <div class="col-md-3 col-sm-4 col-6 mb-2">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" 
-                                                           name="schedule_days[]" 
-                                                           value="{{ $day }}" 
-                                                           id="day_{{ strtolower($day) }}"
-                                                           {{ in_array($day, $oldDays) ? 'checked' : '' }}>
-                                                    <label class="form-check-label" for="day_{{ strtolower($day) }}">
-                                                        {{ $day }}
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                    @error('schedule_days')
-                                        <div class="text-danger small">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label for="start_time" class="form-label fw-semibold">
-                                        Start Time
-                                    </label>
-                                    <input type="time" 
-                                           class="form-control @error('start_time') is-invalid @enderror"
-                                           id="start_time"
-                                           name="start_time"
-                                           value="{{ old('start_time') }}">
-                                    @error('start_time')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="end_time" class="form-label fw-semibold">
-                                        End Time
-                                    </label>
-                                    <input type="time" 
-                                           class="form-control @error('end_time') is-invalid @enderror"
-                                           id="end_time"
-                                           name="end_time"
-                                           value="{{ old('end_time') }}">
-                                    @error('end_time')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="room" class="form-label fw-semibold">
-                                        Room/Venue
-                                    </label>
-                                    <input type="text" 
-                                           class="form-control @error('room') is-invalid @enderror"
-                                           id="room"
-                                           name="room"
-                                           value="{{ old('room') }}"
-                                           placeholder="e.g., Room 101, Computer Lab">
-                                    @error('room')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12 mb-3">
-                                    <label for="schedule_notes" class="form-label fw-semibold">
-                                        Schedule Notes
-                                    </label>
-                                    <textarea class="form-control @error('schedule_notes') is-invalid @enderror"
-                                              id="schedule_notes"
-                                              name="schedule_notes"
-                                              rows="2"
-                                              placeholder="Additional schedule information (e.g., 'First half of semester only', 'Alternating weeks')">{{ old('schedule_notes') }}</textarea>
-                                    @error('schedule_notes')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- Form Actions -->
                         <div class="d-flex justify-content-between">
@@ -397,57 +303,6 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // DepEd Curriculum Data Structure
-    const curriculumData = {
-        'Academic Track': {
-            'STEM': {
-                clusters: ['Mathematics and Science', 'Engineering', 'Medical and Health Sciences'],
-                specializations: ['Pre-Engineering', 'Pre-Medicine', 'Computer Science', 'Applied Physics']
-            },
-            'ABM': {
-                clusters: ['Business and Entrepreneurship', 'Accounting and Finance'],
-                specializations: ['Business Management', 'Accounting', 'Marketing', 'Entrepreneurship']
-            },
-            'HUMSS': {
-                clusters: ['Social Sciences', 'Humanities', 'Communication Arts'],
-                specializations: ['Political Science', 'Psychology', 'Literature', 'Communication']
-            },
-            'GAS': {
-                clusters: ['General Academic Strand'],
-                specializations: ['General Academic Subjects']
-            }
-        },
-        'TVL Track': {
-            'ICT': {
-                clusters: ['Computer Programming', 'Computer Systems Servicing', 'Animation'],
-                specializations: ['Web Development', 'Mobile App Development', 'Network Administration']
-            },
-            'HE': {
-                clusters: ['Cookery', 'Food and Beverage Services', 'Housekeeping'],
-                specializations: ['Culinary Arts', 'Hotel Management', 'Tourism Services']
-            },
-            'IA': {
-                clusters: ['Electrical Installation', 'Electronics', 'Welding'],
-                specializations: ['Electrical Technology', 'Electronics Technology', 'Mechanical Technology']
-            },
-            'AFA': {
-                clusters: ['Agri-Fishery Arts', 'Animal Production', 'Crop Production'],
-                specializations: ['Agriculture', 'Fishery', 'Livestock Production']
-            }
-        },
-        'Sports Track': {
-            'Sports': {
-                clusters: ['Sports Science', 'Physical Education'],
-                specializations: ['Athletic Training', 'Sports Management', 'Physical Therapy']
-            }
-        },
-        'Arts and Design Track': {
-            'Arts and Design': {
-                clusters: ['Visual Arts', 'Performing Arts', 'Media Arts'],
-                specializations: ['Fine Arts', 'Music', 'Theater Arts', 'Digital Arts']
-            }
-        }
-    };
 
     const trackSelect = document.getElementById('track');
     const clusterSelect = document.getElementById('cluster');
@@ -463,13 +318,31 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedTrack = this.value;
         clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
 
-        if (selectedTrack && selectedTrack !== 'All' && curriculumData[selectedTrack]) {
-            Object.keys(curriculumData[selectedTrack]).forEach(cluster => {
-                const option = document.createElement('option');
-                option.value = cluster;
-                option.textContent = cluster;
-                clusterSelect.appendChild(option);
-            });
+        if (selectedTrack === 'Academic Track') {
+            clusterSelect.innerHTML += `
+                <option value="HUMSS">HUMSS (Humanities and Social Sciences)</option>
+                <option value="STEM">STEM (Science, Technology, Engineering and Mathematics)</option>
+                <option value="ABM">ABM (Accountancy, Business and Management)</option>
+                <option value="GAS">GAS (General Academic Strand)</option>
+            `;
+        } else if (selectedTrack === 'TVL Track') {
+            clusterSelect.innerHTML += `
+                <option value="TVL-ICT">TVL-ICT (Information and Communications Technology)</option>
+                <option value="TVL-HE">TVL-HE (Home Economics)</option>
+                <option value="TVL-AFA">TVL-AFA (Agri-Fishery Arts)</option>
+            `;
+        } else if (selectedTrack === 'Sports Track') {
+            clusterSelect.innerHTML += `
+                <option value="Sports">Sports</option>
+            `;
+        } else if (selectedTrack === 'Arts and Design Track') {
+            clusterSelect.innerHTML += `
+                <option value="Arts and Design">Arts and Design</option>
+            `;
+        } else if (selectedTrack === 'All') {
+            clusterSelect.innerHTML += `
+                <option value="All">All</option>
+            `;
         }
     });
 

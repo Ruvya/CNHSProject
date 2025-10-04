@@ -299,9 +299,9 @@ $(document).ready(function() {
 });
 
 // Fetch subjects based on grade level
-$('#gradeLevel').on('change', function() {
+$('#grade_level').on('change', function() {
     const gradeLevel = $(this).val();
-    $('#subject').html('<option value="">Loading...</option>');
+    $('#subject_id').html('<option value="">Loading...</option>');
     if (gradeLevel) {
         fetch(`/teacher/get-subjects?gradeLevel=${gradeLevel}`)
             .then(res => res.json())
@@ -310,18 +310,18 @@ $('#gradeLevel').on('change', function() {
                 data.forEach(subject => {
                     options += `<option value="${subject.id}">${subject.name}</option>`;
                 });
-                $('#subject').html(options);
+                $('#subject_id').html(options);
             });
     } else {
-        $('#subject').html('<option value="">Select Subject</option>');
+        $('#subject_id').html('<option value="">Select Subject</option>');
     }
 });
 
 // Fetch students based on filters
 $('#viewStudentsBtn').on('click', function(e) {
     e.preventDefault();
-    const gradeLevel = $('#gradeLevel').val();
-    const subjectId = $('#subject').val();
+    const gradeLevel = $('#grade_level').val();
+    const subjectId = $('#subject_id').val();
     const section = $('#section').val();
     if (!gradeLevel || !subjectId || !section) {
         $('#studentList').html('<div class="alert alert-warning">Please select all filters.</div>');

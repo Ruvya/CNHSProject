@@ -41,7 +41,7 @@ class DashboardController extends Controller
             ->get()
             ->map(function($item) {
                 return [
-                    'grade_level' => $item->grade_level ? "Grade {$item->grade_level}" : 'Not Set',
+                    'grade_level' => $item->grade_level ?: 'Not Set',
                     'count' => (int)$item->count
                 ];
             });
@@ -79,7 +79,7 @@ class DashboardController extends Controller
             ->get()
             ->map(function($item) {
                 return [
-                    'grade_level' => $item->grade_level ? "Grade {$item->grade_level}" : 'Not Set',
+                    'grade_level' => $item->grade_level ?: 'Not Set',
                     'count' => (int)$item->count
                 ];
             });
@@ -133,7 +133,7 @@ class DashboardController extends Controller
             ->get()
             ->map(function($item) {
                 return [
-                    'grade_level' => $item->grade_level ? "Grade {$item->grade_level}" : 'Not Set',
+                    'grade_level' => $item->grade_level ?: 'Not Set',
                     'count' => (int)$item->count
                 ];
             });

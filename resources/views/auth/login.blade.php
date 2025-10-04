@@ -322,13 +322,13 @@
 </head>
 <body>
     <!-- Remove extra white background: only keep the card white -->
-    <div class="d-flex min-vh-100" style="justify-content: center; align-items: center; gap: 120px;">
+    <div class="d-flex min-vh-300" style="justify-content: center; align-items: center; gap: 50px;">
         <!-- Hero Section on the left -->
-        <div class="d-none d-md-flex flex-column justify-content-center align-items-center flex-grow-1" style="height: 100vh;">
+        <div class="d-none d-md-flex flex-column justify-content-center align-items-center flex-grow-1" style="height: 50vh;">
             <!-- Replace this with your hero content (image, text, etc.) -->
-            <div style="text-align: center; color:rgb(3, 10, 65);">
+            <div style="text-align: center; color:rgb(0, 0, 0);">
                 <h2 style="font-size: 3rem; font-weight: 800; margin-bottom: 1.2rem;">Welcome to CNHS Portal</h2>
-                <p style="font-size: 1.4rem; max-width: 480px; margin: 0 auto;">Empowering students, teachers, and staff with seamless access to school resources and information.</p>
+                <p style="font-size: 1.5rem; max-width: 480px; margin: 0 auto;">Empowering students, teachers, and staff with seamless access to school resources and information.</p>
                 <!-- You can add an image or illustration here -->
             </div>
         </div>

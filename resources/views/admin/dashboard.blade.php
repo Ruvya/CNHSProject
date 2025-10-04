@@ -250,10 +250,11 @@
 
 
 
-<!-- Grading Scale Analytics Chart -->
-<div class="row g-4 mb-4">
-    <div class="col-12">
-        <div class="card">
+<!-- Grading Scale Analytics Chart and System Overview -->
+<div class="row g-4 mb-4 equal-height-cards">
+    <!-- Grade Scale Distribution by Section -->
+    <div class="col-xl-9 col-lg-9">
+        <div class="card h-100">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -394,12 +395,10 @@
             </div>
         </div>
     </div>
-</div>
 
-<!-- System Overview Section -->
-<div class="row g-4 mb-4">
-    <div class="col-12">
-        <div class="card">
+    <!-- System Overview -->
+    <div class="col-xl-3 col-lg-3">
+        <div class="card h-100">
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="fas fa-server me-2 text-success"></i>
@@ -407,76 +406,38 @@
                 </h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="text-muted mb-3">System Statistics</h6>
-                        <div class="status-item">
-                            <div class="status-indicator bg-primary"></div>
-                            <div class="status-text">
-                                <strong>Total Users</strong>
-                                <small class="text-muted d-block">{{ (($totalStudents ?? 0) + ($totalTeachers ?? 0) + ($totalAdmins ?? 1)) }} registered accounts</small>
-                            </div>
-                        </div>
-                        <div class="status-item">
-                            <div class="status-indicator bg-success"></div>
-                            <div class="status-text">
-                                <strong>Active Students</strong>
-                                <small class="text-muted d-block">{{ $totalStudents ?? 0 }} enrolled students</small>
-                            </div>
-                        </div>
-                        <div class="status-item">
-                            <div class="status-indicator bg-info"></div>
-                            <div class="status-text">
-                                <strong>Faculty Members</strong>
-                                <small class="text-muted d-block">{{ $totalTeachers ?? 0 }} registered teachers</small>
-                            </div>
-                        </div>
-                        <div class="status-item">
-                            <div class="status-indicator bg-warning"></div>
-                            <div class="status-text">
-                                <strong>Available Subjects</strong>
-                                <small class="text-muted d-block">{{ $totalSubjects ?? 0 }} courses offered</small>
-                            </div>
-                        </div>
+                <h5 class="text-muted mb-4 fw-bold">System Statistics</h5>
+                <div class="status-item">
+                    <div class="status-indicator bg-primary"></div>
+                    <div class="status-text">
+                        <strong>Total Users</strong>
+                        <small class="text-muted d-block">{{ (($totalStudents ?? 0) + ($totalTeachers ?? 0) + ($totalAdmins ?? 1)) }} registered accounts</small>
                     </div>
-                    <div class="col-md-6">
-                        <h6 class="text-muted mb-3">System Status</h6>
-                        <div class="status-item">
-                            <div class="status-indicator bg-success"></div>
-                            <div class="status-text">
-                                <strong>Database</strong>
-                                <small class="text-muted d-block">Connected and operational</small>
-                            </div>
-                        </div>
-                        <div class="status-item">
-                            <div class="status-indicator bg-success"></div>
-                            <div class="status-text">
-                                <strong>Application</strong>
-                                <small class="text-muted d-block">Running smoothly</small>
-                            </div>
-                        </div>
-                        <div class="status-item">
-                            <div class="status-indicator bg-warning"></div>
-                            <div class="status-text">
-                                <strong>Backup Status</strong>
-                                <small class="text-muted d-block">Scheduled for tonight</small>
-                            </div>
-                        </div>
-                        @if(isset($recentActivities) && $recentActivities->count() > 0)
-                        <div class="status-item">
-                            <div class="status-indicator bg-info"></div>
-                            <div class="status-text">
-                                <strong>Recent Activity</strong>
-                                <small class="text-muted d-block">{{ $recentActivities->count() }} recent actions</small>
-                            </div>
-                        </div>
-                        @endif
+                </div>
+                <div class="status-item">
+                    <div class="status-indicator bg-success"></div>
+                    <div class="status-text">
+                        <strong>Active Students</strong>
+                        <small class="text-muted d-block">{{ $totalStudents ?? 0 }} enrolled students</small>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-indicator bg-info"></div>
+                    <div class="status-text">
+                        <strong>Faculty Members</strong>
+                        <small class="text-muted d-block">{{ $totalTeachers ?? 0 }} registered teachers</small>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-indicator bg-warning"></div>
+                    <div class="status-text">
+                        <strong>Available Subjects</strong>
+                        <small class="text-muted d-block">{{ $totalSubjects ?? 0 }} courses offered</small>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- System Overview card now spans full width -->
 </div>
 
 
@@ -507,14 +468,16 @@
 
 .status-text strong {
     display: block;
-    font-size: 0.875rem;
+    font-size: 1rem;
     color: #374151;
-    margin-bottom: 0.125rem;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
 }
 
 .status-text small {
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     color: #6b7280;
+    font-weight: 500;
 }
 
 /* Enhanced Quick Actions buttons */
@@ -532,6 +495,24 @@
     position: relative;
     height: 300px;
     width: 100%;
+}
+
+/* Equal height cards */
+.equal-height-cards {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.equal-height-cards .card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.equal-height-cards .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .angled-header-card {

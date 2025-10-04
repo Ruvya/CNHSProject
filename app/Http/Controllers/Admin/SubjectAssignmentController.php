@@ -71,7 +71,7 @@ class SubjectAssignmentController extends Controller
             'teacher_id' => 'required|exists:teachers,id',
             'subject_id' => 'required|exists:subjects,id',
             'school_year' => 'required|string',
-            'semester' => 'required|string|in:1st Semester,2nd Semester',
+            'semester' => 'required|string|in:1st Semester,2nd Semester,Both Semesters',
             'schedule' => 'nullable|array',
             'schedule.*.day' => 'nullable|string|max:255',
             'schedule.*.start_time' => 'nullable|date_format:H:i',
@@ -102,7 +102,7 @@ class SubjectAssignmentController extends Controller
         if ($existingAssignment) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', "❌ Assignment failed: {$teacher->name} is already assigned to {$subject->name} for {$validated['school_year']} - {$validated['grading_period']}.");
+                ->with('error', "❌ Assignment failed: {$teacher->name} is already assigned to {$subject->name} for {$validated['school_year']} - {$validated['semester']}.");
         }
 
         // Add additional fields
@@ -146,7 +146,7 @@ class SubjectAssignmentController extends Controller
             'teacher_id' => 'required|exists:teachers,id',
             'subject_id' => 'required|exists:subjects,id',
             'school_year' => 'required|string',
-            'semester' => 'required|string|in:1st Semester,2nd Semester',
+            'semester' => 'required|string|in:1st Semester,2nd Semester,Both Semesters',
             'status' => 'required|string',
             'notes' => 'nullable|string|max:500',
         ]);
@@ -174,7 +174,7 @@ class SubjectAssignmentController extends Controller
         if ($existingAssignment) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', "❌ Update failed: {$teacher->name} is already assigned to {$subject->name} for {$validated['school_year']} - {$validated['grading_period']}.");
+                ->with('error', "❌ Update failed: {$teacher->name} is already assigned to {$subject->name} for {$validated['school_year']} - {$validated['semester']}.");
         }
 
         // Update the assignment

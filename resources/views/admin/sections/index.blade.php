@@ -15,7 +15,9 @@
                 </div>
             </div>
             <div class="mb-2 mb-md-0">
-                <a href="{{ route('admin.sections.report.per-strand') }}" class="btn btn-outline-secondary me-2">Report</a>
+                <button type="button" class="btn btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#reportModal">
+                    <i class="fas fa-chart-bar me-2"></i>Report
+                </button>
                 <a href="{{ route('admin.sections.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>Create Section
                 </a>
@@ -86,6 +88,60 @@
     @empty
         <div class="alert alert-info">No sections found.</div>
     @endforelse
+</div>
+
+<!-- Report Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportModalLabel">
+                    <i class="fas fa-chart-bar me-2 text-info"></i>
+                    Sections Report by Strand
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Strand</th>
+                                <th>Sections</th>
+                                <th>Total Students</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($reportData as $row)
+                                <tr>
+                                    <td><strong>{{ $row->strand_label }}</strong></td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ $row->sections_count }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ $row->total_students }}</span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">
+                                        <i class="fas fa-chart-bar fa-2x mb-2 d-block"></i>
+                                        No data available
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{{ route('admin.sections.report.per-strand') }}" class="btn btn-primary" target="_blank">
+                    <i class="fas fa-external-link-alt me-2"></i>View Full Report
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 

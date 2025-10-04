@@ -4,16 +4,23 @@
 
 @section('content')
 <div class="container-fluid">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0 text-gray-800">Add New Student</h1>
-            <p class="text-muted">Create a comprehensive student profile with academic information</p>
-        </div>
-        <div>
-            <a href="{{ route('registrar.students.index') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Back to Students
-            </a>
+    <!-- Header (match Admin User Management style) -->
+    <div class="card mb-4" style="border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: none;">
+        <div class="card-body d-flex flex-wrap align-items-center justify-content-between" style="padding: 1.2rem 1.5rem;">
+            <div class="d-flex align-items-center mb-2 mb-md-0">
+                <span style="font-size: 2rem; color: #2563eb; background: #f1f5fb; border-radius: 12px; padding: 0.7rem; margin-right: 1rem; display: flex; align-items: center;">
+                    <i class="fas fa-user-graduate"></i>
+                </span>
+                <div>
+                    <div style="font-size: 1.3rem; font-weight: bold; font-family: 'Poppins', sans-serif; color: #222;">Add New Student</div>
+                    <div style="font-size: 0.95rem; font-family: 'Poppins', sans-serif; color: #555; font-weight: 500;">Manage student records and profiles in the CNHS system</div>
+                </div>
+            </div>
+            <div class="mb-2 mb-md-0">
+                <a href="{{ route('registrar.students.index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Students
+                </a>
+            </div>
         </div>
     </div>
 
@@ -29,7 +36,7 @@
     @endif
 
     <div class="row justify-content-center">
-        <div class="col-lg-10">
+        <div class="col-lg-12">
             <form action="{{ route('registrar.students.store') }}" method="POST">
                 @csrf
                 
@@ -56,7 +63,8 @@
                                 <label for="lrn" class="form-label">LRN (Learner Reference Number)</label>
                                 <input type="text" class="form-control @error('lrn') is-invalid @enderror" 
                                        id="lrn" name="lrn" value="{{ old('lrn') }}" 
-                                       placeholder="12-digit LRN">
+                                       placeholder="12-digit LRN" maxlength="12" inputmode="numeric" pattern="\d{12}"
+                                       oninput="this.value=this.value.replace(/\D/g,'').slice(0,12)">
                                 @error('lrn')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

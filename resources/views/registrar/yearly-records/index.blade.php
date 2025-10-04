@@ -186,8 +186,8 @@
 
     <!-- School Years List -->
     <div class="row">
-        <div class="col-lg-8">
-            <div class="card">
+        <div class="col-lg-12">
+            <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-calendar-alt me-2"></i>School Years
@@ -221,9 +221,7 @@
                     @endif
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg-4">
             <!-- Recent Student Records -->
             <div class="card mb-4">
                 <div class="card-header">

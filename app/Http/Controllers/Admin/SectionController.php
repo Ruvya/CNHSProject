@@ -24,7 +24,17 @@ class SectionController extends Controller
                 return trim(($s->strand ?: $s->track) ?: 'Unspecified');
             });
 
-        return view('admin.sections.index', compact('sections'));
+        // Get report data for the modal
+        $reportData = Section::select(
+                DB::raw("COALESCE(NULLIF(strand,''), track) as strand_label"),
+                DB::raw('COUNT(*) as sections_count'),
+                DB::raw('SUM(current_enrollment) as total_students')
+            )
+            ->groupBy('strand_label')
+            ->orderBy('strand_label')
+            ->get();
+
+        return view('admin.sections.index', compact('sections', 'reportData'));
     }
 
     public function show(Section $section)

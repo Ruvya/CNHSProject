@@ -74,7 +74,38 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <!-- Note: Section selection removed as section_id column was removed from teacher_assignments table -->
+                        
+                        <!-- School Year and Semester -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="school_year" class="form-label fw-bold">
+                                    <i class="fas fa-calendar me-1"></i>School Year <span class="text-danger">*</span>
+                                </label>
+                                <select name="school_year" id="school_year" class="form-select @error('school_year') is-invalid @enderror" required>
+                                    <option value="">Select School Year...</option>
+                                    <option value="2024-2025" {{ old('school_year', '2024-2025') == '2024-2025' ? 'selected' : '' }}>2024-2025</option>
+                                    <option value="2025-2026" {{ old('school_year') == '2025-2026' ? 'selected' : '' }}>2025-2026</option>
+                                </select>
+                                @error('school_year')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6">
+                                <label for="semester" class="form-label fw-bold">
+                                    <i class="fas fa-calendar-alt me-1"></i>Semester <span class="text-danger">*</span>
+                                </label>
+                                <select name="semester" id="semester" class="form-select @error('semester') is-invalid @enderror" required>
+                                    <option value="">Select Semester...</option>
+                                    <option value="1st Semester" {{ old('semester', '1st Semester') == '1st Semester' ? 'selected' : '' }}>1st Semester</option>
+                                    <option value="2nd Semester" {{ old('semester') == '2nd Semester' ? 'selected' : '' }}>2nd Semester</option>
+                                    <option value="Both Semesters" {{ old('semester') == 'Both Semesters' ? 'selected' : '' }}>Both Semesters</option>
+                                </select>
+                                @error('semester')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        
                         <!-- Assignment Status -->
                         <div class="mb-4">
                             <label for="status" class="form-label fw-bold">
@@ -177,6 +208,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('assignmentForm');
     const teacherSelect = document.getElementById('teacher_id');
     const subjectSelect = document.getElementById('subject_id');
+    const schoolYearSelect = document.getElementById('school_year');
+    const semesterSelect = document.getElementById('semester');
     const statusSelect = document.getElementById('status');
     const submitBtn = document.getElementById('openConfirmModal');
 
@@ -221,6 +254,28 @@ document.addEventListener('DOMContentLoaded', function() {
         validateForm();
     });
 
+    // Validate school year selection
+    schoolYearSelect.addEventListener('change', function() {
+        if (this.value) {
+            const schoolYear = this.options[this.selectedIndex].text;
+            showValidationFeedback(this, true, `School Year "${schoolYear}" selected`);
+        } else {
+            showValidationFeedback(this, false, 'Please select a school year');
+        }
+        validateForm();
+    });
+
+    // Validate semester selection
+    semesterSelect.addEventListener('change', function() {
+        if (this.value) {
+            const semester = this.options[this.selectedIndex].text;
+            showValidationFeedback(this, true, `Semester "${semester}" selected`);
+        } else {
+            showValidationFeedback(this, false, 'Please select a semester');
+        }
+        validateForm();
+    });
+
     // Validate status selection
     statusSelect.addEventListener('change', function() {
         if (this.value) {
@@ -234,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Form validation
     function validateForm() {
-        const isValid = teacherSelect.value && subjectSelect.value && statusSelect.value;
+        const isValid = teacherSelect.value && subjectSelect.value && schoolYearSelect.value && semesterSelect.value && statusSelect.value;
         submitBtn.disabled = !isValid;
 
         if (isValid) {

@@ -259,55 +259,41 @@
                     <h6 class="mb-0"><i class="fas fa-door-open me-2"></i>Room</h6>
                 </div>
                 <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="avatar-lg bg-secondary rounded-circle d-flex align-items-center justify-content-center me-3">
-                            <i class="fas fa-door-open text-white fs-4"></i>
-                        </div>
-                        <div>
-                            <h5 class="mb-1">{{ $schedule->room->name }}</h5>
-                            <p class="text-muted mb-0">{{ $schedule->room->code }} - {{ ucfirst(str_replace('_', ' ', $schedule->room->type)) }}</p>
-                        </div>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <small class="text-muted">Capacity</small>
-                            <div class="fw-medium">{{ $schedule->room->capacity }} students</div>
-                        </div>
-                        <div class="col-md-3">
-                            <small class="text-muted">Location</small>
-                            <div class="fw-medium">{{ $schedule->room->location ?? 'Not specified' }}</div>
-                        </div>
-                        <div class="col-md-3">
-                            <small class="text-muted">Availability</small>
+                    @if($schedule->room)
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar-lg bg-secondary rounded-circle d-flex align-items-center justify-content-center me-3">
+                                <i class="fas fa-door-open text-white fs-4"></i>
+                            </div>
                             <div>
-                                @if($schedule->room->is_available)
-                                    <span class="badge bg-success">Available</span>
-                                @else
-                                    <span class="badge bg-danger">Unavailable</span>
-                                @endif
+                                <h5 class="mb-1">{{ $schedule->room->name }}</h5>
+                                <p class="text-muted mb-0">{{ $schedule->room->code }} - {{ ucfirst(str_replace('_', ' ', $schedule->room->type)) }}</p>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <small class="text-muted">Type</small>
-                            <div class="fw-medium">{{ ucfirst(str_replace('_', ' ', $schedule->room->type)) }}</div>
-                        </div>
-                        @if($schedule->room->equipment && count($schedule->room->equipment) > 0)
-                        <div class="col-12">
-                            <small class="text-muted">Equipment</small>
-                            <div class="fw-medium">
-                                @foreach($schedule->room->equipment as $equipment)
-                                    <span class="badge bg-light text-dark me-1">{{ $equipment }}</span>
-                                @endforeach
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <small class="text-muted">Capacity</small>
+                                <div class="fw-medium">{{ $schedule->room->capacity }} students</div>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Location</small>
+                                <div class="fw-medium">{{ $schedule->room->location ?? 'Not specified' }}</div>
                             </div>
                         </div>
-                        @endif
-                        @if($schedule->room->notes)
-                        <div class="col-12">
-                            <small class="text-muted">Notes</small>
-                            <div class="fw-medium">{{ $schedule->room->notes }}</div>
+                    @else
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar-lg bg-light rounded-circle d-flex align-items-center justify-content-center me-3">
+                                <i class="fas fa-door-open text-muted fs-4"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1 text-muted">No Room Assigned</h5>
+                                <p class="text-muted mb-0">This schedule does not have a specific room assigned</p>
+                            </div>
                         </div>
-                        @endif
-                    </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Room assignment is not required for this schedule. The teacher will use available classroom space.
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

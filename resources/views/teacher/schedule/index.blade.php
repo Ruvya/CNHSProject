@@ -4,13 +4,16 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="dashboard-header">
-                <i class="fas fa-calendar-alt"></i>
+    <!-- Page Header -->
+    <div class="card mb-4" style="border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: none;">
+        <div class="card-body d-flex flex-wrap align-items-center justify-content-between" style="padding: 1.2rem 1.5rem;">
+            <div class="d-flex align-items-center mb-2 mb-md-0">
+                <span style="font-size: 2rem; color: #2563eb; background: #f1f5fb; border-radius: 12px; padding: 0.7rem; margin-right: 1rem; display: flex; align-items: center;">
+                    <i class="fas fa-calendar-alt"></i>
+                </span>
                 <div>
-                    <h1>My Schedule</h1>
-                    <p>View your classes by semester and school year.</p>
+                    <div style="font-size: 1.3rem; font-weight: bold; font-family: 'Poppins', sans-serif; color: #222;">My Schedule</div>
+                    <div style="font-size: 0.95rem; font-family: 'Poppins', sans-serif; color: #555; font-weight: 500;">View your classes by semester and school year</div>
                 </div>
             </div>
         </div>

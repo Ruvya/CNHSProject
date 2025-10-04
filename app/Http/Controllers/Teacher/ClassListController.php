@@ -21,9 +21,17 @@ class ClassListController extends Controller
         $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
         $subjects = $assignedSubjects->merge($directSubjects)->unique('id');
 
-        // Get unique grade levels and sections from teacher's subjects
+        // Get unique grade levels from teacher's subjects
         $gradeLevels = $subjects->pluck('grade_level')->unique()->sort()->values();
-        $sections = ['A', 'B', 'C', 'D', 'E']; // Add more sections as needed
+        
+        // Get actual sections from database for the current school year
+        $currentSchoolYear = $this->getCurrentSchoolYear();
+        $sections = \App\Models\Section::where('school_year', $currentSchoolYear)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->pluck('name')
+            ->unique()
+            ->values();
 
         // Get all subject IDs for this teacher (both assignment methods)
         $allSubjectIds = $subjects->pluck('id')->toArray();
@@ -64,6 +72,22 @@ class ClassListController extends Controller
         ])->orderBy('last_name')->orderBy('first_name')->get();
 
         return view('teacher.classlist', compact('teacher', 'subjects', 'gradeLevels', 'sections', 'students', 'request'));
+    }
+
+    /**
+     * Get current school year
+     */
+    private function getCurrentSchoolYear(): string
+    {
+        $currentYear = date('Y');
+        $currentMonth = date('n');
+
+        // School year starts in June (month 6)
+        if ($currentMonth >= 6) {
+            return $currentYear . '-' . ($currentYear + 1);
+        } else {
+            return ($currentYear - 1) . '-' . $currentYear;
+        }
     }
 
     public function getSubjects($gradeLevel)
@@ -114,6 +138,37 @@ class ClassListController extends Controller
             ->get();
 
         return response()->json($students);
+    }
+
+    public function getSubjectsForFilters(Request $request)
+    {
+        $teacher = Auth::guard('teacher')->user();
+
+        // Get teacher's subjects from both assignment methods
+        $assignedSubjects = $teacher->assignedSubjects()->get();
+        $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
+        $subjects = $assignedSubjects->merge($directSubjects)->unique('id');
+
+        // Filter by grade level if provided
+        if ($request->filled('gradeLevel')) {
+            $subjects = $subjects->where('grade_level', $request->gradeLevel);
+        }
+
+        return response()->json($subjects->values());
+    }
+
+    public function getSectionsForFilters(Request $request)
+    {
+        // Get actual sections from database for the current school year
+        $currentSchoolYear = $this->getCurrentSchoolYear();
+        $sections = \App\Models\Section::where('school_year', $currentSchoolYear)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->pluck('name')
+            ->unique()
+            ->values();
+
+        return response()->json($sections);
     }
 
     public function getStudentsForFilters(Request $request)

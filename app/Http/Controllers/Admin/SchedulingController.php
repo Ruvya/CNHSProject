@@ -244,7 +244,7 @@ class SchedulingController extends Controller
      */
     public function show(Schedule $schedule)
     {
-        $schedule->load(['teacher', 'subject', 'section', 'createdBy']);
+        $schedule->load(['teacher', 'subject', 'section', 'room', 'createdBy']);
         return view('admin.scheduling.show', compact('schedule'));
     }
 
