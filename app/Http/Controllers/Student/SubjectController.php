@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Subject;
 use Illuminate\Support\Facades\Auth;
+use App\Services\SemesterService;
 
 class SubjectController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $student = Auth::guard('student')->user();
+        $selectedSemester = $request->get('semester');
 
         // Get all subjects assigned to this student
         // Note: We don't need additional filtering here because subjects should only be assigned
@@ -19,6 +21,14 @@ class SubjectController extends Controller
         $assignedSubjects = $student->subjects()
             ->with('teacher')
             ->get();
+
+        // Optional semester filter based on subject's semester
+        if (!empty($selectedSemester)) {
+            $assignedSubjects = $assignedSubjects->filter(function ($subject) use ($selectedSemester) {
+                $subjectSemester = $subject->semester ?? null;
+                return empty($subjectSemester) || $subjectSemester === $selectedSemester;
+            })->values();
+        }
 
         // Categorize subjects according to DepEd curriculum structure
         $coreSubjects = $assignedSubjects->where('is_core_subject', true);
@@ -53,6 +63,8 @@ class SubjectController extends Controller
         // Add a simple $subjects variable for the view template compatibility
         $subjects = $assignedSubjects;
 
+        $semesterOptions = SemesterService::getSemesterOptions();
+
         return view('student.subjects', compact(
             'student',
             'subjects',
@@ -66,7 +78,9 @@ class SubjectController extends Controller
             'subjectsWithTeachers',
             'subjectsWithoutTeachers',
             'hasCompleteAssignment',
-            'assignmentStatus'
+            'assignmentStatus',
+            'semesterOptions',
+            'selectedSemester'
         ));
     }
 

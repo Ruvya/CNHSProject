@@ -187,6 +187,26 @@
         </div>
     </div>
 
+    <!-- Semester Filter -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <form method="GET" action="{{ route('teacher.grade-management') }}">
+                <label for="semester" class="form-label">Semester</label>
+                <select id="semester" name="semester" class="form-select" onchange="this.form.submit()">
+                    @if(isset($semesterOptions))
+                        @foreach($semesterOptions as $value => $label)
+                            <option value="{{ $value }}" {{ (isset($selectedSemester) && $selectedSemester === $value) ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    @else
+                        <option value="">Select Semester</option>
+                        <option value="1st Semester" {{ (isset($selectedSemester) && $selectedSemester === '1st Semester') ? 'selected' : '' }}>1st Semester</option>
+                        <option value="2nd Semester" {{ (isset($selectedSemester) && $selectedSemester === '2nd Semester') ? 'selected' : '' }}>2nd Semester</option>
+                    @endif
+                </select>
+            </form>
+        </div>
+    </div>
+
     <!-- Subject Grade Statistics -->
     <div class="card">
         <div class="card-header">
@@ -203,6 +223,8 @@
                             <tr>
                                 <th>Subject</th>
                                 <th>Subject Code</th>
+                                <th>Semester</th>
+                                <th>Grade Level</th>
                                 <th>Total Students</th>
                             </tr>
                         </thead>
@@ -216,6 +238,12 @@
                                     </td>
                                     <td>
                                         <span class="badge bg-secondary">{{ $stat['subject']->code ?? 'N/A' }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">{{ $stat['semester'] ?? 'N/A' }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">{{ $stat['grade_level'] ?? 'N/A' }}</span>
                                     </td>
                                     <td>
                                         <span class="badge bg-light text-dark">{{ $stat['total_students'] }}</span>

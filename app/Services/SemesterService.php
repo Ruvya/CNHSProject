@@ -52,8 +52,7 @@ class SemesterService
         return [
             '' => 'Select Semester',
             '1st Semester' => '1st Semester',
-            '2nd Semester' => '2nd Semester',
-            'Both Semesters' => 'Both Semesters'
+            '2nd Semester' => '2nd Semester'
         ];
     }
 

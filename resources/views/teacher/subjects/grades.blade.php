@@ -9,8 +9,8 @@
         <div class="header-content">
             <i class="fas fa-clipboard-check"></i>
             <div>
-                <h1>Manage Grades</h1>
-                <p>{{ $subject->name }}</p>
+                <h1>{{ $subject->name }}</h1>
+                <p>Manage Grades</p>
             </div>
         </div>
         <div class="header-actions">
@@ -23,15 +23,6 @@
     <!-- Grades Management Form -->
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-start align-items-center mb-2">
-                <div class="form-group mb-0">
-                    <label for="semesterSelect" class="me-2">Semester:</label>
-                    <select id="semesterSelect" class="form-select form-select-sm d-inline-block" style="width:auto; min-width: 180px;">
-                        <option value="1">First Semester</option>
-                        <option value="2">Second Semester</option>
-                    </select>
-                </div>
-            </div>
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <div>
@@ -73,16 +64,19 @@
                                     <thead>
                                         <tr>
                                             <th rowspan="2" class="align-middle">Student</th>
-                                            <th id="quarterlyHeader" colspan="4" class="text-center">Quarterly Grades</th>
+                                            <th id="quarterlyHeader" colspan="2" class="text-center">Quarterly Grades</th>
                                             <th rowspan="2" class="align-middle">Final Grade</th>
                                             <th rowspan="2" class="align-middle">Status</th>
                                             <th rowspan="2" class="align-middle">Actions</th>
                                         </tr>
                                         <tr>
-                                            <th class="text-center quarter-col quarter1-header">Q1</th>
-                                            <th class="text-center quarter-col quarter2-header">Q2</th>
-                                            <th class="text-center quarter-col quarter3-header">Q3</th>
-                                            <th class="text-center quarter-col quarter4-header">Q4</th>
+                                            @if(($subject->semester ?? '1st Semester') === '1st Semester')
+                                                <th class="text-center quarter-col">Q1</th>
+                                                <th class="text-center quarter-col">Q2</th>
+                                            @else
+                                                <th class="text-center quarter-col">Q3</th>
+                                                <th class="text-center quarter-col">Q4</th>
+                                            @endif
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -116,50 +110,53 @@
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td class="quarter-col quarter1-cell">
-                                                    <input type="text"
-                                                           inputmode="decimal"
-                                                           class="form-control form-control-sm grade-input auto-save"
-                                                           name="grades[{{ $student->id }}][quarter1]"
-                                                           value="{{ $grade ? $grade->quarter1 : '' }}"
-                                                           data-student="{{ $student->id }}"
-                                                           data-quarter="quarter1"
-                                                           data-subject="{{ $subject->id }}"
-                                                           placeholder="0-100">
-                                                </td>
-                                                <td class="quarter-col quarter2-cell">
-                                                    <input type="text"
-                                                           inputmode="decimal"
-                                                           class="form-control form-control-sm grade-input auto-save"
-                                                           name="grades[{{ $student->id }}][quarter2]"
-                                                           value="{{ $grade ? $grade->quarter2 : '' }}"
-                                                           data-student="{{ $student->id }}"
-                                                           data-quarter="quarter2"
-                                                           data-subject="{{ $subject->id }}"
-                                                           placeholder="0-100">
-                                                </td>
-                                                <td class="quarter-col quarter3-cell">
-                                                    <input type="text"
-                                                           inputmode="decimal"
-                                                           class="form-control form-control-sm grade-input auto-save"
-                                                           name="grades[{{ $student->id }}][quarter3]"
-                                                           value="{{ $grade ? $grade->quarter3 : '' }}"
-                                                           data-student="{{ $student->id }}"
-                                                           data-quarter="quarter3"
-                                                           data-subject="{{ $subject->id }}"
-                                                           placeholder="0-100">
-                                                </td>
-                                                <td class="quarter-col quarter4-cell">
-                                                    <input type="text"
-                                                           inputmode="decimal"
-                                                           class="form-control form-control-sm grade-input auto-save"
-                                                           name="grades[{{ $student->id }}][quarter4]"
-                                                           value="{{ $grade ? $grade->quarter4 : '' }}"
-                                                           data-student="{{ $student->id }}"
-                                                           data-quarter="quarter4"
-                                                           data-subject="{{ $subject->id }}"
-                                                           placeholder="0-100">
-                                                </td>
+                                                @if(($subject->semester ?? '1st Semester') === '1st Semester')
+                                                    <td class="quarter-col">
+                                                        <input type="text"
+                                                               inputmode="decimal"
+                                                               class="form-control form-control-sm grade-input auto-save"
+                                                               name="grades[{{ $student->id }}][quarter1]"
+                                                               value="{{ $grade ? $grade->quarter1 : '' }}"
+                                                               data-student="{{ $student->id }}"
+                                                               data-quarter="quarter1"
+                                                               data-subject="{{ $subject->id }}"
+                                                               placeholder="0-100">
+                                                    </td>
+                                                    <td class="quarter-col">
+                                                        <input type="text"
+                                                               inputmode="decimal"
+                                                               class="form-control form-control-sm grade-input auto-save"
+                                                               name="grades[{{ $student->id }}][quarter2]"
+                                                               value="{{ $grade ? $grade->quarter2 : '' }}"
+                                                               data-student="{{ $student->id }}"
+                                                               data-quarter="quarter2"
+                                                               data-subject="{{ $subject->id }}"
+                                                               placeholder="0-100">
+                                                    </td>
+                                                @else
+                                                    <td class="quarter-col">
+                                                        <input type="text"
+                                                               inputmode="decimal"
+                                                               class="form-control form-control-sm grade-input auto-save"
+                                                               name="grades[{{ $student->id }}][quarter3]"
+                                                               value="{{ $grade ? $grade->quarter3 : '' }}"
+                                                               data-student="{{ $student->id }}"
+                                                               data-quarter="quarter3"
+                                                               data-subject="{{ $subject->id }}"
+                                                               placeholder="0-100">
+                                                    </td>
+                                                    <td class="quarter-col">
+                                                        <input type="text"
+                                                               inputmode="decimal"
+                                                               class="form-control form-control-sm grade-input auto-save"
+                                                               name="grades[{{ $student->id }}][quarter4]"
+                                                               value="{{ $grade ? $grade->quarter4 : '' }}"
+                                                               data-student="{{ $student->id }}"
+                                                               data-quarter="quarter4"
+                                                               data-subject="{{ $subject->id }}"
+                                                               placeholder="0-100">
+                                                    </td>
+                                                @endif
                                                 <td class="text-center">
                                                     <span class="final-grade-display" data-student="{{ $student->id }}">
                                                         
@@ -243,14 +240,15 @@
 }
 .dashboard-header h1 {
     margin: 0;
-    font-size: 2.2rem;
-    font-weight: 700;
+    font-size: 2.6rem;
+    font-weight: 800;
     line-height: 1.2;
 }
 .dashboard-header p {
     margin: 0.25rem 0 0 0;
     opacity: 0.9;
-    font-size: 1rem;
+    font-size: 1.05rem;
+    font-weight: 600;
 }
 .btn-light-blue {
     background-color: rgba(255, 255, 255, 0.2);
@@ -486,6 +484,8 @@
 <script>
 $(document).ready(function() {
     let saveTimeout;
+    const isFirstSemester = {{ json_encode(($subject->semester ?? '1st Semester') === '1st Semester') }};
+    const activeQuarters = isFirstSemester ? ['quarter1','quarter2'] : ['quarter3','quarter4'];
 
     // Auto-save functionality with debouncing
     $('.auto-save').on('input', function() {
@@ -612,14 +612,9 @@ $(document).ready(function() {
 
     // Calculate final grade for a student
     function calculateFinalGrade(studentId) {
-        const selectedSemester = String($('#semesterSelect').val() || '1');
         const quarters = [];
 
-        const quartersToUse = selectedSemester === '1'
-            ? ['quarter1', 'quarter2']
-            : ['quarter3', 'quarter4'];
-
-        quartersToUse.forEach(quarter => {
+        activeQuarters.forEach(quarter => {
             const value = parseFloat($(`input[data-student="${studentId}"][data-quarter="${quarter}"]`).val());
             if (!isNaN(value)) {
                 quarters.push(value);
@@ -713,24 +708,7 @@ $(document).ready(function() {
         "info": false
     });
 
-    function applySemesterView(value) {
-        const isFirst = String(value) === '1';
-        // toggle headers
-        $('.quarter1-header, .quarter2-header').toggle(isFirst);
-        $('.quarter3-header, .quarter4-header').toggle(!isFirst);
-        // toggle cells
-        $('.quarter1-cell, .quarter2-cell').toggle(isFirst);
-        $('.quarter3-cell, .quarter4-cell').toggle(!isFirst);
-        // adjust colspan
-        $('#quarterlyHeader').attr('colspan', isFirst ? 2 : 2);
-        // Redraw DataTable to recalc column widths
-        dt.columns.adjust().draw(false);
-    }
-
-    // initial apply
-    applySemesterView($('#semesterSelect').val() || '1');
-
-    // Recalculate all rows on load to ensure semester-aware blanks
+    // Recalculate all rows on load
     $('#gradesTable tbody tr').each(function(){
         const studentIdCell = $(this).find('.final-grade-display').data('student');
         if (studentIdCell) {
@@ -738,64 +716,10 @@ $(document).ready(function() {
         }
     });
 
-    // on change
-    $('#semesterSelect').on('change', function() {
-        applySemesterView($(this).val());
-        // Recalculate all rows on semester change so second semester shows blank if no Q3/Q4
-        $('#gradesTable tbody tr').each(function(){
-            const studentIdCell = $(this).find('.final-grade-display').data('student');
-            if (studentIdCell) {
-                calculateFinalGrade(studentIdCell);
-            }
-        });
-    });
-
     // Initialize tooltips for better UX
     $('[data-bs-toggle="tooltip"]').tooltip();
 
-    // Function to check and update second semester lock status
-    function updateSecondSemesterLock(studentId) {
-        const q1Input = $(`input[data-student="${studentId}"][data-quarter="quarter1"]`);
-        const q2Input = $(`input[data-student="${studentId}"][data-quarter="quarter2"]`);
-        const q3Input = $(`input[data-student="${studentId}"][data-quarter="quarter3"]`);
-        const q4Input = $(`input[data-student="${studentId}"][data-quarter="quarter4"]`);
-        
-        const q1Value = q1Input.val();
-        const q2Value = q2Input.val();
-        
-        // Check if first semester has any grades
-        const hasFirstSemesterGrades = (q1Value && q1Value.trim() !== '') || (q2Value && q2Value.trim() !== '');
-        
-        if (hasFirstSemesterGrades) {
-            // Unlock second semester inputs
-            q3Input.prop('disabled', false)
-                   .removeClass('locked-input')
-                   .attr('placeholder', '0-100')
-                   .removeAttr('title');
-            q4Input.prop('disabled', false)
-                   .removeClass('locked-input')
-                   .attr('placeholder', '0-100')
-                   .removeAttr('title');
-        } else {
-            // Lock second semester inputs
-            q3Input.prop('disabled', true)
-                   .addClass('locked-input')
-                   .attr('placeholder', 'First semester required')
-                   .attr('title', 'Enter First Semester grades first')
-                   .val(''); // Clear any existing values
-            q4Input.prop('disabled', true)
-                   .addClass('locked-input')
-                   .attr('placeholder', 'First semester required')
-                   .attr('title', 'Enter First Semester grades first')
-                   .val(''); // Clear any existing values
-        }
-    }
-
-    // Initialize semester lock status for all students
-    $('input[data-quarter="quarter1"]').each(function() {
-        const studentId = $(this).data('student');
-        updateSecondSemesterLock(studentId);
-    });
+    // No dropdown or dynamic semester switching; active quarters fixed by subject semester.
 });
 </script>
 @endsection

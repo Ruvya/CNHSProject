@@ -732,6 +732,7 @@
 			<select id="semesterFilter" class="form-select" style="max-width: 220px;">
 				<option value="first">First Semester</option>
 				<option value="second">Second Semester</option>
+				<option value="all">All</option>
 			</select>
 		</div>
 		<div class="table-actions">
@@ -763,7 +764,17 @@
         <tbody>
             @if($grades->count() > 0)
                 @foreach($grades as $grade)
-            <tr class="{{ !$grade->is_enrolled ? 'not-enrolled' : '' }}" data-subject-id="{{ $grade->subject->id }}">
+            @php
+                $rawSemester = $grade->subject->semester ?? '';
+                $semLower = strtolower($rawSemester);
+                $dataSemester = 'first';
+                if (strpos($semLower, '2') !== false || strpos($semLower, 'second') !== false) {
+                    $dataSemester = 'second';
+                } elseif (strpos($semLower, 'both') !== false) {
+                    $dataSemester = 'both';
+                }
+            @endphp
+            <tr class="{{ !$grade->is_enrolled ? 'not-enrolled' : '' }}" data-subject-id="{{ $grade->subject->id }}" data-semester="{{ $dataSemester }}">
                 <td>
                     <div class="subject-info">
                         <strong>{{ $grade->subject->name ?? '-' }}</strong>
@@ -1066,6 +1077,18 @@
                     if (cells[3]) cells[3].style.display = showFirst ? '' : 'none';
                     if (cells[4]) cells[4].style.display = showFirst ? 'none' : '';
                     if (cells[5]) cells[5].style.display = showFirst ? 'none' : '';
+
+                    // Also filter rows by data-semester (first/second/both)
+                    const rowSem = (row.getAttribute('data-semester') || '').toLowerCase();
+                    if (rowSem) {
+                        if (semester === 'first') {
+                            row.style.display = (rowSem === 'first' || rowSem === 'both') ? '' : 'none';
+                        } else if (semester === 'second') {
+                            row.style.display = (rowSem === 'second' || rowSem === 'both') ? '' : 'none';
+                        } else {
+                            row.style.display = '';
+                        }
+                    }
 
                     // Determine if any visible quarter cell has a grade
                     const firstSemCells = [cells[2], cells[3]];

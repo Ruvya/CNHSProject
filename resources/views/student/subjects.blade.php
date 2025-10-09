@@ -337,12 +337,19 @@
             <i class="fas fa-book-open me-2"></i>
             Enrolled Subjects
         </h2>
-        <select class="form-select">
-            <option value="all">All Subjects</option>
-            <option value="core">Core Subjects</option>
-            <option value="major">Major Subjects</option>
-            <option value="elective">Electives</option>
-        </select>
+        <form method="GET" action="{{ route('student.subjects') }}">
+            <select class="form-select" name="semester" onchange="this.form.submit()">
+                @if(isset($semesterOptions))
+                    @foreach($semesterOptions as $value => $label)
+                        <option value="{{ $value }}" {{ (isset($selectedSemester) && $selectedSemester === $value) ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                @else
+                    <option value="">Select Semester</option>
+                    <option value="1st Semester" {{ (isset($selectedSemester) && $selectedSemester === '1st Semester') ? 'selected' : '' }}>1st Semester</option>
+                    <option value="2nd Semester" {{ (isset($selectedSemester) && $selectedSemester === '2nd Semester') ? 'selected' : '' }}>2nd Semester</option>
+                @endif
+            </select>
+        </form>
     </div>
     <div class="table-responsive">
         <table class="table">

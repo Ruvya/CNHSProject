@@ -9,6 +9,7 @@ use App\Models\Student;
 use App\Models\Grade;
 use App\Models\TeacherAssignment;
 use Illuminate\Support\Facades\Auth;
+use App\Services\SemesterService;
 
 class GradeController extends Controller
 {
@@ -60,10 +61,31 @@ class GradeController extends Controller
     {
         $teacher = Auth::guard('teacher')->user();
 
+        $selectedSemester = $request->get('semester');
+
         // Get subjects from both assignment methods
         $assignedSubjects = $teacher->assignedSubjects()->get();
         $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
         $subjects = $assignedSubjects->merge($directSubjects)->unique('id');
+
+        // Optionally filter subjects by selected semester (respect subject semester and assignment pivot semester)
+        if (!empty($selectedSemester)) {
+            $subjects = $subjects->filter(function ($subject) use ($selectedSemester) {
+                // Accept if subject explicitly matches semester or is for both semesters
+                $subjectSemester = $subject->semester ?? null;
+                if ($subjectSemester === 'Both Semesters' || $subjectSemester === $selectedSemester) {
+                    return true;
+                }
+
+                // If coming via teacher_assignments pivot, check pivot semester when available
+                if (isset($subject->pivot) && !empty($subject->pivot->semester)) {
+                    return $subject->pivot->semester === 'Both Semesters' || $subject->pivot->semester === $selectedSemester;
+                }
+
+                // If no explicit semester, include by default
+                return empty($subjectSemester);
+            })->values();
+        }
 
         // Get grade statistics
         $gradeStats = [];
@@ -72,16 +94,30 @@ class GradeController extends Controller
                 $q->where('subjects.id', $subject->id);
             })->count();
 
-            $gradedStudents = Grade::where('subject_id', $subject->id)
-                ->whereNotNull('final_grade')
-                ->count();
+            $gradedQuery = Grade::where('subject_id', $subject->id)
+                ->whereNotNull('final_grade');
+            if (!empty($selectedSemester) && \Illuminate\Support\Facades\Schema::hasColumn('grades', 'semester')) {
+                $gradedQuery->where(function ($q) use ($selectedSemester) {
+                    $q->where('semester', $selectedSemester)
+                      ->orWhereNull('semester');
+                });
+            }
+            $gradedStudents = $gradedQuery->count();
 
-            $averageGrade = Grade::where('subject_id', $subject->id)
-                ->whereNotNull('final_grade')
-                ->avg('final_grade');
+            $avgQuery = Grade::where('subject_id', $subject->id)
+                ->whereNotNull('final_grade');
+            if (!empty($selectedSemester) && \Illuminate\Support\Facades\Schema::hasColumn('grades', 'semester')) {
+                $avgQuery->where(function ($q) use ($selectedSemester) {
+                    $q->where('semester', $selectedSemester)
+                      ->orWhereNull('semester');
+                });
+            }
+            $averageGrade = $avgQuery->avg('final_grade');
 
             $gradeStats[] = [
                 'subject' => $subject,
+                'semester' => (isset($subject->pivot) && !empty($subject->pivot->semester)) ? $subject->pivot->semester : ($subject->semester ?? null),
+                'grade_level' => $subject->grade_level ?? null,
                 'total_students' => $totalStudents,
                 'graded_students' => $gradedStudents,
                 'pending_grades' => $totalStudents - $gradedStudents,
@@ -90,7 +126,9 @@ class GradeController extends Controller
             ];
         }
 
-        return view('teacher.grade-management', compact('gradeStats', 'subjects'));
+        $semesterOptions = SemesterService::getSemesterOptions();
+
+        return view('teacher.grade-management', compact('gradeStats', 'subjects', 'semesterOptions', 'selectedSemester'));
     }
 
     public function saveGrade(Request $request)
@@ -121,6 +159,18 @@ class GradeController extends Controller
             ], 403);
         }
 
+        // Check if there's an existing grade and if it can be edited
+        $existingGrade = Grade::where('student_id', $request->student_id)
+                             ->where('subject_id', $request->subject_id)
+                             ->first();
+        
+        if ($existingGrade && !$existingGrade->canBeEdited()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This grade has been submitted for approval and cannot be modified. Status: ' . $existingGrade->approval_status_badge
+            ], 422);
+        }
+
         // Calculate final grade (average of quarters)
         $quarters = array_filter([
             $request->quarter1,
@@ -144,6 +194,7 @@ class GradeController extends Controller
                 'quarter4' => $request->quarter4,
                 'final_grade' => $finalGrade,
                 'remarks' => $request->remarks,
+                'status' => 'draft' // Always set to draft when teacher saves
             ]
         );
 
@@ -210,7 +261,8 @@ class GradeController extends Controller
                 'quarter3' => null,
                 'quarter4' => null,
                 'final_grade' => null,
-                'remarks' => null
+                'remarks' => null,
+                'status' => 'draft'
             ]
         );
 
@@ -276,6 +328,128 @@ class GradeController extends Controller
             'averageGrade' => $totalGrades,
             'totalSubjects' => $totalSubjects,
         ]);
+    }
+
+    /**
+     * Submit grades for approval
+     */
+    public function submitGrades(Request $request)
+    {
+        $teacher = Auth::guard('teacher')->user();
+        
+        $request->validate([
+            'grade_ids' => 'required|array',
+            'grade_ids.*' => 'exists:grades,id'
+        ]);
+
+        $submittedCount = 0;
+        $errors = [];
+
+        foreach ($request->grade_ids as $gradeId) {
+            $grade = Grade::findOrFail($gradeId);
+            
+            // Verify teacher has access to this grade
+            $hasDirectAccess = $grade->subject->teacher_id === $teacher->id;
+            $hasAssignmentAccess = $teacher->assignedSubjects()->where('subjects.id', $grade->subject_id)->exists();
+            
+            if (!$hasDirectAccess && !$hasAssignmentAccess) {
+                $errors[] = "You don't have permission to submit grade for {$grade->student->first_name} {$grade->student->last_name}";
+                continue;
+            }
+
+            // Check if grade can be submitted
+            if (!$grade->canBeEdited()) {
+                $errors[] = "Grade for {$grade->student->first_name} {$grade->student->last_name} cannot be submitted (Status: {$grade->approval_status_badge})";
+                continue;
+            }
+
+            // Check if grade has sufficient data
+            if (!$grade->final_grade) {
+                $errors[] = "Grade for {$grade->student->first_name} {$grade->student->last_name} is incomplete";
+                continue;
+            }
+
+            $grade->submitForApproval();
+            $submittedCount++;
+        }
+
+        if ($submittedCount > 0) {
+            $message = "Successfully submitted {$submittedCount} grade(s) for approval.";
+            if (!empty($errors)) {
+                $message .= " " . count($errors) . " grade(s) could not be submitted.";
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'submitted_count' => $submittedCount,
+                'errors' => $errors
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'No grades were submitted.',
+                'errors' => $errors
+            ], 422);
+        }
+    }
+
+    /**
+     * Submit all grades for a subject
+     */
+    public function submitAllGradesForSubject(Request $request, Subject $subject)
+    {
+        $teacher = Auth::guard('teacher')->user();
+
+        // Verify teacher has access to this subject
+        $hasDirectAccess = $subject->teacher_id === $teacher->id;
+        $hasAssignmentAccess = $teacher->assignedSubjects()->where('subjects.id', $subject->id)->exists();
+
+        if (!$hasDirectAccess && !$hasAssignmentAccess) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to submit grades for this subject.'
+            ], 403);
+        }
+
+        // Get all draft grades for this subject
+        $grades = Grade::where('subject_id', $subject->id)
+                      ->where('status', 'draft')
+                      ->get();
+
+        $submittedCount = 0;
+        $errors = [];
+
+        foreach ($grades as $grade) {
+            // Check if grade has sufficient data
+            if (!$grade->final_grade) {
+                $errors[] = "Grade for {$grade->student->first_name} {$grade->student->last_name} is incomplete";
+                continue;
+            }
+
+            $grade->submitForApproval();
+            $submittedCount++;
+        }
+
+        if ($submittedCount > 0) {
+            $message = "Successfully submitted {$submittedCount} grade(s) for approval.";
+            if (!empty($errors)) {
+                $message .= " " . count($errors) . " grade(s) could not be submitted.";
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'submitted_count' => $submittedCount,
+                'errors' => $errors
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'No grades were submitted. All grades may already be submitted or incomplete.',
+                'errors' => $errors
+            ], 422);
+        }
     }
 
     /**
