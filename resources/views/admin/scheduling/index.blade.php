@@ -166,7 +166,12 @@
                                         <span class="badge bg-secondary">{{ $schedule->school_year }}</span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-warning">{{ $schedule->semester ?? $schedule->grading_period }}</span>
+                                        @php($sem = $schedule->semester ?? $schedule->grading_period ?? $schedule->display_semester)
+                                        @if(!empty($sem))
+                                            <span class="badge bg-warning text-dark">{{ $sem }}</span>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
                                     </td>
                                     <td>
                                         @if($schedule->status == 'active')

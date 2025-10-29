@@ -6,12 +6,12 @@
 <style>
     /* New Header Style */
     .page-header-design {
-        background: linear-gradient(115deg, #f97316 60%, #3b82f6 60%);
-        color: white;
+        background: #ffffff;
+        color: #000000;
         padding: 2rem;
         border-radius: 10px;
         margin-bottom: 2rem;
-        box-shadow: 0 10px 30px rgba(249, 115, 22, 0.25);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -23,7 +23,8 @@
     .header-left-content i {
         font-size: 3rem;
         margin-right: 1.5rem;
-        opacity: 0.8;
+        opacity: 0.9;
+        color: #012970;
     }
     .header-left-content h1 {
         margin: 0;
@@ -33,21 +34,22 @@
     }
     .header-left-content p {
         margin: 0.25rem 0 0 0;
-        opacity: 0.9;
+        opacity: 0.7;
         font-size: 1.1rem;
     }
     .header-right-content .announcement-count-badge {
-        background: rgba(255, 255, 255, 0.2);
+        background: #f3f4f6;
         padding: 0.75rem 1.25rem;
         border-radius: 50px;
         display: flex;
         align-items: center;
         font-weight: 600;
         font-size: 1rem;
-        backdrop-filter: blur(10px);
+        color: #111827;
     }
     .header-right-content .announcement-count-badge i {
         margin-right: 0.5rem;
+        color: #2563eb;
     }
 
     .create-btn {

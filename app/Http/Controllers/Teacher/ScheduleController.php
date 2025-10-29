@@ -28,15 +28,9 @@ class ScheduleController extends Controller
             ->where('status', 'active')
             ->where('school_year', $schoolYear);
 
-        if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
-            if (!empty($semester)) {
-                $query->where('semester', $semester);
-            }
-        } else {
-            // Backward compatibility if still using grading_period
-            if (!empty($semester)) {
-                $query->where('grading_period', $semester);
-            }
+        if (!empty($semester)) {
+            // The schedules table uses semester column
+            $query->where('semester', $semester);
         }
 
         if (!empty($day)) {

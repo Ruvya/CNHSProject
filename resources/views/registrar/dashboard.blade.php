@@ -254,7 +254,7 @@
             <span class="icon"><i class="fas fa-clipboard-check"></i></span>
             <div>
                 <span class="title">Registrar Dashboard</span>
-                <span class="subtitle">Welcome back, {{ auth()->guard('registrar')->user()->first_name }}! Here's your school's overview.</span>
+                <span class="subtitle">Welcome back, {{ auth()->guard('registrar')->user() ? auth()->guard('registrar')->user()->first_name : 'Registrar' }}! Here's your school's overview.</span>
             </div>
         </div>
         <!-- Optionally, you can add a right-aligned button or badge here -->

@@ -9,6 +9,7 @@ use App\Models\Student;
 use App\Models\Grade;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class SubjectController extends Controller
 {
@@ -225,6 +226,7 @@ class SubjectController extends Controller
         }
 
         $grades = $request->input('grades', []);
+        $action = $request->input('action'); // 'save' for draft, otherwise submit
         $updatedCount = 0;
 
         DB::beginTransaction();
@@ -250,19 +252,24 @@ class SubjectController extends Controller
                 }
 
                 // Update or create grade record
+                $updateData = [
+                    'quarter1' => $gradeData['quarter1'] ?? null,
+                    'quarter2' => $gradeData['quarter2'] ?? null,
+                    'quarter3' => $gradeData['quarter3'] ?? null,
+                    'quarter4' => $gradeData['quarter4'] ?? null,
+                    'final_grade' => $finalGrade,
+                    'remarks' => $gradeData['remarks'] ?? null,
+                ];
+                if (Schema::hasColumn('grades', 'status')) {
+                    $updateData['status'] = $action === 'save' ? 'draft' : 'submitted';
+                }
+
                 Grade::updateOrCreate(
                     [
                         'student_id' => $studentId,
                         'subject_id' => $subject->id
                     ],
-                    [
-                        'quarter1' => $gradeData['quarter1'] ?? null,
-                        'quarter2' => $gradeData['quarter2'] ?? null,
-                        'quarter3' => $gradeData['quarter3'] ?? null,
-                        'quarter4' => $gradeData['quarter4'] ?? null,
-                        'final_grade' => $finalGrade,
-                        'remarks' => $gradeData['remarks'] ?? null
-                    ]
+                    $updateData
                 );
 
                 $updatedCount++;

@@ -124,14 +124,15 @@
                                         {{ $assignment->subject->cluster ?? '' }}
                                     </td>
                                     <td>
-                                        @if($assignment->semester)
-                                            <span class="badge bg-primary">{{ $assignment->semester }}</span>
+                                        @php($displaySemester = $assignment->display_semester)
+                                        @if(!empty($displaySemester))
+                                            <span class="badge bg-primary">{{ $displaySemester }}</span>
                                         @else
                                             <span class="text-muted">Not specified</span>
                                         @endif
                                     </td>
                                     <td>
-                                        <small class="text-muted">{{ $assignment->formatted_schedule ?? '' }}</small>
+                                        <small class="text-muted">{{ $assignment->formatted_schedule ?? 'No schedule set' }}</small>
                                     </td>
                                     <td>
                                         <small class="text-muted">{{ $assignment->assignment_date ? $assignment->assignment_date->format('M d, Y') : '' }}</small>

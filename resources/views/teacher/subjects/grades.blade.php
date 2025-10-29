@@ -67,7 +67,6 @@
                                             <th id="quarterlyHeader" colspan="2" class="text-center">Quarterly Grades</th>
                                             <th rowspan="2" class="align-middle">Final Grade</th>
                                             <th rowspan="2" class="align-middle">Status</th>
-                                            <th rowspan="2" class="align-middle">Actions</th>
                                         </tr>
                                         <tr>
                                             @if(($subject->semester ?? '1st Semester') === '1st Semester')
@@ -159,7 +158,7 @@
                                                 @endif
                                                 <td class="text-center">
                                                     <span class="final-grade-display" data-student="{{ $student->id }}">
-                                                        
+                                                        {{ $finalGrade !== null ? number_format($finalGrade, 2) : '' }}
                                                     </span>
                                                 </td>
                                                 <td class="text-center">
@@ -167,25 +166,23 @@
                                                         {{ $status }}
                                                     </span>
                                                 </td>
-                                                <td class="text-center">
-                                                    <a href="{{ route('teacher.subjects.grades.edit', [$subject, $student]) }}"
-                                                       class="btn btn-sm btn-outline-primary" title="Edit Individual Grade">
-                                                        Edit
-                                                    </a>
-                                                </td>
+                                                
                                             </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
                             </div>
-                            <div class="text-end mt-3">
+                            <div class="d-flex justify-content-end align-items-center gap-2 mt-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="saveDraftBtn">
+                                    <i class="fas fa-eye"></i> Save
+                                </button>
                                 <button type="button" class="btn btn-success btn-sm" id="saveAllBtn">
-                                    <i class="fas fa-save"></i> Save All Grades
+                                    <i class="fas fa-save"></i> Submit
                                 </button>
                             </div>
                         </form>
 
-                        <!-- Save All Grades Confirmation Modal -->
+                        <!-- Submit Confirmation Modal -->
                         <div class="modal fade" id="saveAllGradesModal" tabindex="-1" aria-labelledby="saveAllGradesModalLabel" aria-hidden="true">
                           <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content">
@@ -545,9 +542,14 @@ $(document).ready(function() {
                 if (response.success) {
                     $input.removeClass('saving').addClass('saved');
 
-                    // Update final grade and status
-                    // Recalculate UI from inputs to ensure semester-aware blanking
-                    calculateFinalGrade(studentId);
+                    // Update final grade from server (includes both semesters)
+                    if (response.data && typeof response.data.final_grade !== 'undefined' && response.data.final_grade !== null) {
+                        const formatted = parseFloat(response.data.final_grade).toFixed(2);
+                        $(`.final-grade-display[data-student="${studentId}"]`).text(formatted);
+                    } else {
+                        // Fallback to local calculation
+                        calculateFinalGrade(studentId);
+                    }
 
                     $(`.status-badge[data-student="${studentId}"]`)
                         .removeClass('badge-success badge-danger badge-warning')
@@ -672,6 +674,18 @@ $(document).ready(function() {
         var modal = new bootstrap.Modal(document.getElementById('saveAllGradesModal'));
         modal.show();
     });
+    
+    // Save as draft: submit form with action=save (no student visibility change)
+    $('#saveDraftBtn').on('click', function() {
+        // Ensure hidden input exists
+        let $action = $("#gradesForm input[name='action']");
+        if ($action.length === 0) {
+            $('<input>').attr({type: 'hidden', name: 'action', value: 'save'}).appendTo('#gradesForm');
+        } else {
+            $action.val('save');
+        }
+        $('#gradesForm').trigger('submit');
+    });
     $('#confirmSaveAllGrades').on('click', function() {
         $('#saveAllGradesModal').modal('hide');
         $('#gradesForm').submit();
@@ -695,7 +709,7 @@ $(document).ready(function() {
         "pageLength": 25,
         "order": [[ 0, "asc" ]],
         "columnDefs": [
-            { "orderable": false, "targets": [1, 2, 3, 4, 5, 6, 7] }
+            { "orderable": false, "targets": [1, 2, 3, 4, 5, 6] }
         ],
         "language": {
             "search": "Search students:",

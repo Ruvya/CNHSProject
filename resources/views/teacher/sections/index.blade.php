@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <div class="card mb-4 border-0" style="background: linear-gradient(90deg, #0ea5e9 0%, #012970 70%); color: #fff;">
+        <div class="card mb-4 border-0" style="background: #ffffff; color: #000;">
         <div class="card-body d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
                 <div class="me-3" style="width: 46px; height: 46px; background: rgba(255,255,255,.15); border-radius: 10px; display: grid; place-items: center;">
@@ -48,7 +48,7 @@
                                 <td class="fw-semibold">{{ $section->name }}</td>
                                 <td>
                                     <span class="badge bg-primary-subtle text-primary border border-primary" style="font-weight:600;">
-                                        Grade {{ $section->grade_level }}
+                                        {{ $section->grade_level }}
                                     </span>
                                 </td>
                                 <td>{{ $section->track }} {{ $section->strand ? ' / '.$section->strand : '' }}</td>

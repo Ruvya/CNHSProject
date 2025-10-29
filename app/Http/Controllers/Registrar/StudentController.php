@@ -129,7 +129,7 @@ class StudentController extends Controller
             $sectionModel = Section::where('name', $studentData['section'])->first();
             if ($sectionModel) {
                 $sectionStrand = $sectionModel->strand ?: $sectionModel->track;
-                $studentStrand = $studentData['strand'] ?: ($studentData['track'] ?? null);
+                $studentStrand = ($studentData['strand'] ?? null) ?: ($studentData['track'] ?? null);
                 if ($studentStrand && strcasecmp($sectionStrand, $studentStrand) !== 0) {
                     return back()->withErrors(['section' => "Selected section does not belong to the student's strand."])->withInput();
                 }
@@ -273,7 +273,7 @@ class StudentController extends Controller
             $sectionModel = Section::where('name', $studentData['section'])->first();
             if ($sectionModel) {
                 $sectionStrand = $sectionModel->strand ?: $sectionModel->track;
-                $studentStrand = $studentData['strand'] ?: ($studentData['track'] ?? null);
+                $studentStrand = ($studentData['strand'] ?? null) ?: ($studentData['track'] ?? null);
                 if ($studentStrand && strcasecmp($sectionStrand, $studentStrand) !== 0) {
                     return back()->withErrors(['section' => "Selected section does not belong to the student's strand."])->withInput();
                 }

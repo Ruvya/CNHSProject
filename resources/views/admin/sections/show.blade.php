@@ -98,17 +98,24 @@
             <form method="POST" action="{{ route('admin.sections.assign-students', $section) }}">
                 @csrf
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-8">
+                    <div class="col-md-10">
                         <label class="form-label">Eligible Students (same grade and strand/track)</label>
-                        <select class="form-select" name="student_ids[]" multiple size="10">
-                            @foreach($eligibleStudents as $s)
-                                <option value="{{ $s->id }}">{{ $s->student_id }} — {{ $s->name }} @if($s->section) ({{ $s->section }}) @endif</option>
-                            @endforeach
-                        </select>
-                        <div class="form-text">Hold Ctrl/Cmd to select multiple. Already assigned students will be moved to this section.</div>
+                        <div class="border rounded" style="height: 420px; overflow:auto; padding: .5rem .75rem;">
+                            @forelse($eligibleStudents as $s)
+                                <div class="form-check mb-1">
+                                    <input class="form-check-input" type="checkbox" name="student_ids[]" value="{{ $s->id }}" id="s{{ $s->id }}">
+                                    <label class="form-check-label" for="s{{ $s->id }}">
+                                        {{ $s->student_id }} — {{ $s->name }} @if($s->section) ({{ $s->section }}) @endif
+                                    </label>
+                                </div>
+                            @empty
+                                <div class="text-muted">No eligible students found.</div>
+                            @endforelse
+                        </div>
+                        <div class="form-text">Select one or more students to assign. Already assigned students will be moved to this section.</div>
                     </div>
-                    <div class="col-md-4">
-                        <button type="submit" class="btn btn-primary w-100">Assign Selected</button>
+                    <div class="col-md-2 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary btn-sm">Assign Selected</button>
                     </div>
                 </div>
             </form>

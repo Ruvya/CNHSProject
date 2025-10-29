@@ -2,22 +2,26 @@
 @section('title', 'Schedule Details')
 @section('content')
 <div class="container-fluid">
-    <!-- Modern Angled Header Card -->
-    <div class="angled-header-card mb-4">
-        <div class="header-left-content">
-            <span class="icon"><i class="fas fa-calendar-check"></i></span>
-            <div>
-                <span class="title">Schedule Details</span>
-                <span class="subtitle">{{ $schedule->formatted_schedule }}</span>
+    <!-- Header (match Class Schedules index style) -->
+    <div class="card mb-4" style="border-radius: 14px; box-shadow: 0 8px 25px rgba(30,58,138,0.12); border: none;">
+        <div class="card-body d-flex flex-wrap align-items-center justify-content-between" style="padding: 1.2rem 1.5rem;">
+            <div class="d-flex align-items-center mb-2 mb-md-0">
+                <span style="font-size: 2rem; color: #2563eb; background: #f1f5fb; border-radius: 12px; padding: 0.7rem; margin-right: 1rem; display: flex; align-items: center;">
+                    <i class="fas fa-calendar-check"></i>
+                </span>
+                <div>
+                    <div style="font-size: 1.3rem; font-weight: bold; font-family: 'Poppins', sans-serif; color: #222;">Class Schedules</div>
+                    <div style="font-size: 0.95rem; font-family: 'Poppins', sans-serif; color: #555; font-weight: 500;">{{ $schedule->formatted_schedule }} — {{ $schedule->school_year }} @php($semHdr = $schedule->display_semester ?? $schedule->grading_period) @if($semHdr) • {{ $semHdr }} @endif</div>
+                </div>
             </div>
-        </div>
-        <div class="header-right-content">
-            <a href="{{ route('admin.scheduling.edit', $schedule) }}" class="angled-header-btn me-2">
-                <i class="fas fa-edit me-2"></i> Edit Schedule
-            </a>
-            <a href="{{ route('admin.scheduling.index') }}" class="angled-header-btn">
-                <i class="fas fa-arrow-left me-2"></i> Back to Schedules
-            </a>
+            <div class="mb-2 mb-md-0 d-flex gap-2">
+                <a href="{{ route('admin.scheduling.edit', $schedule) }}" class="btn btn-warning">
+                    <i class="fas fa-edit me-2"></i> Edit Schedule
+                </a>
+                <a href="{{ route('admin.scheduling.index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Schedules
+                </a>
+            </div>
         </div>
     </div>
 
@@ -50,9 +54,14 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Grading Period</label>
+                            <label class="form-label fw-bold">Semester</label>
                             <div class="p-2 bg-light rounded">
-                                <span class="badge bg-warning">{{ $schedule->grading_period }}</span>
+                                @php($sem = $schedule->display_semester ?? $schedule->grading_period)
+                                @if(!empty($sem))
+                                    <span class="badge bg-warning text-dark">{{ $sem }}</span>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -251,83 +260,7 @@
         </div>
     </div>
 
-    <!-- Room Information -->
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h6 class="mb-0"><i class="fas fa-door-open me-2"></i>Room</h6>
-                </div>
-                <div class="card-body">
-                    @if($schedule->room)
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="avatar-lg bg-secondary rounded-circle d-flex align-items-center justify-content-center me-3">
-                                <i class="fas fa-door-open text-white fs-4"></i>
-                            </div>
-                            <div>
-                                <h5 class="mb-1">{{ $schedule->room->name }}</h5>
-                                <p class="text-muted mb-0">{{ $schedule->room->code }} - {{ ucfirst(str_replace('_', ' ', $schedule->room->type)) }}</p>
-                            </div>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <small class="text-muted">Capacity</small>
-                                <div class="fw-medium">{{ $schedule->room->capacity }} students</div>
-                            </div>
-                            <div class="col-md-3">
-                                <small class="text-muted">Location</small>
-                                <div class="fw-medium">{{ $schedule->room->location ?? 'Not specified' }}</div>
-                            </div>
-                        </div>
-                    @else
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="avatar-lg bg-light rounded-circle d-flex align-items-center justify-content-center me-3">
-                                <i class="fas fa-door-open text-muted fs-4"></i>
-                            </div>
-                            <div>
-                                <h5 class="mb-1 text-muted">No Room Assigned</h5>
-                                <p class="text-muted mb-0">This schedule does not have a specific room assigned</p>
-                            </div>
-                        </div>
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Room assignment is not required for this schedule. The teacher will use available classroom space.
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-
-        <!-- Created By Information -->
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h6 class="mb-0"><i class="fas fa-user-cog me-2"></i>Created By</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="avatar-lg bg-dark rounded-circle d-flex align-items-center justify-content-center me-3">
-                            <i class="fas fa-user-cog text-white fs-4"></i>
-                        </div>
-                        <div>
-                            <h5 class="mb-1">{{ $schedule->createdBy->name ?? 'System' }}</h5>
-                            <p class="text-muted mb-0">{{ $schedule->createdBy->email ?? 'system@cnhs.edu.ph' }}</p>
-                        </div>
-                    </div>
-                    <div class="row g-2">
-                        <div class="col-12">
-                            <small class="text-muted">Created</small>
-                            <div class="fw-medium">{{ $schedule->created_at->format('M d, Y h:i A') }}</div>
-                        </div>
-                        <div class="col-12">
-                            <small class="text-muted">Last Updated</small>
-                            <div class="fw-medium">{{ $schedule->updated_at->format('M d, Y h:i A') }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Room and Created By sections removed per request -->
 </div>
 
 <style>

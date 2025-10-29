@@ -42,18 +42,21 @@ class GradeController extends Controller
                 ->where('subject_id', $subject->id)
                 ->first();
 
+            // Only show grades to students when submitted by teacher
+            $isSubmitted = $gradeRecord && ($gradeRecord->status === 'submitted');
+
             // Create a subject grade object with enhanced data
             $subjectGrade = (object) [
                 'subject' => $subject,
-                'quarter1' => $gradeRecord->quarter1 ?? null,
-                'quarter2' => $gradeRecord->quarter2 ?? null,
-                'quarter3' => $gradeRecord->quarter3 ?? null,
-                'quarter4' => $gradeRecord->quarter4 ?? null,
-                'final_grade' => $gradeRecord->final_grade ?? null,
+                'quarter1' => $isSubmitted ? ($gradeRecord->quarter1 ?? null) : null,
+                'quarter2' => $isSubmitted ? ($gradeRecord->quarter2 ?? null) : null,
+                'quarter3' => $isSubmitted ? ($gradeRecord->quarter3 ?? null) : null,
+                'quarter4' => $isSubmitted ? ($gradeRecord->quarter4 ?? null) : null,
+                'final_grade' => $isSubmitted ? ($gradeRecord->final_grade ?? null) : null,
                 'remarks' => $gradeRecord->remarks ?? null,
                 'is_enrolled' => $student->subjects()->where('subject_id', $subject->id)->exists(),
-                'status' => $gradeRecord ? $gradeRecord->status : 'Incomplete',
-                'status_color' => $gradeRecord ? $gradeRecord->status_color : 'warning',
+                'status' => $isSubmitted ? 'Submitted' : 'Pending',
+                'status_color' => $isSubmitted ? 'success' : 'warning',
                 'last_updated' => $gradeRecord ? $gradeRecord->updated_at : null,
             ];
 
@@ -146,16 +149,17 @@ class GradeController extends Controller
                 ->first();
 
             if ($gradeRecord) {
+                $isSubmitted = ($gradeRecord->status === 'submitted');
                 $updatedGrades->push([
                     'subject_id' => $subject->id,
                     'subject_name' => $subject->name,
-                    'quarter1' => $gradeRecord->quarter1,
-                    'quarter2' => $gradeRecord->quarter2,
-                    'quarter3' => $gradeRecord->quarter3,
-                    'quarter4' => $gradeRecord->quarter4,
-                    'final_grade' => $gradeRecord->final_grade,
-                    'status' => $gradeRecord->status,
-                    'status_color' => $gradeRecord->status_color,
+                    'quarter1' => $isSubmitted ? $gradeRecord->quarter1 : null,
+                    'quarter2' => $isSubmitted ? $gradeRecord->quarter2 : null,
+                    'quarter3' => $isSubmitted ? $gradeRecord->quarter3 : null,
+                    'quarter4' => $isSubmitted ? $gradeRecord->quarter4 : null,
+                    'final_grade' => $isSubmitted ? $gradeRecord->final_grade : null,
+                    'status' => $isSubmitted ? 'Submitted' : 'Pending',
+                    'status_color' => $isSubmitted ? 'success' : 'warning',
                     'last_updated' => $gradeRecord->updated_at->format('M d, Y h:i A'),
                 ]);
             }
@@ -202,17 +206,18 @@ class GradeController extends Controller
         $filteredSubjectGrades = collect();
         foreach ($filteredGrades as $gradeRecord) {
             $subject = $gradeRecord->subject;
+            $isSubmitted = ($gradeRecord && $gradeRecord->status === 'submitted');
             $filteredSubjectGrades->push((object) [
                 'subject' => $subject,
-                'quarter1' => $gradeRecord->quarter1 ?? null,
-                'quarter2' => $gradeRecord->quarter2 ?? null,
-                'quarter3' => $gradeRecord->quarter3 ?? null,
-                'quarter4' => $gradeRecord->quarter4 ?? null,
-                'final_grade' => $gradeRecord->final_grade ?? null,
+                'quarter1' => $isSubmitted ? ($gradeRecord->quarter1 ?? null) : null,
+                'quarter2' => $isSubmitted ? ($gradeRecord->quarter2 ?? null) : null,
+                'quarter3' => $isSubmitted ? ($gradeRecord->quarter3 ?? null) : null,
+                'quarter4' => $isSubmitted ? ($gradeRecord->quarter4 ?? null) : null,
+                'final_grade' => $isSubmitted ? ($gradeRecord->final_grade ?? null) : null,
                 'remarks' => $gradeRecord->remarks ?? null,
                 'is_enrolled' => $student->subjects()->where('subject_id', $subject->id)->exists(),
-                'status' => $gradeRecord ? $gradeRecord->status : 'Incomplete',
-                'status_color' => $gradeRecord ? $gradeRecord->status_color : 'warning',
+                'status' => $isSubmitted ? 'Submitted' : 'Pending',
+                'status_color' => $isSubmitted ? 'success' : 'warning',
                 'last_updated' => $gradeRecord ? $gradeRecord->updated_at : null,
             ]);
         }

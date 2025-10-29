@@ -54,6 +54,11 @@ class SectionController extends Controller
                     $qq->where('cluster', $strand)->orWhere('track', $strand);
                 });
             })
+            // Exclude students already assigned to this section from the Assign Students list
+            ->where(function($q) use ($section) {
+                $q->whereNull('section')
+                  ->orWhere('section', '!=', $section->name);
+            })
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->get(['id','student_id','first_name','middle_name','last_name','name','section','grade_level']);

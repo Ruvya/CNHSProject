@@ -17,12 +17,7 @@ class Grade extends Model
         'remarks',
         'school_year',
         'semester',
-        'status',
-        'submitted_at',
-        'reviewed_by',
-        'reviewed_at',
-        'approval_notes',
-        'rejection_reason'
+        'status'
     ];
 
     protected $casts = [
@@ -30,9 +25,7 @@ class Grade extends Model
         'quarter2' => 'decimal:2',
         'quarter3' => 'decimal:2',
         'quarter4' => 'decimal:2',
-        'final_grade' => 'decimal:2',
-        'submitted_at' => 'datetime',
-        'reviewed_at' => 'datetime'
+        'final_grade' => 'decimal:2'
     ];
 
     public function student()
@@ -45,15 +38,6 @@ class Grade extends Model
         return $this->belongsTo(Subject::class);
     }
 
-    public function reviewer()
-    {
-        return $this->belongsTo(Principal::class, 'reviewed_by');
-    }
-
-    public function approvalLogs()
-    {
-        return $this->hasMany(GradeApprovalLog::class);
-    }
 
     /**
      * Calculate final grade from quarters
@@ -101,47 +85,6 @@ class Grade extends Model
         }
     }
 
-    /**
-     * Get approval status color class
-     */
-    public function getApprovalStatusColorAttribute()
-    {
-        switch ($this->status) {
-            case 'draft':
-                return 'secondary';
-            case 'submitted':
-                return 'info';
-            case 'under_review':
-                return 'warning';
-            case 'approved':
-                return 'success';
-            case 'rejected':
-                return 'danger';
-            default:
-                return 'secondary';
-        }
-    }
-
-    /**
-     * Get approval status badge text
-     */
-    public function getApprovalStatusBadgeAttribute()
-    {
-        switch ($this->status) {
-            case 'draft':
-                return 'Draft';
-            case 'submitted':
-                return 'Submitted';
-            case 'under_review':
-                return 'Under Review';
-            case 'approved':
-                return 'Approved';
-            case 'rejected':
-                return 'Rejected';
-            default:
-                return 'Unknown';
-        }
-    }
 
     /**
      * Scope to get grades for a specific teacher
@@ -203,125 +146,4 @@ class Grade extends Model
         return $grade->shouldLockSecondSemester();
     }
 
-    /**
-     * Submit grade for approval
-     */
-    public function submitForApproval()
-    {
-        $this->update([
-            'status' => 'submitted',
-            'submitted_at' => now()
-        ]);
-
-        // Log the submission
-        $this->approvalLogs()->create([
-            'action' => 'submitted',
-            'performed_by' => null, // Teacher submitted, not principal
-            'notes' => 'Grade submitted for approval',
-            'grade_data_snapshot' => $this->toArray()
-        ]);
-    }
-
-    /**
-     * Approve grade
-     */
-    public function approve($principalId, $notes = null)
-    {
-        $this->update([
-            'status' => 'approved',
-            'reviewed_by' => $principalId,
-            'reviewed_at' => now(),
-            'approval_notes' => $notes
-        ]);
-
-        // Log the approval
-        $this->approvalLogs()->create([
-            'action' => 'approved',
-            'performed_by' => $principalId,
-            'notes' => $notes,
-            'grade_data_snapshot' => $this->toArray()
-        ]);
-    }
-
-    /**
-     * Reject grade
-     */
-    public function reject($principalId, $reason)
-    {
-        $this->update([
-            'status' => 'rejected',
-            'reviewed_by' => $principalId,
-            'reviewed_at' => now(),
-            'rejection_reason' => $reason
-        ]);
-
-        // Log the rejection
-        $this->approvalLogs()->create([
-            'action' => 'rejected',
-            'performed_by' => $principalId,
-            'notes' => $reason,
-            'grade_data_snapshot' => $this->toArray()
-        ]);
-    }
-
-    /**
-     * Return grade for revision
-     */
-    public function returnForRevision($principalId, $notes)
-    {
-        $this->update([
-            'status' => 'draft',
-            'reviewed_by' => $principalId,
-            'reviewed_at' => now(),
-            'approval_notes' => $notes
-        ]);
-
-        // Log the return
-        $this->approvalLogs()->create([
-            'action' => 'returned_for_revision',
-            'performed_by' => $principalId,
-            'notes' => $notes,
-            'grade_data_snapshot' => $this->toArray()
-        ]);
-    }
-
-    /**
-     * Check if grade can be edited
-     */
-    public function canBeEdited()
-    {
-        return in_array($this->status, ['draft', 'rejected']);
-    }
-
-    /**
-     * Check if grade is pending approval
-     */
-    public function isPendingApproval()
-    {
-        return in_array($this->status, ['submitted', 'under_review']);
-    }
-
-    /**
-     * Check if grade is approved
-     */
-    public function isApproved()
-    {
-        return $this->status === 'approved';
-    }
-
-    /**
-     * Scope to get grades by approval status
-     */
-    public function scopeByStatus($query, $status)
-    {
-        return $query->where('status', $status);
-    }
-
-    /**
-     * Scope to get pending approval grades
-     */
-    public function scopePendingApproval($query)
-    {
-        return $query->whereIn('status', ['submitted', 'under_review']);
-    }
 }

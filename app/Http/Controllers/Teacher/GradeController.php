@@ -10,6 +10,7 @@ use App\Models\Grade;
 use App\Models\TeacherAssignment;
 use Illuminate\Support\Facades\Auth;
 use App\Services\SemesterService;
+use Illuminate\Support\Facades\Schema;
 
 class GradeController extends Controller
 {
@@ -159,17 +160,6 @@ class GradeController extends Controller
             ], 403);
         }
 
-        // Check if there's an existing grade and if it can be edited
-        $existingGrade = Grade::where('student_id', $request->student_id)
-                             ->where('subject_id', $request->subject_id)
-                             ->first();
-        
-        if ($existingGrade && !$existingGrade->canBeEdited()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This grade has been submitted for approval and cannot be modified. Status: ' . $existingGrade->approval_status_badge
-            ], 422);
-        }
 
         // Calculate final grade (average of quarters)
         $quarters = array_filter([
@@ -182,20 +172,24 @@ class GradeController extends Controller
         $finalGrade = !empty($quarters) ? round(array_sum($quarters) / count($quarters), 2) : null;
 
         // Update or create grade record
+        $updateData = [
+            'quarter1' => $request->quarter1,
+            'quarter2' => $request->quarter2,
+            'quarter3' => $request->quarter3,
+            'quarter4' => $request->quarter4,
+            'final_grade' => $finalGrade,
+            'remarks' => $request->remarks,
+        ];
+        if (Schema::hasColumn('grades', 'status')) {
+            $updateData['status'] = 'draft';
+        }
+
         $grade = Grade::updateOrCreate(
             [
                 'student_id' => $request->student_id,
                 'subject_id' => $request->subject_id,
             ],
-            [
-                'quarter1' => $request->quarter1,
-                'quarter2' => $request->quarter2,
-                'quarter3' => $request->quarter3,
-                'quarter4' => $request->quarter4,
-                'final_grade' => $finalGrade,
-                'remarks' => $request->remarks,
-                'status' => 'draft' // Always set to draft when teacher saves
-            ]
+            $updateData
         );
 
         return response()->json([
@@ -250,20 +244,24 @@ class GradeController extends Controller
         }
 
         // Get or create grade record
+        $defaults = [
+            'quarter1' => null,
+            'quarter2' => null,
+            'quarter3' => null,
+            'quarter4' => null,
+            'final_grade' => null,
+            'remarks' => null,
+        ];
+        if (Schema::hasColumn('grades', 'status')) {
+            $defaults['status'] = 'draft';
+        }
+
         $grade = Grade::firstOrCreate(
             [
                 'student_id' => $request->student_id,
                 'subject_id' => $request->subject_id,
             ],
-            [
-                'quarter1' => null,
-                'quarter2' => null,
-                'quarter3' => null,
-                'quarter4' => null,
-                'final_grade' => null,
-                'remarks' => null,
-                'status' => 'draft'
-            ]
+            $defaults
         );
 
         // Update the specific quarter
@@ -330,127 +328,6 @@ class GradeController extends Controller
         ]);
     }
 
-    /**
-     * Submit grades for approval
-     */
-    public function submitGrades(Request $request)
-    {
-        $teacher = Auth::guard('teacher')->user();
-        
-        $request->validate([
-            'grade_ids' => 'required|array',
-            'grade_ids.*' => 'exists:grades,id'
-        ]);
-
-        $submittedCount = 0;
-        $errors = [];
-
-        foreach ($request->grade_ids as $gradeId) {
-            $grade = Grade::findOrFail($gradeId);
-            
-            // Verify teacher has access to this grade
-            $hasDirectAccess = $grade->subject->teacher_id === $teacher->id;
-            $hasAssignmentAccess = $teacher->assignedSubjects()->where('subjects.id', $grade->subject_id)->exists();
-            
-            if (!$hasDirectAccess && !$hasAssignmentAccess) {
-                $errors[] = "You don't have permission to submit grade for {$grade->student->first_name} {$grade->student->last_name}";
-                continue;
-            }
-
-            // Check if grade can be submitted
-            if (!$grade->canBeEdited()) {
-                $errors[] = "Grade for {$grade->student->first_name} {$grade->student->last_name} cannot be submitted (Status: {$grade->approval_status_badge})";
-                continue;
-            }
-
-            // Check if grade has sufficient data
-            if (!$grade->final_grade) {
-                $errors[] = "Grade for {$grade->student->first_name} {$grade->student->last_name} is incomplete";
-                continue;
-            }
-
-            $grade->submitForApproval();
-            $submittedCount++;
-        }
-
-        if ($submittedCount > 0) {
-            $message = "Successfully submitted {$submittedCount} grade(s) for approval.";
-            if (!empty($errors)) {
-                $message .= " " . count($errors) . " grade(s) could not be submitted.";
-            }
-            
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'submitted_count' => $submittedCount,
-                'errors' => $errors
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'No grades were submitted.',
-                'errors' => $errors
-            ], 422);
-        }
-    }
-
-    /**
-     * Submit all grades for a subject
-     */
-    public function submitAllGradesForSubject(Request $request, Subject $subject)
-    {
-        $teacher = Auth::guard('teacher')->user();
-
-        // Verify teacher has access to this subject
-        $hasDirectAccess = $subject->teacher_id === $teacher->id;
-        $hasAssignmentAccess = $teacher->assignedSubjects()->where('subjects.id', $subject->id)->exists();
-
-        if (!$hasDirectAccess && !$hasAssignmentAccess) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You do not have permission to submit grades for this subject.'
-            ], 403);
-        }
-
-        // Get all draft grades for this subject
-        $grades = Grade::where('subject_id', $subject->id)
-                      ->where('status', 'draft')
-                      ->get();
-
-        $submittedCount = 0;
-        $errors = [];
-
-        foreach ($grades as $grade) {
-            // Check if grade has sufficient data
-            if (!$grade->final_grade) {
-                $errors[] = "Grade for {$grade->student->first_name} {$grade->student->last_name} is incomplete";
-                continue;
-            }
-
-            $grade->submitForApproval();
-            $submittedCount++;
-        }
-
-        if ($submittedCount > 0) {
-            $message = "Successfully submitted {$submittedCount} grade(s) for approval.";
-            if (!empty($errors)) {
-                $message .= " " . count($errors) . " grade(s) could not be submitted.";
-            }
-            
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'submitted_count' => $submittedCount,
-                'errors' => $errors
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'No grades were submitted. All grades may already be submitted or incomplete.',
-                'errors' => $errors
-            ], 422);
-        }
-    }
 
     /**
      * Get current school year

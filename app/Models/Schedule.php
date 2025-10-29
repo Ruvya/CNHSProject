@@ -274,6 +274,47 @@ class Schedule extends Model
     }
 
     /**
+     * Display semester with graceful fallback to grading_period for legacy schemas
+     */
+    public function getDisplaySemesterAttribute(): ?string
+    {
+        if (!empty($this->semester)) {
+            return $this->semester;
+        }
+        if (!empty($this->grading_period)) {
+            return $this->grading_period;
+        }
+        // Fallback 1: matching teacher assignment
+        try {
+            $assignment = \App\Models\TeacherAssignment::where('teacher_id', $this->teacher_id)
+                ->where('subject_id', $this->subject_id)
+                ->when(!empty($this->school_year), function ($q) {
+                    $q->where('school_year', $this->school_year);
+                })
+                ->where('status', 'active')
+                ->orderByDesc('id')
+                ->first();
+            if ($assignment && !empty($assignment->semester)) {
+                return $assignment->semester;
+            }
+        } catch (\Throwable $e) {}
+
+        // Fallback 2: subject's configured semester
+        try {
+            if ($this->relationLoaded('subject') || !empty($this->subject)) {
+                $sub = $this->subject;
+            } else {
+                $sub = \App\Models\Subject::find($this->subject_id);
+            }
+            if ($sub && !empty($sub->semester)) {
+                return $sub->semester;
+            }
+        } catch (\Throwable $e) {}
+
+        return null;
+    }
+
+    /**
      * Scope for active schedules
      */
     public function scopeActive($query)

@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <div class="card mb-4 border-0" style="background: linear-gradient(90deg, #0ea5e9 0%, #012970 70%); color: #fff;">
+    <div class="card mb-4 border-0" style="background: #ffffff; color: #000;">
         <div class="card-body d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
                 <div class="me-3" style="width: 46px; height: 46px; background: rgba(255,255,255,.15); border-radius: 10px; display: grid; place-items: center;">
@@ -24,7 +24,7 @@
             <div class="card h-100">
                 <div class="card-body">
                     <div class="text-muted">Grade Level</div>
-                    <div class="fs-5 fw-semibold">Grade {{ $section->grade_level }}</div>
+                    <div class="fs-5 fw-semibold">{{ $section->grade_level }}</div>
                 </div>
             </div>
         </div>
@@ -36,14 +36,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card h-100">
-                <div class="card-body">
-                    <div class="text-muted">Room</div>
-                    <div class="fs-5 fw-semibold">{{ $section->room ?? 'N/A' }}</div>
-                </div>
-            </div>
-        </div>
+        
         <div class="col-md-2">
             <div class="card h-100">
                 <div class="card-body">
@@ -66,7 +59,6 @@
                         <th style="width:70px">#</th>
                         <th>Name</th>
                         <th>Student ID</th>
-                        <th>Contact</th>
                         <th>Gender</th>
                     </tr>
                 </thead>
@@ -76,12 +68,11 @@
                             <td>{{ $i + 1 }}</td>
                             <td class="fw-semibold">{{ $student->first_name }} {{ $student->last_name }}</td>
                             <td>{{ $student->student_id }}</td>
-                            <td>{{ $student->contact_number ?? $student->phone ?? '—' }}</td>
                             <td>{{ $student->gender ?? '—' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center py-4">No students found in this section.</td>
+                            <td colspan="4" class="text-center py-4">No students found in this section.</td>
                         </tr>
                     @endforelse
                 </tbody>

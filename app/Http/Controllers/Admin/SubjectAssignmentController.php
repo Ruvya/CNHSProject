@@ -8,6 +8,7 @@ use App\Models\TeacherAssignment;
 use App\Models\Teacher;
 use App\Models\Subject;
 use App\Models\Section;
+use App\Models\Registrar;
 
 class SubjectAssignmentController extends Controller
 {
@@ -107,7 +108,7 @@ class SubjectAssignmentController extends Controller
 
         // Add additional fields
         $validated['assignment_date'] = now();
-        $validated['assigned_by'] = auth()->guard('admin')->id() ?? 1; // Fallback to admin ID 1
+        $validated['assigned_by'] = Registrar::first()->id; // Always use registrar ID since foreign key references registrars table
 
         // Create the assignment
         $assignment = TeacherAssignment::create($validated);

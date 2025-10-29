@@ -360,7 +360,6 @@
                     <th>Teacher</th>
                     <th>Schedule</th>
                     <th>Status</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -373,16 +372,10 @@
                     <td>
                         <span class="badge badge-active">Enrolled</span>
                     </td>
-                    <td>
-                        <button class="btn-action" data-bs-toggle="modal" data-bs-target="#subjectModal">
-                            <i class="fas fa-eye"></i>
-                            View
-                        </button>
-                    </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6">
+                    <td colspan="5">
                         <div class="empty-state">
                             <i class="fas fa-book"></i>
                             <h3>No Subjects Found</h3>
