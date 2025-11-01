@@ -83,8 +83,15 @@
                                 </label>
                                 <select name="school_year" id="school_year" class="form-select @error('school_year') is-invalid @enderror" required>
                                     <option value="">Select School Year...</option>
-                                    <option value="2024-2025" {{ old('school_year', '2024-2025') == '2024-2025' ? 'selected' : '' }}>2024-2025</option>
-                                    <option value="2025-2026" {{ old('school_year') == '2025-2026' ? 'selected' : '' }}>2025-2026</option>
+                                    @php
+                                        $schoolYears = \App\Models\SchoolYear::orderByDesc('start_year')->get();
+                                        $defaultYear = old('school_year', optional(\App\Models\SchoolYear::active()->first())->name ?? '');
+                                    @endphp
+                                    @foreach($schoolYears as $sy)
+                                        <option value="{{ $sy->name }}" {{ $defaultYear == $sy->name ? 'selected' : '' }}>
+                                            {{ $sy->name }} {{ $sy->status === 'active' ? '(Active)' : '' }}
+                                        </option>
+                                    @endforeach
                                 </select>
                                 @error('school_year')
                                     <div class="invalid-feedback">{{ $message }}</div>

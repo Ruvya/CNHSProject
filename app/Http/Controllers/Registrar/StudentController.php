@@ -95,7 +95,11 @@ class StudentController extends Controller
      */
     public function create()
     {
-        return view('registrar.students.create');
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+        return view('registrar.students.create', compact('tracks'));
     }
 
     /**
@@ -236,7 +240,11 @@ class StudentController extends Controller
      */
     public function edit(Student $student)
     {
-        return view('registrar.students.edit', compact('student'));
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+        return view('registrar.students.edit', compact('student', 'tracks'));
     }
 
     /**
@@ -589,7 +597,7 @@ class StudentController extends Controller
                 'Track' => 'Academic Track',
                 'Strand' => 'STEM',
                 'Adviser' => 'MS. TEACHER',
-                'School Year' => '2024-2025',
+                'School Year' => \App\Models\SchoolYear::active()->first()?->name ?? date('Y') . '-' . (date('Y') + 1),
                 'Remarks' => 'NEW'
             ],
             [
@@ -617,7 +625,7 @@ class StudentController extends Controller
                 'Track' => 'TVL Track',
                 'Strand' => 'ICT',
                 'Adviser' => 'MR. ADVISOR',
-                'School Year' => '2024-2025',
+                'School Year' => \App\Models\SchoolYear::active()->first()?->name ?? date('Y') . '-' . (date('Y') + 1),
                 'Remarks' => 'TRANSFEREE'
             ]
         ];

@@ -508,6 +508,11 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('admin.tracks.index') }}" class="{{ request()->routeIs('admin.tracks*') || request()->routeIs('admin.clusters*') ? 'active' : '' }}">
+                    <i class="fas fa-sitemap"></i> Tracks & Clusters
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.subject-assignments.index') }}" class="{{ request()->routeIs('admin.subject-assignments*') ? 'active' : '' }}">
                     <i class="fas fa-chalkboard-teacher"></i> Subject Assignment
                 </a>

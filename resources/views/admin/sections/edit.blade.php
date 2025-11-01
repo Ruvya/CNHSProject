@@ -31,11 +31,19 @@
                 </select>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Cluster</label>
-                <select name="track" class="form-select" required>
-                    @foreach($tracks as $t)
-                        <option value="{{ $t }}" @selected(old('track', $section->track)===$t)>{{ $t }}</option>
+                <label class="form-label">Track <span class="text-danger">*</span></label>
+                <select name="track" id="track" class="form-select" required>
+                    <option value="">Select Track</option>
+                    @foreach($tracks as $track)
+                        <option value="{{ $track->name }}" @selected(old('track', $section->track)===$track->name)>{{ $track->name }}</option>
                     @endforeach
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Cluster</label>
+                <select name="cluster" id="cluster" class="form-select">
+                    <option value="">Select Cluster (Optional)</option>
+                    <!-- Options will be populated by JavaScript based on track selection -->
                 </select>
             </div>
             <div class="col-md-4">
@@ -67,6 +75,88 @@
         </div>
     </form>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const trackSelect = document.getElementById('track');
+    const clusterSelect = document.getElementById('cluster');
+    const oldCluster = '{{ old("cluster", $section->cluster) }}';
+    const currentTrack = '{{ old("track", $section->track) }}';
+
+    // Load clusters by track name
+    async function loadClustersByTrackName(trackName) {
+        if (!trackName) {
+            clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
+            return;
+        }
+
+        // Find the track ID from the tracks data
+        const tracks = @json($tracks);
+        const track = tracks.find(t => t.name === trackName);
+        
+        if (!track) {
+            clusterSelect.innerHTML = '<option value="">No clusters available</option>';
+            return;
+        }
+
+        await loadClustersByTrackId(track.id);
+    }
+
+    // Load clusters by track ID using AJAX
+    async function loadClustersByTrackId(trackId) {
+        if (!trackId) {
+            clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
+            return;
+        }
+
+        clusterSelect.innerHTML = '<option value="">Loading clusters...</option>';
+        clusterSelect.disabled = true;
+
+        try {
+            const response = await fetch(`/admin/api/clusters/by-track/${trackId}`);
+            const data = await response.json();
+
+            clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
+            
+            if (data.success && data.clusters && data.clusters.length > 0) {
+                data.clusters.forEach(cluster => {
+                    const option = document.createElement('option');
+                    option.value = cluster.name;
+                    option.textContent = cluster.name;
+                    if (cluster.description) {
+                        option.textContent += ' - ' + cluster.description;
+                    }
+                    if (cluster.name === oldCluster) {
+                        option.selected = true;
+                    }
+                    clusterSelect.appendChild(option);
+                });
+            } else {
+                clusterSelect.innerHTML = '<option value="">No clusters available for this track</option>';
+            }
+        } catch (error) {
+            console.error('Error loading clusters:', error);
+            clusterSelect.innerHTML = '<option value="">Error loading clusters</option>';
+        } finally {
+            clusterSelect.disabled = false;
+        }
+    }
+
+    // Initialize clusters on page load
+    if (currentTrack) {
+        loadClustersByTrackName(currentTrack);
+    }
+
+    // Update clusters when track changes
+    trackSelect.addEventListener('change', function() {
+        const selectedTrack = this.value;
+        loadClustersByTrackName(selectedTrack);
+    });
+});
+</script>
+@endpush
+
 @endsection
 
 

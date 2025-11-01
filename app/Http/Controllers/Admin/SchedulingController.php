@@ -123,7 +123,8 @@ class SchedulingController extends Controller
             'subject_id' => 'required|exists:subjects,id',
             'section_id' => 'required|exists:sections,id',
             // Room removed from scheduling flow
-            'day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+            'days' => 'required|array|min:1',
+            'days.*' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'school_year' => 'required|string',
@@ -187,41 +188,92 @@ class SchedulingController extends Controller
             }
         } catch (\Throwable $e) {}
 
-        $validation = $this->validationService->validateSchedule($validated);
+        // Get selected days
+        $selectedDays = $request->input('days', []);
+        if (empty($selectedDays)) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => ['days' => ['Please select at least one day.']],
+                ], 422);
+            }
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['days' => 'Please select at least one day.']);
+        }
 
-        if (!$validation['valid']) {
+        // Prepare base schedule data (without day)
+        $baseScheduleData = $validated;
+        unset($baseScheduleData['days']); // Remove days array from base data
+
+        // Validate conflicts for each selected day
+        $allErrors = [];
+        $createdSchedules = [];
+        
+        foreach ($selectedDays as $day) {
+            $scheduleData = array_merge($baseScheduleData, ['day' => $day]);
+            
+            // Validate schedule for conflicts
+            $validation = $this->validationService->validateSchedule($scheduleData);
+            
+            if (!$validation['valid']) {
+                foreach ($validation['errors'] as $error) {
+                    $allErrors[] = "{$day}: {$error}";
+                }
+            } else {
+                // Create the schedule for this day
+                try {
+                    $schedule = Schedule::create($scheduleData);
+                    $createdSchedules[] = $schedule;
+                } catch (\Exception $e) {
+                    $allErrors[] = "{$day}: Failed to create schedule - " . $e->getMessage();
+                }
+            }
+        }
+
+        // If there are errors for any day, delete created schedules and return errors
+        if (!empty($allErrors)) {
+            // Delete any schedules that were created before errors
+            foreach ($createdSchedules as $schedule) {
+                try {
+                    $schedule->delete();
+                } catch (\Exception $e) {
+                    // Ignore deletion errors
+                }
+            }
+
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Schedule validation failed',
-                    'errors' => $validation['errors'],
+                    'errors' => $allErrors,
                 ], 422);
             }
 
             return redirect()->back()
                 ->withInput()
-                ->withErrors($validation['errors'])
-                ->with('error', 'Schedule validation failed: ' . implode(', ', $validation['errors']));
+                ->withErrors(['days' => implode(', ', $allErrors)])
+                ->with('error', 'Schedule validation failed: ' . implode(', ', $allErrors));
         }
-
-        // Create the schedule
-        $schedule = Schedule::create($validated);
 
         // Prepare success message
         $teacher = Teacher::find($validated['teacher_id']);
         $subject = Subject::find($validated['subject_id']);
         $section = Section::find($validated['section_id']);
 
+        $dayCount = count($createdSchedules);
+        $daysList = implode(', ', $selectedDays);
+        
         $successMessage = "✅ Schedule Created Successfully!\n\n";
         $successMessage .= "📋 Schedule Details:\n";
         $successMessage .= "👨‍🏫 Teacher: {$teacher->name}\n";
-        $successMessage .= "📚 Subject: {$subject->name} ({$subject->code})\n";
+        $successMessage .= "📚 Subject: {$subject->name}\n";
         $successMessage .= "🏫 Section: {$section->name}\n";
-        // Room removed from schedule details
-        $successMessage .= "📅 Day: {$validated['day']}\n";
+        $successMessage .= "📅 Days: {$daysList} ({$dayCount} " . ($dayCount == 1 ? 'schedule' : 'schedules') . " created)\n";
         $successMessage .= "🕒 Time: " . date('g:i A', strtotime($validated['start_time'])) . " - " . date('g:i A', strtotime($validated['end_time'])) . "\n";
         $successMessage .= "📊 School Year: {$validated['school_year']}\n";
-        $successMessage .= "📝 Grading Period: " . ($validated['semester'] ?? ($validated['grading_period'] ?? '')) . "\n";
+        $successMessage .= "📝 Semester: " . ($validated['semester'] ?? ($validated['grading_period'] ?? '')) . "\n";
         $successMessage .= "🕒 Created on: " . now()->format('M d, Y h:i A');
 
         // If AJAX request, return JSON with redirect URL
@@ -230,7 +282,8 @@ class SchedulingController extends Controller
                 'success' => true,
                 'message' => $successMessage,
                 'redirect' => route('admin.scheduling.index'),
-                'schedule_id' => $schedule->id,
+                'schedule_count' => count($createdSchedules),
+                'schedule_ids' => array_map(function($s) { return $s->id; }, $createdSchedules),
             ]);
         }
 
@@ -438,16 +491,55 @@ class SchedulingController extends Controller
      */
     public function validateConflicts(Request $request)
     {
-        $scheduleData = $request->only([
+        $baseData = $request->only([
             'teacher_id', 'subject_id', 'section_id',
-            'day', 'start_time', 'end_time', 'school_year', 'grading_period', 'semester'
+            'start_time', 'end_time', 'school_year', 'grading_period', 'semester'
         ]);
 
+        $days = $request->input('days', []);
+        
+        // If single day is provided (legacy support), convert to array
+        if (empty($days) && $request->has('day')) {
+            $days = [$request->input('day')];
+        }
+
+        if (empty($days)) {
+            return response()->json([
+                'valid' => false,
+                'errors' => ['Please select at least one day.'],
+            ]);
+        }
+
         $excludeScheduleId = $request->get('exclude_schedule_id');
+        
+        $allErrors = [];
+        $allWarnings = [];
+        $valid = true;
 
-        $validation = $this->validationService->validateSchedule($scheduleData, $excludeScheduleId);
+        // Validate each day
+        foreach ($days as $day) {
+            $scheduleData = array_merge($baseData, ['day' => $day]);
+            $validation = $this->validationService->validateSchedule($scheduleData, $excludeScheduleId);
+            
+            if (!$validation['valid']) {
+                $valid = false;
+                foreach ($validation['errors'] as $error) {
+                    $allErrors[] = "{$day}: {$error}";
+                }
+            }
+            
+            if (isset($validation['warnings']) && !empty($validation['warnings'])) {
+                foreach ($validation['warnings'] as $warning) {
+                    $allWarnings[] = "{$day}: {$warning}";
+                }
+            }
+        }
 
-        return response()->json($validation);
+        return response()->json([
+            'valid' => $valid,
+            'errors' => $allErrors,
+            'warnings' => $allWarnings,
+        ]);
     }
 
     /**

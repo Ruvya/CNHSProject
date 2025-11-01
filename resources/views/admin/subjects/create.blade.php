@@ -36,7 +36,7 @@
                                 Basic Information
                             </h6>
                             <div class="row">
-                                <div class="col-md-8 mb-3">
+                                <div class="col-md-12 mb-3">
                                     <label for="name" class="form-label fw-semibold">
                                         Subject Name <span class="text-danger">*</span>
                                     </label>
@@ -48,41 +48,6 @@
                                            placeholder="e.g., General Mathematics"
                                            required>
                                     @error('name')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="code" class="form-label fw-semibold">
-                                        Subject Code <span class="text-success">(Auto-Generated)</span>
-                                    </label>
-                                    <input type="text"
-                                           class="form-control bg-light @error('code') is-invalid @enderror"
-                                           id="code"
-                                           name="code"
-                                           value="{{ old('code') }}"
-                                           placeholder="Will be auto-generated"
-                                           style="text-transform: uppercase;"
-                                           readonly>
-                                    <div class="form-text text-success">
-                                        <i class="fas fa-magic me-1"></i>Code will be automatically generated based on subject name
-                                    </div>
-                                    @error('code')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-12 mb-3">
-                                    <label for="description" class="form-label fw-semibold">
-                                        Description
-                                    </label>
-                                    <textarea class="form-control @error('description') is-invalid @enderror"
-                                              id="description"
-                                              name="description"
-                                              rows="3"
-                                              placeholder="Brief description of the subject content and objectives">{{ old('description') }}</textarea>
-                                    @error('description')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -159,11 +124,11 @@
                                             name="track"
                                             required>
                                         <option value="">Select Track</option>
-                                        <option value="All" {{ old('track') == 'All' ? 'selected' : '' }}>All</option>
-                                        <option value="Academic Track" {{ old('track') == 'Academic Track' ? 'selected' : '' }}>Academic Track</option>
-                                        <option value="TVL Track" {{ old('track') == 'TVL Track' ? 'selected' : '' }}>TVL Track</option>
-                                        <option value="Sports Track" {{ old('track') == 'Sports Track' ? 'selected' : '' }}>Sports Track</option>
-                                        <option value="Arts and Design Track" {{ old('track') == 'Arts and Design Track' ? 'selected' : '' }}>Arts and Design Track</option>
+                                        @foreach($tracks as $track)
+                                            <option value="{{ $track->name }}" {{ old('track') == $track->name ? 'selected' : '' }}>
+                                                {{ $track->name }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                     @error('track')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -184,20 +149,6 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="specialization" class="form-label fw-semibold">
-                                        Specialization
-                                    </label>
-                                    <input type="text"
-                                           class="form-control @error('specialization') is-invalid @enderror"
-                                           id="specialization"
-                                           name="specialization"
-                                           value="{{ old('specialization') }}"
-                                           placeholder="e.g., Computer Programming, Cookery">
-                                    @error('specialization')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
                             </div>
                         </div>
 
@@ -208,7 +159,7 @@
                                 Academic Configuration
                             </h6>
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-12 mb-3">
                                     <label for="semester" class="form-label fw-semibold">
                                         Semester <span class="text-danger">*</span>
                                     </label>
@@ -224,25 +175,6 @@
                                     @error('semester')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="teacher_id" class="form-label fw-semibold">
-                                        Assigned Teacher
-                                    </label>
-                                    <select class="form-select @error('teacher_id') is-invalid @enderror"
-                                            id="teacher_id"
-                                            name="teacher_id">
-                                        <option value="">Select Teacher (Optional)</option>
-                                        @foreach($teachers as $teacher)
-                                            <option value="{{ $teacher->id }}" {{ old('teacher_id') == $teacher->id ? 'selected' : '' }}>
-                                                {{ $teacher->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('teacher_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                    <div class="form-text">You can assign a teacher now or later</div>
                                 </div>
                             </div>
                         </div>
@@ -309,75 +241,73 @@ document.addEventListener('DOMContentLoaded', function() {
     const gradeLevelSelect = document.getElementById('grade_level');
     const coreSubjectCheckbox = document.getElementById('is_core_subject');
     const electiveSubjectCheckbox = document.getElementById('is_master_subject');
-    const codeInput = document.getElementById('code');
     const nameInput = document.getElementById('name');
     const gradingSelect = document.getElementById('grading');
+
+    // Load clusters by track name
+    async function loadClustersByTrackName(trackName) {
+        if (!trackName || trackName === 'All') {
+            clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
+            if (trackName === 'All') {
+                clusterSelect.innerHTML += '<option value="All">All</option>';
+            }
+            return;
+        }
+
+        const tracks = @json($tracks);
+        const track = tracks.find(t => t.name === trackName);
+        
+        if (!track) {
+            clusterSelect.innerHTML = '<option value="">No clusters available</option>';
+            return;
+        }
+
+        await loadClustersByTrackId(track.id);
+    }
+
+    // Load clusters by track ID using AJAX
+    async function loadClustersByTrackId(trackId) {
+        if (!trackId) {
+            clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
+            return;
+        }
+
+        clusterSelect.innerHTML = '<option value="">Loading clusters...</option>';
+        clusterSelect.disabled = true;
+
+        try {
+            const response = await fetch(`/admin/api/clusters/by-track/${trackId}`);
+            const data = await response.json();
+
+            clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
+            
+            if (data.success && data.clusters && data.clusters.length > 0) {
+                data.clusters.forEach(cluster => {
+                    const option = document.createElement('option');
+                    option.value = cluster.name;
+                    option.textContent = cluster.name;
+                    if (cluster.description) {
+                        option.textContent += ' - ' + cluster.description;
+                    }
+                    clusterSelect.appendChild(option);
+                });
+            } else {
+                clusterSelect.innerHTML = '<option value="">No clusters available for this track</option>';
+            }
+        } catch (error) {
+            console.error('Error loading clusters:', error);
+            clusterSelect.innerHTML = '<option value="">Error loading clusters</option>';
+        } finally {
+            clusterSelect.disabled = false;
+        }
+    }
 
     // Update clusters when track changes
     trackSelect.addEventListener('change', function() {
         const selectedTrack = this.value;
-        clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
-
-        if (selectedTrack === 'Academic Track') {
-            clusterSelect.innerHTML += `
-                <option value="HUMSS">HUMSS (Humanities and Social Sciences)</option>
-                <option value="STEM">STEM (Science, Technology, Engineering and Mathematics)</option>
-                <option value="ABM">ABM (Accountancy, Business and Management)</option>
-                <option value="GAS">GAS (General Academic Strand)</option>
-            `;
-        } else if (selectedTrack === 'TVL Track') {
-            clusterSelect.innerHTML += `
-                <option value="TVL-ICT">TVL-ICT (Information and Communications Technology)</option>
-                <option value="TVL-HE">TVL-HE (Home Economics)</option>
-                <option value="TVL-AFA">TVL-AFA (Agri-Fishery Arts)</option>
-            `;
-        } else if (selectedTrack === 'Sports Track') {
-            clusterSelect.innerHTML += `
-                <option value="Sports">Sports</option>
-            `;
-        } else if (selectedTrack === 'Arts and Design Track') {
-            clusterSelect.innerHTML += `
-                <option value="Arts and Design">Arts and Design</option>
-            `;
-        } else if (selectedTrack === 'All') {
-            clusterSelect.innerHTML += `
-                <option value="All">All</option>
-            `;
-        }
+        loadClustersByTrackName(selectedTrack);
     });
 
-    // Auto-generate unique subject code based on name
-    nameInput.addEventListener('input', function() {
-        const name = this.value.trim();
-        if (name) {
-            // Generate code from first letters of words
-            const words = name.split(' ');
-            let baseCode = '';
-            words.forEach(word => {
-                if (word.length > 0) {
-                    baseCode += word.charAt(0).toUpperCase();
-                }
-            });
-
-            // Limit base code to 6 characters to leave room for numbers
-            if (baseCode.length > 6) {
-                baseCode = baseCode.substring(0, 6);
-            }
-
-            // Add timestamp-based suffix to ensure uniqueness
-            const timestamp = Date.now().toString().slice(-3);
-            const finalCode = baseCode + timestamp;
-
-            codeInput.value = finalCode;
-        } else {
-            codeInput.value = '';
-        }
-    });
-
-    // Ensure code is always uppercase
-    codeInput.addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-    });
 
     // Core Subject auto-assign logic
     coreSubjectCheckbox.addEventListener('change', function() {
@@ -414,10 +344,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Form validation
     document.getElementById('subjectForm').addEventListener('submit', function(e) {
-        const requiredFields = ['name', 'code'];
+        const requiredFields = ['name'];
         let isValid = true;
 
-        // Always validate name and code
+        // Always validate name
         requiredFields.forEach(fieldName => {
             const field = document.getElementById(fieldName);
             if (!field.value.trim()) {

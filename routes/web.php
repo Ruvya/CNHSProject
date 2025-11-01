@@ -15123,6 +15123,13 @@ Route::delete('subjects/{subject}', [App\Http\Controllers\Admin\SubjectControlle
         Route::post('sections/{section}/assign-students', [App\Http\Controllers\Admin\SectionController::class, 'assignStudents'])->name('sections.assign-students');
         Route::delete('sections/{section}/students/{student}', [App\Http\Controllers\Admin\SectionController::class, 'removeStudent'])->name('sections.remove-student');
 
+        // Tracks & Clusters Management
+        Route::resource('tracks', App\Http\Controllers\Admin\TrackController::class);
+        Route::patch('tracks/{track}/toggle-status', [App\Http\Controllers\Admin\TrackController::class, 'toggleStatus'])->name('tracks.toggle-status');
+        Route::resource('clusters', App\Http\Controllers\Admin\ClusterController::class);
+        Route::patch('clusters/{cluster}/toggle-status', [App\Http\Controllers\Admin\ClusterController::class, 'toggleStatus'])->name('clusters.toggle-status');
+        Route::get('api/clusters/by-track/{trackId}', [App\Http\Controllers\Admin\ClusterController::class, 'getByTrack'])->name('api.clusters.by-track');
+
         // Profile Management Routes
         Route::get('profile', [App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('profile.index');
         Route::put('profile', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');

@@ -178,7 +178,6 @@
                         </div>
                         <div>
                             <h5 class="mb-1">{{ $schedule->subject->name }}</h5>
-                            <p class="text-muted mb-0">{{ $schedule->subject->code ?? 'No Code' }}</p>
                         </div>
                     </div>
                     <div class="row g-2">

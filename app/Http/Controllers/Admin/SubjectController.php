@@ -35,8 +35,11 @@ class SubjectController extends Controller
 
     public function create()
     {
-        $teachers = \App\Models\Teacher::where('status', 'active')->orderBy('name')->get();
-        return view('admin.subjects.create', compact('teachers'));
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+        return view('admin.subjects.create', compact('tracks'));
     }
 
     public function store(Request $request)
@@ -46,9 +49,7 @@ class SubjectController extends Controller
 
         $validationRules = [
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:subjects,code',
             'teacher_id' => 'nullable|exists:teachers,id',
-            'description' => 'nullable|string|max:1000',
             'is_core_subject' => 'nullable|boolean',
             'is_master_subject' => 'nullable|boolean',
         ];
@@ -65,8 +66,6 @@ class SubjectController extends Controller
         }
 
         $validationRules['cluster'] = 'nullable|string|max:100';
-        $validationRules['specialization'] = 'nullable|string|max:100';
-        
 
         $validated = $request->validate($validationRules);
 
@@ -81,8 +80,6 @@ class SubjectController extends Controller
             $validated['cluster'] = 'All';
             $validated['grading'] = 'All Gradings';
         }
-
-        $validated['code'] = strtoupper($validated['code']);
         
         
         Subject::create($validated);
@@ -96,8 +93,11 @@ class SubjectController extends Controller
 
     public function edit(Subject $subject)
     {
-        $teachers = \App\Models\Teacher::where('status', 'active')->orderBy('name')->get();
-        return view('admin.subjects.edit', compact('subject', 'teachers'));
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+        return view('admin.subjects.edit', compact('subject', 'tracks'));
     }
 
     public function update(Request $request, Subject $subject)
@@ -107,9 +107,7 @@ class SubjectController extends Controller
 
         $validationRules = [
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:subjects,code,' . $subject->id,
             'teacher_id' => 'nullable|exists:teachers,id',
-            'description' => 'nullable|string|max:1000',
             'is_core_subject' => 'nullable|boolean',
             'is_master_subject' => 'nullable|boolean',
         ];
@@ -126,8 +124,6 @@ class SubjectController extends Controller
         }
 
         $validationRules['cluster'] = 'nullable|string|max:100';
-        $validationRules['specialization'] = 'nullable|string|max:100';
-        
 
         $validated = $request->validate($validationRules);
 
@@ -142,8 +138,6 @@ class SubjectController extends Controller
             $validated['cluster'] = 'All';
             $validated['grading'] = 'All Gradings';
         }
-
-        $validated['code'] = strtoupper($validated['code']);
         
         
         $subject->update($validated);

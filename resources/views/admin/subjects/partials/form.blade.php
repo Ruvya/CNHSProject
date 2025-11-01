@@ -3,8 +3,8 @@
     <input type="text" name="name" id="name" class="form-control" value="{{ old('name', $subject->name ?? '') }}" required>
 </div>
 <div class="mb-3">
-    <label for="code" class="form-label">Code</label>
-    <input type="text" name="code" id="code" class="form-control" value="{{ old('code', $subject->code ?? '') }}" required>
+    <label for="code" class="form-label">Code (Optional)</label>
+    <input type="text" name="code" id="code" class="form-control" value="{{ old('code', $subject->code ?? '') }}">
 </div>
 <div class="mb-3">
     <label for="grade_level" class="form-label">Grade Level</label>

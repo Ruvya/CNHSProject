@@ -149,7 +149,11 @@ class UserController extends Controller
     // Teacher Management
     public function createTeacher()
     {
-        return view('admin.users.create-teacher');
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+        return view('admin.users.create-teacher', compact('tracks'));
     }
 
     public function storeTeacher(Request $request)
@@ -191,7 +195,11 @@ class UserController extends Controller
 
     public function editTeacher(Teacher $teacher)
     {
-        return view('admin.users.edit-teacher', compact('teacher'));
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+        return view('admin.users.edit-teacher', compact('teacher', 'tracks'));
     }
 
     /**

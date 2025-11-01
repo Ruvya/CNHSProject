@@ -144,7 +144,7 @@
                                 <i class="fas fa-toggle-on me-2"></i>STATUS
                             </th>
                             <th>
-                                <i class="fas fa-cogs me-2"></i>ACTIONS
+                                <i class="fas fa-download me-2"></i>LOAD
                             </th>
                         </tr>
                     </thead>
@@ -163,21 +163,14 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="{{ route('principal.teachers.edit', $teacher) }}" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form action="{{ route('principal.teachers.destroy', $teacher) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this teacher?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn btn-sm btn-primary" onclick="loadTeacher({{ $teacher->id }})">
+                                        <i class="fas fa-download me-1"></i>Load
+                                    </button>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center">No teachers found.</td>
+                                <td colspan="8" class="text-center">No teachers found.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -571,76 +564,11 @@
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Add event listener to all delete buttons
-    document.querySelectorAll('form[action*="teachers"]').forEach(form => {
-        if (form.querySelector('button[type="submit"]').textContent.includes('trash')) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                if (confirm('Are you sure you want to delete this teacher?')) {
-                    const form = this;
-                    const button = form.querySelector('button[type="submit"]');
-                    const teacherId = form.action.split('/').pop();
-                    const row = document.getElementById('teacher-row-' + teacherId);
-
-                    // Immediately hide the row with animation
-                    if (row) {
-                        row.style.transition = 'all 0.3s ease';
-                        row.style.opacity = '0';
-                        row.style.transform = 'translateX(-20px)';
-
-                        // Remove the row after animation
-                        setTimeout(() => {
-                            row.remove();
-
-                            // Check if there are no more teachers
-                            const remainingRows = document.querySelectorAll('tbody tr:not(.no-teachers)');
-                            if (remainingRows.length === 0) {
-                                const tbody = document.querySelector('tbody');
-                                const noTeachersRow = document.createElement('tr');
-                                noTeachersRow.className = 'no-teachers';
-                                noTeachersRow.innerHTML = `
-                                    <td colspan="7" class="text-center">No teachers found.</td>
-                                `;
-                                tbody.appendChild(noTeachersRow);
-                            }
-                        }, 300);
-                    }
-
-                    // Submit the form to server
-                    fetch(form.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        },
-                        body: new FormData(form)
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-
-                        // Show success message
-                        showAlert('success', 'Teacher deleted successfully.');
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-
-                        // If there was an error, revert the deletion
-                        if (!document.getElementById('teacher-row-' + teacherId)) {
-                            const tbody = document.querySelector('tbody');
-                            tbody.insertBefore(row, tbody.firstChild);
-                            row.style.opacity = '1';
-                            row.style.transform = 'translateX(0)';
-                        }
-
-                        // Show error message
-                        showAlert('danger', 'Error deleting teacher. The teacher has been restored.');
-                    });
-                }
-            });
-        }
-    });
+    // Load teacher function
+    window.loadTeacher = function(teacherId) {
+        // Redirect to show page to display teacher's subjects and schedules
+        window.location.href = '{{ route("principal.teachers.show", ":id") }}'.replace(':id', teacherId);
+    };
 
     // Filter functionality
     window.filterTeachers = function(status) {
@@ -673,7 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const noResultsRow = document.createElement('tr');
             noResultsRow.className = 'no-teachers';
             noResultsRow.innerHTML = `
-                <td colspan="7" class="text-center">No teachers found for the selected filter.</td>
+                <td colspan="8" class="text-center">No teachers found for the selected filter.</td>
             `;
             tbody.appendChild(noResultsRow);
         } else if (visibleCount > 0 && noTeachersRow) {

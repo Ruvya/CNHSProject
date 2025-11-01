@@ -85,39 +85,29 @@ class ProfileController extends Controller
             ->pluck('name', 'name')
             ->toArray();
 
+        // Get tracks from database
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->pluck('name', 'name')
+            ->toArray();
+
+        // Get clusters from database
+        $clusters = \App\Models\Cluster::active()
+            ->with('track')
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get()
+            ->pluck('name', 'name')
+            ->toArray();
+
         return [
             'grade_levels' => [
                 'Grade 11' => 'Grade 11',
                 'Grade 12' => 'Grade 12',
             ],
-            'tracks' => [
-                'Academic Track' => 'Academic Track',
-                'Technical-Vocational-Livelihood Track' => 'Technical-Vocational-Livelihood Track',
-                'Sports Track' => 'Sports Track',
-                'Arts and Design Track' => 'Arts and Design Track',
-            ],
-            'strands' => [
-                // Academic Track Strands
-                'STEM' => 'STEM (Science, Technology, Engineering, and Mathematics)',
-                'HUMSS' => 'HUMSS (Humanities and Social Sciences)',
-                'ABM' => 'ABM (Accountancy, Business, and Management)',
-                'GAS' => 'GAS (General Academic Strand)',
-
-                // TVL Track Strands
-                'TVL-AFA' => 'TVL-AFA (Agri-Fishery Arts)',
-                'TVL-HE' => 'TVL-HE (Home Economics)',
-                'TVL-IA' => 'TVL-IA (Industrial Arts)',
-                'TVL-ICT' => 'TVL-ICT (Information and Communications Technology)',
-
-                // Sports Track
-                'Sports' => 'Sports',
-
-                // Arts and Design Track
-                'Creative Writing' => 'Creative Writing',
-                'Visual Arts' => 'Visual Arts',
-                'Performing Arts' => 'Performing Arts',
-                'Media Arts' => 'Media Arts',
-            ],
+            'tracks' => $tracks ?: [],
+            'strands' => $clusters ?: [],
             'sections' => [
                 'Einstein' => 'Einstein',
                 'Newton' => 'Newton',

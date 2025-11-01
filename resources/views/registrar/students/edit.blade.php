@@ -160,10 +160,11 @@
                                 <label for="track" class="form-label">Academic Track</label>
                                 <select class="form-select @error('track') is-invalid @enderror" id="track" name="track">
                                     <option value="">Select Track (Optional)</option>
-                                    <option value="Academic Track" {{ old('track', $student->track) === 'Academic Track' ? 'selected' : '' }}>Academic Track</option>
-                                    <option value="Technical-Vocational-Livelihood Track" {{ old('track', $student->track) === 'Technical-Vocational-Livelihood Track' ? 'selected' : '' }}>Technical-Vocational-Livelihood Track</option>
-                                    <option value="Sports Track" {{ old('track', $student->track) === 'Sports Track' ? 'selected' : '' }}>Sports Track</option>
-                                    <option value="Arts and Design Track" {{ old('track', $student->track) === 'Arts and Design Track' ? 'selected' : '' }}>Arts and Design Track</option>
+                                    @foreach($tracks as $track)
+                                        <option value="{{ $track->name }}" {{ old('track', $student->track) === $track->name ? 'selected' : '' }}>
+                                            {{ $track->name }}
+                                        </option>
+                                    @endforeach
                                 </select>
                                 @error('track')
                                     <div class="invalid-feedback">{{ $message }}</div>

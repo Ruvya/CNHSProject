@@ -111,7 +111,8 @@ class SectionController extends Controller
     {
         $teachers = Teacher::orderBy('name')->get();
         $years = SchoolYear::orderByDesc('start_year')->get(['name','status']);
-        $tracks = ['STEM','ABM','HUMSS','GAS','TVL'];
+        // Get tracks from database
+        $tracks = \App\Models\Track::active()->orderBy('order')->orderBy('name')->get();
         $gradeLevels = ['Grade 11','Grade 12'];
         return view('admin.sections.create', compact('teachers','tracks','gradeLevels','years'));
     }
@@ -121,7 +122,8 @@ class SectionController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'grade_level' => 'required|string|in:Grade 11,Grade 12',
-            'track' => 'required|string|in:STEM,ABM,HUMSS,GAS,TVL',
+            'track' => 'required|string|max:255',
+            'cluster' => 'nullable|string|max:255',
             'strand' => 'nullable|string|max:255',
             'adviser_id' => 'nullable|exists:teachers,id',
             'max_capacity' => 'nullable|integer|min:1',
@@ -174,7 +176,8 @@ class SectionController extends Controller
     public function edit(Section $section)
     {
         $teachers = Teacher::orderBy('name')->get();
-        $tracks = ['STEM','ABM','HUMSS','GAS','TVL'];
+        // Get tracks from database
+        $tracks = \App\Models\Track::active()->orderBy('order')->orderBy('name')->get();
         $gradeLevels = ['Grade 11','Grade 12'];
         return view('admin.sections.edit', compact('section','teachers','tracks','gradeLevels'));
     }
@@ -184,7 +187,8 @@ class SectionController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'grade_level' => 'required|string|in:Grade 11,Grade 12',
-            'track' => 'required|string|in:STEM,ABM,HUMSS,GAS,TVL',
+            'track' => 'required|string|max:255',
+            'cluster' => 'nullable|string|max:255',
             'strand' => 'nullable|string|max:255',
             'adviser_id' => 'nullable|exists:teachers,id',
             'max_capacity' => 'nullable|integer|min:1',

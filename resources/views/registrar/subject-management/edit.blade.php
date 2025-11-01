@@ -49,9 +49,9 @@
                                 @enderror
                             </div>
                             <div class="col-md-6">
-                                <label for="code" class="form-label">Subject Code <span class="text-danger">*</span></label>
+                                <label for="code" class="form-label">Subject Code (Optional)</label>
                                 <input type="text" class="form-control @error('code') is-invalid @enderror" 
-                                       id="code" name="code" value="{{ old('code', $subject->code) }}" required>
+                                       id="code" name="code" value="{{ old('code', $subject->code) }}">
                                 @error('code')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

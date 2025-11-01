@@ -49,7 +49,7 @@
                             <option value="">All Subjects</option>
                             @foreach($subjects as $subject)
                                 <option value="{{ $subject->id }}" {{ (isset($selectedSubject) && $selectedSubject == $subject->id) ? 'selected' : '' }}>
-                                    {{ $subject->code ?? '' }} - {{ $subject->name }}
+                                    {{ $subject->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -80,7 +80,12 @@
                     <div class="col-md-2">
                         <label for="school_year" class="form-label">School Year</label>
                         <input type="text" name="school_year" id="school_year" class="form-control" 
-                               value="{{ $schoolYear ?? '' }}" placeholder="e.g., 2024-2025">
+                               value="{{ $schoolYear ?? '' }}" placeholder="e.g., 2024-2025" list="school_years_list">
+                               <datalist id="school_years_list">
+                                   @foreach(\App\Models\SchoolYear::orderByDesc('start_year')->get() as $sy)
+                                       <option value="{{ $sy->name }}">
+                                   @endforeach
+                               </datalist>
                     </div>
                 </div>
                 <div class="row g-3 mt-2">
@@ -155,7 +160,6 @@
                                     <td>
                                         <div>
                                             <div class="fw-medium">{{ $schedule->subject->name }}</div>
-                                            <small class="text-muted">{{ $schedule->subject->code ?? 'No Code' }}</small>
                                         </div>
                                     </td>
                                     <td>

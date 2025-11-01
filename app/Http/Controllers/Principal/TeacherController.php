@@ -29,9 +29,50 @@ class TeacherController extends Controller
             ->with('error', 'Teacher accounts are created by administrators. You can only manage existing teacher information.');
     }
 
+    public function show(Teacher $teacher)
+    {
+        // Get all active schedules for this teacher
+        $schedules = \App\Models\Schedule::with(['subject', 'section'])
+            ->where('teacher_id', $teacher->id)
+            ->where('status', 'active')
+            ->orderBy('subject_id')
+            ->orderByRaw("FIELD(day, 'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday')")
+            ->orderBy('start_time')
+            ->get();
+
+        // Group schedules by subject_id, section_id, and time slot
+        // This handles multiple days for the same subject/section/time
+        $groupedSchedules = [];
+        foreach ($schedules as $schedule) {
+            $key = $schedule->subject_id . '_' . $schedule->section_id . '_' . $schedule->start_time . '_' . $schedule->end_time;
+            
+            if (!isset($groupedSchedules[$key])) {
+                $groupedSchedules[$key] = [
+                    'subject' => $schedule->subject,
+                    'section' => $schedule->section,
+                    'start_time' => $schedule->start_time,
+                    'end_time' => $schedule->end_time,
+                    'days' => [],
+                    'subject_id' => $schedule->subject_id,
+                    'section_id' => $schedule->section_id,
+                    'schedule_ids' => [],
+                ];
+            }
+            
+            $groupedSchedules[$key]['days'][] = $schedule->day;
+            $groupedSchedules[$key]['schedule_ids'][] = $schedule->id;
+        }
+
+        return view('Principal.teachers.show', compact('teacher', 'groupedSchedules'));
+    }
+
     public function edit(Teacher $teacher)
     {
-        return view('Principal.teachers.edit', compact('teacher'));
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+        return view('Principal.teachers.edit', compact('teacher', 'tracks'));
     }
 
     public function update(Request $request, Teacher $teacher)

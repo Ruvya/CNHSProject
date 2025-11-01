@@ -106,7 +106,8 @@ class SubjectAssignmentController extends Controller
 
         // Ensure we have values
         if (empty($schoolYear)) {
-            $schoolYear = '2024-2025';
+            $activeYear = \App\Models\SchoolYear::active()->first();
+            $schoolYear = $activeYear ? $activeYear->name : $this->getCurrentSchoolYear();
         }
         if (empty($semester)) {
             $semester = '1st Semester';

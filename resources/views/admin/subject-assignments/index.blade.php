@@ -53,8 +53,15 @@
                     <div class="col-md-2">
                         <label for="school_year" class="form-label">School Year</label>
                         <select name="school_year" id="school_year" class="form-select">
-                            <option value="2024-2025" {{ (isset($schoolYear) && $schoolYear == '2024-2025') ? 'selected' : '' }}>2024-2025</option>
-                            <option value="2025-2026" {{ (isset($schoolYear) && $schoolYear == '2025-2026') ? 'selected' : '' }}>2025-2026</option>
+                            <option value="">All School Years</option>
+                            @php
+                                $schoolYears = \App\Models\SchoolYear::orderByDesc('start_year')->get();
+                            @endphp
+                            @foreach($schoolYears as $sy)
+                                <option value="{{ $sy->name }}" {{ (isset($schoolYear) && $schoolYear == $sy->name) ? 'selected' : '' }}>
+                                    {{ $sy->name }} {{ $sy->status === 'active' ? '(Active)' : '' }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-md-2">

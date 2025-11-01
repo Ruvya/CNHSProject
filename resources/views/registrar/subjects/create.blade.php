@@ -53,18 +53,17 @@
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label for="code" class="form-label fw-semibold">
-                                        Subject Code <span class="text-success">(Auto-Generated)</span>
+                                        Subject Code (Optional)
                                     </label>
                                     <input type="text"
-                                           class="form-control bg-light @error('code') is-invalid @enderror"
+                                           class="form-control @error('code') is-invalid @enderror"
                                            id="code"
                                            name="code"
                                            value="{{ old('code') }}"
-                                           placeholder="Will be auto-generated"
-                                           style="text-transform: uppercase;"
-                                           readonly>
-                                    <div class="form-text text-success">
-                                        <i class="fas fa-magic me-1"></i>Code will be automatically generated based on subject name
+                                           placeholder="e.g., ENG101, MATH11 (Optional)"
+                                           style="text-transform: uppercase;">
+                                    <div class="form-text text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>Subject code is optional. Leave blank if not needed.
                                     </div>
                                     @error('code')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -159,11 +158,11 @@
                                             name="track"
                                             required>
                                         <option value="">Select Track</option>
-                                        <option value="All" {{ old('track') == 'All' ? 'selected' : '' }}>All</option>
-                                        <option value="Academic Track" {{ old('track') == 'Academic Track' ? 'selected' : '' }}>Academic Track</option>
-                                        <option value="TVL Track" {{ old('track') == 'TVL Track' ? 'selected' : '' }}>TVL Track</option>
-                                        <option value="Sports Track" {{ old('track') == 'Sports Track' ? 'selected' : '' }}>Sports Track</option>
-                                        <option value="Arts and Design Track" {{ old('track') == 'Arts and Design Track' ? 'selected' : '' }}>Arts and Design Track</option>
+                                        @foreach($tracks as $track)
+                                            <option value="{{ $track->name }}" {{ old('track') == $track->name ? 'selected' : '' }}>
+                                                {{ $track->name }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                     @error('track')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -397,58 +396,6 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // DepEd Curriculum Data Structure
-    const curriculumData = {
-        'Academic Track': {
-            'STEM': {
-                clusters: ['Mathematics and Science', 'Engineering', 'Medical and Health Sciences'],
-                specializations: ['Pre-Engineering', 'Pre-Medicine', 'Computer Science', 'Applied Physics']
-            },
-            'ABM': {
-                clusters: ['Business and Entrepreneurship', 'Accounting and Finance'],
-                specializations: ['Business Management', 'Accounting', 'Marketing', 'Entrepreneurship']
-            },
-            'HUMSS': {
-                clusters: ['Social Sciences', 'Humanities', 'Communication Arts'],
-                specializations: ['Political Science', 'Psychology', 'Literature', 'Communication']
-            },
-            'GAS': {
-                clusters: ['General Academic Strand'],
-                specializations: ['General Academic Subjects']
-            }
-        },
-        'TVL Track': {
-            'ICT': {
-                clusters: ['Computer Programming', 'Computer Systems Servicing', 'Animation'],
-                specializations: ['Web Development', 'Mobile App Development', 'Network Administration']
-            },
-            'HE': {
-                clusters: ['Cookery', 'Food and Beverage Services', 'Housekeeping'],
-                specializations: ['Culinary Arts', 'Hotel Management', 'Tourism Services']
-            },
-            'IA': {
-                clusters: ['Electrical Installation', 'Electronics', 'Welding'],
-                specializations: ['Electrical Technology', 'Electronics Technology', 'Mechanical Technology']
-            },
-            'AFA': {
-                clusters: ['Agri-Fishery Arts', 'Animal Production', 'Crop Production'],
-                specializations: ['Agriculture', 'Fishery', 'Livestock Production']
-            }
-        },
-        'Sports Track': {
-            'Sports': {
-                clusters: ['Sports Science', 'Physical Education'],
-                specializations: ['Athletic Training', 'Sports Management', 'Physical Therapy']
-            }
-        },
-        'Arts and Design Track': {
-            'Arts and Design': {
-                clusters: ['Visual Arts', 'Performing Arts', 'Media Arts'],
-                specializations: ['Fine Arts', 'Music', 'Theater Arts', 'Digital Arts']
-            }
-        }
-    };
-
     const trackSelect = document.getElementById('track');
     const clusterSelect = document.getElementById('cluster');
     const gradeLevelSelect = document.getElementById('grade_level');
@@ -458,19 +405,67 @@ document.addEventListener('DOMContentLoaded', function() {
     const nameInput = document.getElementById('name');
     const gradingSelect = document.getElementById('grading');
 
+    // Load clusters by track name (fetches track ID first, then clusters)
+    async function loadClustersByTrackName(trackName) {
+        if (!trackName) {
+            clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
+            return;
+        }
+
+        // First, get the track ID from the name
+        const tracks = @json($tracks);
+        const track = tracks.find(t => t.name === trackName);
+        
+        if (!track) {
+            clusterSelect.innerHTML = '<option value="">No clusters available</option>';
+            return;
+        }
+
+        // Now fetch clusters by track ID
+        await loadClustersByTrackId(track.id);
+    }
+
+    // Load clusters by track ID using AJAX
+    async function loadClustersByTrackId(trackId) {
+        if (!trackId) {
+            clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
+            return;
+        }
+
+        clusterSelect.innerHTML = '<option value="">Loading clusters...</option>';
+        clusterSelect.disabled = true;
+
+        try {
+            const response = await fetch(`/admin/api/clusters/by-track/${trackId}`);
+            const data = await response.json();
+
+            clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
+            
+            if (data.success && data.clusters && data.clusters.length > 0) {
+                data.clusters.forEach(cluster => {
+                    const option = document.createElement('option');
+                    option.value = cluster.name;
+                    option.textContent = cluster.name;
+                    if (cluster.description) {
+                        option.textContent += ' - ' + cluster.description;
+                    }
+                    clusterSelect.appendChild(option);
+                });
+            } else {
+                clusterSelect.innerHTML = '<option value="">No clusters available for this track</option>';
+            }
+        } catch (error) {
+            console.error('Error loading clusters:', error);
+            clusterSelect.innerHTML = '<option value="">Error loading clusters</option>';
+        } finally {
+            clusterSelect.disabled = false;
+        }
+    }
+
     // Update clusters when track changes
     trackSelect.addEventListener('change', function() {
         const selectedTrack = this.value;
-        clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
-
-        if (selectedTrack && selectedTrack !== 'All' && curriculumData[selectedTrack]) {
-            Object.keys(curriculumData[selectedTrack]).forEach(cluster => {
-                const option = document.createElement('option');
-                option.value = cluster;
-                option.textContent = cluster;
-                clusterSelect.appendChild(option);
-            });
-        }
+        loadClustersByTrackName(selectedTrack);
     });
 
     // Update clusters when strand changes

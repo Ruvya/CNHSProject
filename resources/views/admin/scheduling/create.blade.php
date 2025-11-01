@@ -55,7 +55,7 @@
                             <option value="">Select Subject</option>
                             @foreach($subjects as $subject)
                                 <option value="{{ $subject->id }}" {{ (isset($selectedSubject) && $selectedSubject == $subject->id) ? 'selected' : '' }}>
-                                    {{ $subject->code ?? 'No Code' }} - {{ $subject->name }}
+                                    {{ $subject->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -82,16 +82,32 @@
 
                     
 
-                    <!-- Day Selection -->
+                    <!-- Days Selection (Multiple Days) -->
                     <div class="col-md-4">
-                        <label for="day" class="form-label">Day <span class="text-danger">*</span></label>
-                        <select name="day" id="day" class="form-select" required>
-                            <option value="">Select Day</option>
+                        <label class="form-label">Days <span class="text-danger">*</span></label>
+                        <div class="border rounded p-2" style="max-height: 150px; overflow-y: auto; background: #f8f9fa;">
+                            @php
+                                $oldDays = old('days', []);
+                            @endphp
                             @foreach($days as $day)
-                                <option value="{{ $day }}">{{ $day }}</option>
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox" 
+                                           type="checkbox" 
+                                           name="days[]" 
+                                           value="{{ $day }}" 
+                                           id="day_{{ strtolower($day) }}"
+                                           {{ in_array($day, $oldDays) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="day_{{ strtolower($day) }}">
+                                        {{ $day }}
+                                    </label>
+                                </div>
                             @endforeach
-                        </select>
-                        @error('day')
+                        </div>
+                        <small class="text-muted">Select one or more days</small>
+                        @error('days')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                        @error('days.*')
                             <div class="text-danger small mt-1">{{ $message }}</div>
                         @enderror
                     </div>
@@ -190,6 +206,14 @@ document.addEventListener('DOMContentLoaded', function() {
     validateBtn.addEventListener('click', function() {
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
+        
+        // Ensure days array is properly formatted from checkboxes
+        const daysCheckboxes = form.querySelectorAll('input[name="days[]"]:checked');
+        if (daysCheckboxes.length === 0) {
+            alert('Please select at least one day to validate.');
+            return;
+        }
+        data.days = Array.from(daysCheckboxes).map(cb => cb.value);
 
         // Show loading
         validateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Validating...';
@@ -239,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Auto-validate when key fields change
-    const keyFields = ['teacher_id', 'subject_id', 'section_id', 'day', 'start_time', 'end_time'];
+    const keyFields = ['teacher_id', 'subject_id', 'section_id', 'start_time', 'end_time'];
     keyFields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (field) {
@@ -249,6 +273,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
+    });
+
+    // Auto-validate when days change
+    document.querySelectorAll('.day-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (conflictValidation.style.display === 'block') {
+                validateBtn.click();
+            }
+        });
     });
 
     // Ensure end time is after start time
@@ -261,6 +294,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Add custom validation for days checkboxes
+    const dayCheckboxes = document.querySelectorAll('.day-checkbox');
+    dayCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            // Clear any previous error messages
+            const errorElement = this.closest('.col-md-4').querySelector('.days-error');
+            if (errorElement) {
+                errorElement.remove();
+            }
+        });
+    });
+
     // Intercept form submit to prevent full page reload
     form.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -268,8 +313,28 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear previous inline errors
         form.querySelectorAll('.text-danger.small').forEach(el => { el.textContent = ''; });
 
+        // Validate that at least one day is selected
+        const daysCheckboxes = form.querySelectorAll('input[name="days[]"]:checked');
+        if (daysCheckboxes.length === 0) {
+            const firstCheckbox = form.querySelector('.day-checkbox');
+            if (firstCheckbox) {
+                const daysContainer = firstCheckbox.closest('.col-md-4');
+                let errorElement = daysContainer.querySelector('.days-error');
+                if (!errorElement) {
+                    errorElement = document.createElement('div');
+                    errorElement.className = 'text-danger small mt-1 days-error';
+                    daysContainer.appendChild(errorElement);
+                }
+                errorElement.textContent = 'Please select at least one day.';
+            }
+            return;
+        }
+
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
+        
+        // Ensure days array is properly formatted
+        data.days = Array.from(daysCheckboxes).map(cb => cb.value);
 
         submitBtn.disabled = true;
         const originalHtml = submitBtn.innerHTML;
@@ -308,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (err && err.status === 422 && err.body) {
                 const errors = err.body.errors || err.body;
                 // Map known fields
-                const fields = ['teacher_id','subject_id','section_id','day','start_time','end_time','school_year','grading_period','notes'];
+                const fields = ['teacher_id','subject_id','section_id','start_time','end_time','school_year','grading_period','notes'];
                 fields.forEach(field => {
                     const input = document.getElementById(field);
                     if (input) {

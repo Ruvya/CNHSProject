@@ -167,10 +167,11 @@
                                 <label for="track" class="form-label">Track</label>
                                 <select class="form-select @error('track') is-invalid @enderror" id="track" name="track">
                                     <option value="">Select Track (Optional)</option>
-                                    <option value="Academic Track" {{ old('track') === 'Academic Track' ? 'selected' : '' }}>Academic Track</option>
-                                    <option value="TVL Track" {{ old('track') === 'TVL Track' ? 'selected' : '' }}>TVL Track</option>
-                                    <option value="Sports Track" {{ old('track') === 'Sports Track' ? 'selected' : '' }}>Sports Track</option>
-                                    <option value="Arts and Design Track" {{ old('track') === 'Arts and Design Track' ? 'selected' : '' }}>Arts and Design Track</option>
+                                    @foreach($tracks as $track)
+                                        <option value="{{ $track->name }}" {{ old('track') === $track->name ? 'selected' : '' }}>
+                                            {{ $track->name }}
+                                        </option>
+                                    @endforeach
                                 </select>
                                 @error('track')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -284,29 +285,67 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    // Load clusters by track name
+    async function loadClustersByTrackName(trackName) {
+        if (!trackName) {
+            $('#cluster').html('<option value="">Select Cluster (Optional)</option>');
+            return;
+        }
+
+        const tracks = @json($tracks);
+        const track = tracks.find(t => t.name === trackName);
+        
+        if (!track) {
+            $('#cluster').html('<option value="">No clusters available</option>');
+            return;
+        }
+
+        await loadClustersByTrackId(track.id);
+    }
+
+    // Load clusters by track ID using AJAX
+    async function loadClustersByTrackId(trackId) {
+        if (!trackId) {
+            $('#cluster').html('<option value="">Select Cluster (Optional)</option>');
+            return;
+        }
+
+        const clusterSelect = $('#cluster');
+        clusterSelect.html('<option value="">Loading clusters...</option>');
+        clusterSelect.prop('disabled', true);
+
+        try {
+            const response = await fetch(`/admin/api/clusters/by-track/${trackId}`);
+            const data = await response.json();
+
+            const currentCluster = '{{ old("cluster") }}';
+            clusterSelect.html('<option value="">Select Cluster (Optional)</option>');
+            
+            if (data.success && data.clusters && data.clusters.length > 0) {
+                data.clusters.forEach(cluster => {
+                    const option = $('<option>');
+                    option.val(cluster.name);
+                    option.text(cluster.name + (cluster.description ? ' - ' + cluster.description : ''));
+                    if (cluster.name === currentCluster) {
+                        option.prop('selected', true);
+                    }
+                    clusterSelect.append(option);
+                });
+            } else {
+                clusterSelect.html('<option value="">No clusters available for this track</option>');
+            }
+        } catch (error) {
+            console.error('Error loading clusters:', error);
+            clusterSelect.html('<option value="">Error loading clusters</option>');
+        } finally {
+            clusterSelect.prop('disabled', false);
+        }
+    }
+
     // Update cluster options based on track selection
     $('#track').on('change', function() {
         const track = $(this).val();
-        const clusterSelect = $('#cluster');
-        const currentCluster = '{{ old("cluster") }}';
-        
-        // Clear current options
-        clusterSelect.html('<option value="">Select Cluster (Optional)</option>');
-        
-        if (track === 'Academic Track') {
-            clusterSelect.append(`
-                <option value="HUMSS" ${currentCluster === 'HUMSS' ? 'selected' : ''}>HUMSS (Humanities and Social Sciences)</option>
-                <option value="STEM" ${currentCluster === 'STEM' ? 'selected' : ''}>STEM (Science, Technology, Engineering and Mathematics)</option>
-                <option value="ABM" ${currentCluster === 'ABM' ? 'selected' : ''}>ABM (Accountancy, Business and Management)</option>
-                <option value="GAS" ${currentCluster === 'GAS' ? 'selected' : ''}>GAS (General Academic Strand)</option>
-            `);
-        } else if (track === 'TVL Track') {
-            clusterSelect.append(`
-                <option value="TVL-ICT" ${currentCluster === 'TVL-ICT' ? 'selected' : ''}>TVL-ICT (Information and Communications Technology)</option>
-                <option value="TVL-HE" ${currentCluster === 'TVL-HE' ? 'selected' : ''}>TVL-HE (Home Economics)</option>
-                <option value="TVL-AFA" ${currentCluster === 'TVL-AFA' ? 'selected' : ''}>TVL-AFA (Agri-Fishery Arts)</option>
-            `);
-        }
+        loadClustersByTrackName(track);
     });
     
     // Trigger track change on page load to populate clusters

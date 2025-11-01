@@ -115,7 +115,13 @@ class SubjectController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('registrar.subjects.create', compact('teachers'));
+        // Get tracks from database
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+
+        return view('registrar.subjects.create', compact('teachers', 'tracks'));
     }
 
     /**
@@ -138,7 +144,7 @@ class SubjectController extends Controller
 
         $validationRules = [
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:subjects,code',
+            'code' => 'nullable|string|max:50|unique:subjects,code',
             'teacher_id' => 'nullable|exists:teachers,id',
             'description' => 'nullable|string|max:1000',
             'is_core_subject' => 'nullable|boolean',
@@ -190,8 +196,12 @@ class SubjectController extends Controller
             $validated['registrar_id'] = $acting['user']->id;
         }
 
-        // Ensure code is uppercase
-        $validated['code'] = strtoupper($validated['code']);
+        // Ensure code is uppercase if provided
+        if (isset($validated['code']) && !empty($validated['code'])) {
+            $validated['code'] = strtoupper($validated['code']);
+        } else {
+            $validated['code'] = null;
+        }
 
         // Process schedule days - convert array to comma-separated string
         if (isset($validated['schedule_days']) && is_array($validated['schedule_days'])) {
@@ -220,7 +230,13 @@ class SubjectController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('registrar.subjects.edit', compact('subject', 'teachers'));
+        // Get tracks from database
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+
+        return view('registrar.subjects.edit', compact('subject', 'teachers', 'tracks'));
     }
 
     public function update(Request $request, Subject $subject)
@@ -230,7 +246,7 @@ class SubjectController extends Controller
 
         $validationRules = [
             'name' => 'required|string|max:255',
-            'code' => "required|string|max:50|unique:subjects,code,{$subject->id}",
+            'code' => "nullable|string|max:50|unique:subjects,code,{$subject->id}",
             'teacher_id' => 'nullable|exists:teachers,id',
             'description' => 'nullable|string|max:1000',
             'is_core_subject' => 'nullable|boolean',
@@ -273,8 +289,12 @@ class SubjectController extends Controller
             $validated['grading'] = 'All Gradings';
         }
 
-        // Ensure code is uppercase
-        $validated['code'] = strtoupper($validated['code']);
+        // Ensure code is uppercase if provided
+        if (isset($validated['code']) && !empty($validated['code'])) {
+            $validated['code'] = strtoupper($validated['code']);
+        } else {
+            $validated['code'] = null;
+        }
 
         // Process schedule days - convert array to comma-separated string
         if (isset($validated['schedule_days']) && is_array($validated['schedule_days'])) {
