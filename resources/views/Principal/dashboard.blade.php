@@ -785,7 +785,7 @@
     .fc-event-title {
         font-size: 0.85rem;
         line-height: 1.3;
-        background: var(--cnhs-gradient-primary) !important;
+        background: inherit !important;
         color: var(--cnhs-white) !important;
         padding: 3px 8px;
         border-radius: 6px;
@@ -927,6 +927,19 @@ function initOrRefreshCalendar() {
                     return eventData;
                 }
             },
+            eventDidMount: function(info) {
+                var color = info.event.extendedProps.color || info.event.backgroundColor || '#3b82f6';
+                if (info.el) {
+                    var titleEl = info.el.querySelector('.fc-event-title');
+                    if (titleEl) {
+                        titleEl.style.backgroundColor = color;
+                        titleEl.style.color = '#fff';
+                    } else {
+                        info.el.style.backgroundColor = color;
+                        info.el.style.color = '#fff';
+                    }
+                }
+            },
             nowIndicator: true,
             selectable: true,
             editable: false,
@@ -934,8 +947,10 @@ function initOrRefreshCalendar() {
                 console.log('Date clicked:', info.dateStr);
                 if (eventModal && typeof eventModal.show === 'function') {
                     resetModal();
-                    if (eventStartInput) eventStartInput.value = info.dateStr + 'T08:00';
-                    if (eventEndInput) eventEndInput.value = info.dateStr + 'T17:00';
+                    var dayStr = info.dateStr;
+                    if (eventStartInput) eventStartInput.value = dayStr + 'T08:00';
+                    if (eventEndInput) eventEndInput.value = dayStr + 'T17:00';
+                    if (eventEndInput && eventStartInput) eventEndInput.min = eventStartInput.value;
                     eventModal.show();
                 } else {
                     console.error('eventModal is not properly initialized');
@@ -980,6 +995,16 @@ document.addEventListener('DOMContentLoaded', function() {
     eventEndInput = document.getElementById('eventEnd');
     eventColorInput = document.getElementById('eventColor');
 
+    // Keep end >= start while typing/selecting
+    if (eventStartInput && eventEndInput) {
+        eventStartInput.addEventListener('change', function(){
+            if (eventEndInput.value && new Date(eventEndInput.value) < new Date(eventStartInput.value)) {
+                eventEndInput.value = eventStartInput.value;
+            }
+            eventEndInput.min = eventStartInput.value;
+        });
+    }
+
     var calendarModal = document.getElementById('calendarModal');
 
     if (calendarModal) {
@@ -999,6 +1024,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 end: eventEndInput.value,
                 color: eventColorInput.value
             };
+            // Guard: ensure end >= start
+            if (data.end && data.start && new Date(data.end) < new Date(data.start)) {
+                alert('End date/time must be after the start.');
+                return;
+            }
             var url, method;
             if (id) {
                 url = `/principal/events/${id}`;

@@ -14,6 +14,7 @@ use App\Models\TeacherAssignment;
 use App\Models\Subject;
 use App\Models\Schedule;
 use App\Services\YearlyRecordService;
+use App\Services\PromotionService;
 
 class SchoolYearController extends Controller
 {
@@ -140,6 +141,117 @@ class SchoolYearController extends Controller
 		return back()->with('success', 'School year activated.');
 	}
 
+	/**
+	 * Promote eligible students for the given (current) school year.
+	 * Optionally activate the next school year after promotion.
+	 */
+    public function promote(Request $request, SchoolYear $schoolYear): RedirectResponse
+	{
+		$validated = $request->validate([
+			'passing_grade' => 'nullable|numeric|min:60|max:100',
+            'dropped_ids' => 'nullable|string',
+            'transferred_ids' => 'nullable|string',
+		]);
+
+		$passing = (float)($validated['passing_grade'] ?? 75);
+
+        // Derive next year values from the current record to preserve naming format
+        $nextStart = (int)$schoolYear->end_year;
+        $nextEnd = $nextStart + 1;
+        $hasPrefix = strpos($schoolYear->name, 'S.Y.') === 0;
+        $usesEndash = strpos($schoolYear->name, '–') !== false; // en dash
+        $separator = $usesEndash ? ' – ' : ' - ';
+        $nextName = ($hasPrefix ? 'S.Y. ' : '') . $nextStart . $separator . $nextEnd;
+
+        $service = app(PromotionService::class);
+        // Pass the normalized next school year name to ensure StudentYearlyRecord uses the same key
+        $result = $service->promoteForSchoolYear($schoolYear->name, $nextName, $passing);
+
+        // Close any active and activate next
+        SchoolYear::where('status', SchoolYear::STATUS_ACTIVE)
+            ->update(['status' => SchoolYear::STATUS_CLOSED]);
+
+        // Prefer existing record by exact year range, then normalize its name/status
+        $nextYear = SchoolYear::where('start_year', $nextStart)
+            ->where('end_year', $nextEnd)
+            ->first();
+        if ($nextYear) {
+            $nextYear->update([
+                'name' => $nextName,
+                'status' => SchoolYear::STATUS_ACTIVE,
+            ]);
+        } else {
+            $nextYear = SchoolYear::create([
+                'name' => $nextName,
+                'start_year' => $nextStart,
+                'end_year' => $nextEnd,
+                'status' => SchoolYear::STATUS_ACTIVE,
+            ]);
+        }
+
+        // Cleanup duplicates of the same range (different names)
+        SchoolYear::where('start_year', $nextStart)
+            ->where('end_year', $nextEnd)
+            ->where('id', '!=', $nextYear->id)
+            ->delete();
+        // Ensure yearly records exist for newly active school year
+        app(YearlyRecordService::class)->ensureForSchoolYear($nextYear->name);
+
+        // Apply overrides for dropped/transferred students
+        $parseIds = function (?string $csv) {
+            if (!$csv) return collect();
+            return collect(explode(',', $csv))
+                ->map(function ($x) { return (int)trim($x); })
+                ->filter(function ($x) { return $x > 0; })
+                ->unique();
+        };
+
+        $dropped = $parseIds($validated['dropped_ids'] ?? null);
+        $transferred = $parseIds($validated['transferred_ids'] ?? null);
+
+        if ($dropped->isNotEmpty() || $transferred->isNotEmpty()) {
+            \DB::transaction(function () use ($dropped, $transferred, $schoolYear, $nextYear) {
+                foreach ($dropped as $studentId) {
+                    // Set next year record to dropped and revert grade level to previous year's level
+                    $prev = \App\Models\StudentYearlyRecord::where('student_id', $studentId)
+                        ->where('school_year', $schoolYear->name)
+                        ->first();
+                    $prevLevel = $prev ? $prev->grade_level : null;
+                    \App\Models\StudentYearlyRecord::updateOrCreate([
+                        'student_id' => $studentId,
+                        'school_year' => $nextYear->name,
+                    ], [
+                        'grade_level' => $prevLevel,
+                        'status' => 'dropped',
+                    ]);
+                    if ($prevLevel) {
+                        \App\Models\Student::where('id', $studentId)->update(['grade_level' => $prevLevel]);
+                    }
+                }
+
+                foreach ($transferred as $studentId) {
+                    $prev = \App\Models\StudentYearlyRecord::where('student_id', $studentId)
+                        ->where('school_year', $schoolYear->name)
+                        ->first();
+                    $prevLevel = $prev ? $prev->grade_level : null;
+                    \App\Models\StudentYearlyRecord::updateOrCreate([
+                        'student_id' => $studentId,
+                        'school_year' => $nextYear->name,
+                    ], [
+                        'grade_level' => $prevLevel,
+                        'status' => 'transferred',
+                    ]);
+                    if ($prevLevel) {
+                        \App\Models\Student::where('id', $studentId)->update(['grade_level' => $prevLevel]);
+                    }
+                }
+            });
+        }
+
+        $summary = "Promotion complete: {$result['promoted']} students promoted, {$result['retained']} retained, and {$result['graduated']} graduated. Activated next school year: {$nextYear->name}.";
+        return back()->with('success', $summary);
+	}
+
 	public function close(SchoolYear $schoolYear): RedirectResponse
 	{
 		$schoolYear->update(['status' => SchoolYear::STATUS_CLOSED]);
@@ -177,7 +289,7 @@ class SchoolYearController extends Controller
 	/**
 	 * Delete school year (only if no records exist)
 	 */
-	public function destroy(SchoolYear $schoolYear): RedirectResponse
+    public function destroy(Request $request, SchoolYear $schoolYear): RedirectResponse
 	{
 		// Check if school year has any records
 		$hasRecords = $schoolYear->studentYearlyRecords()->exists() ||
@@ -186,9 +298,20 @@ class SchoolYearController extends Controller
 			$schoolYear->teacherAssignments()->exists() ||
 			$schoolYear->schedules()->exists();
 
-		if ($hasRecords) {
-			return back()->with('error', 'Cannot delete school year with existing records. Archive it instead.');
-		}
+        if ($hasRecords && !$request->boolean('force')) {
+            return back()->with('error', 'Cannot delete school year with existing records without confirmation. Please confirm to delete all associated records.');
+        }
+
+        if ($hasRecords && $request->boolean('force')) {
+            \DB::transaction(function () use ($schoolYear) {
+                // Delete related records scoped by school year name
+                \App\Models\StudentYearlyRecord::where('school_year', $schoolYear->name)->delete();
+                \App\Models\TeacherYearlyRecord::where('school_year', $schoolYear->name)->delete();
+                \App\Models\Section::where('school_year', $schoolYear->name)->delete();
+                \App\Models\TeacherAssignment::where('school_year', $schoolYear->name)->delete();
+                \App\Models\Schedule::where('school_year', $schoolYear->name)->delete();
+            });
+        }
 
 		$schoolYear->delete();
 

@@ -16,6 +16,7 @@ class PagesController extends Controller
     {
         // Get data for the landing page
         $recentAnnouncements = Announcement::where('status', 'active')
+            ->where('author_type', 'App\\Models\\Principal')
             ->latest()
             ->take(5)
             ->get();
@@ -57,6 +58,7 @@ class PagesController extends Controller
     public function news()
     {
         $announcements = Announcement::where('status', 'active')
+            ->where('author_type', 'App\\Models\\Principal')
             ->latest()
             ->paginate(12);
             

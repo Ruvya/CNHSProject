@@ -105,6 +105,17 @@ class Grade extends Model
     }
 
     /**
+     * Scope: only submitted grades (if status column exists)
+     */
+    public function scopeSubmitted($query)
+    {
+        if (\Schema::hasColumn('grades', 'status')) {
+            return $query->where('status', 'submitted');
+        }
+        return $query; // fallback: no-op if status not present
+    }
+
+    /**
      * Check if First Semester (Q1 and Q2) has any grades
      */
     public function hasFirstSemesterGrades()
@@ -144,6 +155,17 @@ class Grade extends Model
         }
         
         return $grade->shouldLockSecondSemester();
+    }
+
+    /**
+     * Determine if this grade is locked (submitted)
+     */
+    public function isLocked(): bool
+    {
+        if (!\Schema::hasColumn('grades', 'status')) {
+            return false;
+        }
+        return $this->status === 'submitted';
     }
 
 }

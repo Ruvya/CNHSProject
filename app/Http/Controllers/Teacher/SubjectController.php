@@ -196,13 +196,28 @@ class SubjectController extends Controller
             $finalGrade = round(array_sum($quarters) / count($quarters), 2);
         }
 
+        // Block if already submitted
+        $existing = Grade::where('student_id', $student->id)
+            ->where('subject_id', $subject->id)
+            ->first();
+        if ($existing && $existing->isLocked()) {
+            return redirect()
+                ->back()
+                ->with('error', 'This grade has been submitted and can no longer be edited.');
+        }
+
         // Update or create grade record
         Grade::updateOrCreate(
             [
                 'student_id' => $student->id,
                 'subject_id' => $subject->id
             ],
-            array_merge($validated, ['final_grade' => $finalGrade])
+            array_merge($validated, [
+                'final_grade' => $finalGrade,
+                'school_year' => \App\Services\SemesterService::getCurrentSchoolYear(),
+                'semester' => \App\Services\SemesterService::getCurrentSemester(),
+                'status' => \Schema::hasColumn('grades', 'status') ? ($request->input('action') === 'submit' ? 'submitted' : 'draft') : null,
+            ])
         );
 
         return redirect()
@@ -251,6 +266,14 @@ class SubjectController extends Controller
                     $finalGrade = round(array_sum($quarters) / count($quarters), 2);
                 }
 
+                // Skip if existing grade is submitted/locked
+                $existing = Grade::where('student_id', $studentId)
+                    ->where('subject_id', $subject->id)
+                    ->first();
+                if ($existing && $existing->isLocked()) {
+                    continue;
+                }
+
                 // Update or create grade record
                 $updateData = [
                     'quarter1' => $gradeData['quarter1'] ?? null,
@@ -259,6 +282,8 @@ class SubjectController extends Controller
                     'quarter4' => $gradeData['quarter4'] ?? null,
                     'final_grade' => $finalGrade,
                     'remarks' => $gradeData['remarks'] ?? null,
+                    'school_year' => \App\Services\SemesterService::getCurrentSchoolYear(),
+                    'semester' => \App\Services\SemesterService::getCurrentSemester(),
                 ];
                 if (Schema::hasColumn('grades', 'status')) {
                     $updateData['status'] = $action === 'save' ? 'draft' : 'submitted';

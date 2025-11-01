@@ -171,6 +171,17 @@ class GradeController extends Controller
 
         $finalGrade = !empty($quarters) ? round(array_sum($quarters) / count($quarters), 2) : null;
 
+        // Prevent editing if already submitted
+        $existing = Grade::where('student_id', $request->student_id)
+            ->where('subject_id', $request->subject_id)
+            ->first();
+        if ($existing && $existing->isLocked()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This grade has been submitted and can no longer be edited.'
+            ], 422);
+        }
+
         // Update or create grade record
         $updateData = [
             'quarter1' => $request->quarter1,
@@ -179,6 +190,8 @@ class GradeController extends Controller
             'quarter4' => $request->quarter4,
             'final_grade' => $finalGrade,
             'remarks' => $request->remarks,
+            'school_year' => \App\Services\SemesterService::getCurrentSchoolYear(),
+            'semester' => \App\Services\SemesterService::getCurrentSemester(),
         ];
         if (Schema::hasColumn('grades', 'status')) {
             $updateData['status'] = 'draft';
@@ -243,7 +256,7 @@ class GradeController extends Controller
             }
         }
 
-        // Get or create grade record
+        // Get or create grade record and block if already submitted
         $defaults = [
             'quarter1' => null,
             'quarter2' => null,
@@ -251,6 +264,8 @@ class GradeController extends Controller
             'quarter4' => null,
             'final_grade' => null,
             'remarks' => null,
+            'school_year' => \App\Services\SemesterService::getCurrentSchoolYear(),
+            'semester' => \App\Services\SemesterService::getCurrentSemester(),
         ];
         if (Schema::hasColumn('grades', 'status')) {
             $defaults['status'] = 'draft';
@@ -263,6 +278,13 @@ class GradeController extends Controller
             ],
             $defaults
         );
+
+        if ($grade->isLocked()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This grade has been submitted and can no longer be edited.'
+            ], 422);
+        }
 
         // Update the specific quarter
         $grade->{$request->quarter} = $request->grade;

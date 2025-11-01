@@ -106,6 +106,10 @@ Route::middleware(['auth:student'])->prefix('student')->name('student.')->group(
     Route::get('/subjects', [App\Http\Controllers\Student\SubjectController::class, 'index'])->name('subjects');
     Route::get('/subjects/{id}', [App\Http\Controllers\Student\SubjectController::class, 'show'])->name('subjects.show');
     Route::get('/announcements', [App\Http\Controllers\Student\AnnouncementsController::class, 'index'])->name('announcements');
+    Route::get('/announcements/{announcement}', [App\Http\Controllers\Student\AnnouncementsController::class, 'show'])->name('announcements.show');
+    Route::get('/notifications/unread-count', [App\Http\Controllers\Student\NotificationsController::class, 'unreadCount'])->name('notifications.unreadCount');
+    Route::get('/notifications/latest', [App\Http\Controllers\Student\NotificationsController::class, 'latest'])->name('notifications.latest');
+    Route::post('/announcements/{announcement}/read', [App\Http\Controllers\Student\NotificationsController::class, 'markRead'])->name('announcements.read');
     Route::get('/grades', [App\Http\Controllers\Student\GradeController::class, 'index'])->name('grades');
     Route::get('/grades/refresh', [App\Http\Controllers\Student\GradeController::class, 'getUpdatedGrades'])->name('grades.refresh');
     Route::get('/profile', [App\Http\Controllers\Student\ProfileController::class, 'index'])->name('profile');
@@ -15004,6 +15008,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('school-years/{schoolYear}', [SchoolYearController::class, 'update'])->name('school-years.update');
         Route::delete('school-years/{schoolYear}', [SchoolYearController::class, 'destroy'])->name('school-years.destroy');
         Route::post('school-years/{schoolYear}/activate', [SchoolYearController::class, 'activate'])->name('school-years.activate');
+        Route::post('school-years/{schoolYear}/promote', [SchoolYearController::class, 'promote'])->name('school-years.promote');
         Route::post('school-years/{schoolYear}/close', [SchoolYearController::class, 'close'])->name('school-years.close');
         Route::post('school-years/{schoolYear}/archive', [SchoolYearController::class, 'archive'])->name('school-years.archive');
         Route::post('school-years/{schoolYear}/reopen', [SchoolYearController::class, 'reopen'])->name('school-years.reopen');

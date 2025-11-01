@@ -121,9 +121,6 @@
                             <li><strong>Students:</strong> {{ $subject->students_count ?? 0 }}</li>
                         </ul>
                         <div class="mt-auto">
-                            <a href="{{ route('teacher.subjects.students', $subject) }}" class="btn btn-outline-primary btn-sm me-2">
-                                <i class="fas fa-users"></i> View Students
-                            </a>
                             <a href="{{ route('teacher.subjects.grades', $subject) }}" class="btn btn-outline-success btn-sm">
                                 <i class="fas fa-clipboard-list"></i> Manage Grades
                             </a>

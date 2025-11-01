@@ -69,8 +69,9 @@ class DashboardController extends Controller
                     // Clear any potential query cache and get fresh data
                     cache()->forget('dashboard_announcements');
 
-                    // Get BOTH active and draft announcements for dashboard
+                    // Only show announcements authored by the Principal (exclude teacher announcements)
                     $recentAnnouncements = Announcement::where('status', 'active')
+                        ->where('author_type', 'App\\Models\\Principal')
                         ->whereNull('deleted_at') // Exclude soft-deleted records
                         ->latest()
                         ->take(5)

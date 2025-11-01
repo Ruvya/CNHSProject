@@ -9,6 +9,7 @@ use App\Models\Grade;
 use App\Models\Subject;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Services\SemesterService;
 
 class DashboardController extends Controller
 {
@@ -71,20 +72,42 @@ class DashboardController extends Controller
         ];
 
         if ($student) {
+            $currentSchoolYear = SemesterService::getCurrentSchoolYear();
+            $currentSemester = SemesterService::getCurrentSemester();
+
             $grades = Grade::where('student_id', $student->id)
+                ->where('school_year', $currentSchoolYear)
+                ->where('semester', $currentSemester)
+                ->when(\Schema::hasColumn('grades', 'status'), function ($q) {
+                    $q->where('status', 'submitted');
+                })
+                ->where(function ($q) {
+                    $q->whereNotNull('final_grade')
+                      ->orWhereNotNull('quarter1')
+                      ->orWhereNotNull('quarter2')
+                      ->orWhereNotNull('quarter3')
+                      ->orWhereNotNull('quarter4');
+                })
                 ->with('subject')
                 ->get();
 
             // Calculate grade statistics
             if ($grades->isNotEmpty()) {
-                $finalGrades = $grades->pluck('final_grade')->filter();
+                // Read each grade first; if final is missing, compute from quarters
+                $computedFinals = $grades->map(function ($grade) {
+                    /** @var \App\Models\Grade $grade */
+                    return $grade->final_grade ?? $grade->calculateFinalGrade();
+                })->filter(function ($value) {
+                    return !is_null($value);
+                })->values();
 
-                if ($finalGrades->isNotEmpty()) {
-                    $gradeStats['average'] = round($finalGrades->avg(), 2);
-                    $gradeStats['highest'] = $finalGrades->max();
-                    $gradeStats['lowest'] = $finalGrades->min();
-                    $gradeStats['general_average'] = round($finalGrades->avg(), 2);
-                    $gradeStats['total_subjects_with_grades'] = $finalGrades->count();
+                if ($computedFinals->isNotEmpty()) {
+                    $avg = round($computedFinals->avg(), 2);
+                    $gradeStats['average'] = $avg;
+                    $gradeStats['highest'] = $computedFinals->max();
+                    $gradeStats['lowest'] = $computedFinals->min();
+                    $gradeStats['general_average'] = $avg;
+                    $gradeStats['total_subjects_with_grades'] = $computedFinals->count();
                 }
             }
         }

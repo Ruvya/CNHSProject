@@ -40,10 +40,20 @@ class GradeController extends Controller
             // Get the grade record for this subject
             $gradeRecord = Grade::where('student_id', $student->id)
                 ->where('subject_id', $subject->id)
+                ->when(\Schema::hasColumn('grades', 'status'), function ($q) {
+                    $q->where('status', 'submitted');
+                })
                 ->first();
 
-            // Only show grades to students when submitted by teacher
-            $isSubmitted = $gradeRecord && ($gradeRecord->status === 'submitted');
+            // Only show grades when submitted; if no status column, show when final grade exists
+            $isSubmitted = false;
+            if ($gradeRecord) {
+                if (!\Schema::hasColumn('grades', 'status')) {
+                    $isSubmitted = !is_null($gradeRecord->final_grade);
+                } else {
+                    $isSubmitted = ($gradeRecord->status === 'submitted');
+                }
+            }
 
             // Create a subject grade object with enhanced data
             $subjectGrade = (object) [
@@ -149,7 +159,7 @@ class GradeController extends Controller
                 ->first();
 
             if ($gradeRecord) {
-                $isSubmitted = ($gradeRecord->status === 'submitted');
+                $isSubmitted = !\Schema::hasColumn('grades', 'status') ? true : ($gradeRecord->status === 'submitted');
                 $updatedGrades->push([
                     'subject_id' => $subject->id,
                     'subject_name' => $subject->name,

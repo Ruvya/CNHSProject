@@ -572,7 +572,7 @@
                         </td>
                         <td>
                             <div class="btn-group" role="group">
-                                <button class="btn btn-primary btn-sm view-announcement-btn"
+                                <button class="btn btn-primary btn-sm view-announcement-btn" id="view-btn-{{ $announcement->id }}"
                                     data-bs-toggle="modal" data-bs-target="#announcementModal"
                                     data-title="{{ htmlspecialchars($announcement->title, ENT_QUOTES) }}"
                                     data-content="{{ htmlspecialchars($announcement->content, ENT_QUOTES) }}"
@@ -582,12 +582,6 @@
                                     data-id="{{ $announcement->id }}"
                                     style="padding: 0.375rem 0.75rem; font-size: 0.875rem;">
                                     <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="btn btn-success btn-sm" onclick="saveAnnouncement({{ $announcement->id }})" style="padding: 0.375rem 0.75rem; font-size: 0.875rem;">
-                                    <i class="fas fa-bookmark"></i>
-                                </button>
-                                <button class="btn btn-info btn-sm" onclick="shareAnnouncement({{ $announcement->id }})" style="padding: 0.375rem 0.75rem; font-size: 0.875rem;">
-                                    <i class="fas fa-share-alt"></i>
                                 </button>
                             </div>
                         </td>
@@ -620,14 +614,7 @@
                 </div>
                 <div id="modalAnnouncementContent"></div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-success" id="modalSaveBtn">
-                    <i class="fas fa-bookmark me-2"></i>Save
-                </button>
-                <button class="btn btn-primary" id="modalShareBtn">
-                    <i class="fas fa-share-alt me-2"></i>Share
-                </button>
-            </div>
+            <div class="modal-footer"></div>
         </div>
     </div>
     
@@ -642,8 +629,7 @@
         const titleEl = document.getElementById('modalAnnouncementTitle');
         const contentEl = document.getElementById('modalAnnouncementContent');
         const authorEl = document.getElementById('modalAnnouncementAuthor');
-        const saveBtn = document.getElementById('modalSaveBtn');
-        const shareBtn = document.getElementById('modalShareBtn');
+        // No Save/Share buttons
 
         // Search and filter functionality
         const searchInput = document.getElementById('announcementSearch');
@@ -706,18 +692,31 @@
                 }
                 authorEl.innerHTML = `<small>${authorText}</small>`;
 
-                saveBtn.onclick = function () { saveAnnouncement(id); };
-                shareBtn.onclick = function () { shareAnnouncement(id); };
+                // Only view; mark as read handled below
+
+                // Mark as read when opening modal
+                fetch(`{{ url('student/announcements') }}/${id}/read`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+                }).finally(() => {
+                    try { window.dispatchEvent(new CustomEvent('studentNotificationsUpdated', { detail: { delta: -1 } })); } catch (e) {}
+                });
             });
         });
+
+        // Auto-open from query param ?open={id}
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const openId = params.get('open');
+            if (openId) {
+                const target = document.getElementById('view-btn-' + openId);
+                if (target) {
+                    setTimeout(() => target.click(), 200);
+                }
+            }
+        } catch (e) {}
     });
 
-    // Dummy functions for save/share
-    function saveAnnouncement(id) {
-        alert('Save announcement ' + id);
-    }
-    function shareAnnouncement(id) {
-        alert('Share announcement ' + id);
-    }
+    // No Save/Share actions
 </script>
 @endsection

@@ -78,6 +78,18 @@
             align-items: center;
             gap: 2rem;
         }
+        .view-all-link {
+            text-decoration: none;
+        }
+        .view-all-link.has-unread {
+            color: #0d6efd;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+        .view-all-link.has-unread:hover {
+            background: rgba(13,110,253,0.08);
+            border-radius: 6px;
+        }
         .notification-bell {
             position: relative;
             cursor: pointer;
@@ -275,9 +287,31 @@
             <h1>CNHS Student Portal</h1>
         </div>
         <div class="header-right">
-            <div class="notification-bell">
-                <i class="fas fa-bell"></i>
-                <span class="notification-badge">3</span>
+            <div class="dropdown">
+                <div class="notification-bell" id="studentNotificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                </div>
+                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="studentNotificationsDropdown" style="width: 360px; max-height: 420px; overflow-y: auto;">
+                    <div class="px-3 py-2 d-flex justify-content-between align-items-center">
+                        <span style="font-weight:600;">Announcements</span>
+                        <a href="{{ route('student.announcements') }}" class="small view-all-link" id="viewAllAnnouncementsLink">View all</a>
+                    </div>
+                    <hr class="dropdown-divider">
+                    <div id="notificationsList" class="pb-2">
+                        @php($items = $studentNotificationLatest ?? collect())
+                        @if($items->isEmpty())
+                            <div class="px-3 py-2 text-muted">No announcements</div>
+                        @else
+                            @foreach($items as $a)
+                                <div class="px-3 py-2" style="cursor:pointer;" onclick="(function(id){fetch('{{ url('student/announcements') }}/'+id+'/read',{method:'POST',headers:{'X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').getAttribute('content')}}).finally(function(){ window.location.href='{{ route('student.announcements') }}?open='+id; });})({{ $a->id }})">
+                                    <div style="font-weight:700;">{{ $a->title }}</div>
+                                    <div class="text-muted small">{{ optional($a->author)->name ?? 'Announcement' }} • {{ $a->created_at->diffForHumans() }}</div>
+                                </div>
+                            @endforeach
+                        @endif
+                    </div>
+                </div>
             </div>
             <div class="dropdown user-profile">
                 @if(Auth::guard('student')->check())
@@ -344,6 +378,152 @@
         @yield('content')
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let studentBadgeOverrideAt = 0; // ms timestamp when we last forced a client-side change
+            const studentBadgeLockMs = 15000; // prevent server from bouncing badge back for 15s
+
+            function updateViewAllStateFromCount(count) {
+                try {
+                    const link = document.getElementById('viewAllAnnouncementsLink');
+                    if (!link) return;
+                    if ((count || 0) > 0) {
+                        link.classList.add('has-unread');
+                        link.title = 'You have unread announcements';
+                    } else {
+                        link.classList.remove('has-unread');
+                        link.removeAttribute('title');
+                    }
+                } catch (e) {}
+            }
+            function refreshUnreadCount() {
+                fetch('{{ route('student.notifications.unreadCount') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' }, cache: 'no-store' })
+                    .then(r => r.json())
+                    .then(d => {
+                        const badge = document.getElementById('notificationBadge');
+                        if (!badge) return;
+                        const count = d.count || 0;
+                        const now = Date.now();
+                        const current = parseInt(badge.textContent || '0', 10) || 0;
+                        const lockActive = (now - studentBadgeOverrideAt) < studentBadgeLockMs;
+                        // Allow decreases always; allow increases only if not locked
+                        if (!lockActive || count <= current) {
+                            badge.textContent = count;
+                            badge.style.display = count > 0 ? 'block' : 'none';
+                            updateViewAllStateFromCount(count);
+                        }
+                    })
+                    .catch(() => {});
+            }
+
+            function loadLatestNotifications() {
+                fetch('{{ route('student.notifications.latest') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' }, cache: 'no-store' })
+                    .then(r => r.json())
+                    .then(d => {
+                        const listContainer = document.getElementById('notificationsList');
+                        if (!listContainer) return;
+                        const items = d.announcements || [];
+                        if (items.length === 0) {
+                            // Keep existing server-rendered content if any
+                            if (!listContainer.innerHTML.trim()) {
+                                listContainer.innerHTML = '<div class="px-3 py-2 text-muted">No announcements</div>';
+                            }
+                            return;
+                        }
+                        // Update badge from unread items in this response as a fallback
+                        try {
+                            const unread = items.filter(function(i){ return !i.read; }).length;
+                            const badge = document.getElementById('notificationBadge');
+                            if (badge) {
+                                const now = Date.now();
+                                const current = parseInt(badge.textContent || '0', 10) || 0;
+                                const lockActive = (now - studentBadgeOverrideAt) < studentBadgeLockMs;
+                                if (!lockActive || unread <= current) {
+                                    badge.textContent = unread;
+                                    badge.style.display = unread > 0 ? 'block' : 'none';
+                                    updateViewAllStateFromCount(unread);
+                                }
+                            }
+                        } catch (e) {}
+                        const frag = document.createDocumentFragment();
+                        items.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'px-3 py-2';
+                            div.style.cursor = 'pointer';
+                            div.innerHTML = '<div style="font-weight:' + (item.read ? '500' : '700') + ';">' +
+                                item.title + '</div><div class="text-muted small">' + item.author + ' • ' + item.created_at + '</div>';
+                            div.addEventListener('click', function() {
+                                fetch('{{ url('student/announcements') }}/' + item.id + '/read', {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                    }
+                                }).finally(() => {
+                                    // Optimistic decrement
+                                    try {
+                                        const badge = document.getElementById('notificationBadge');
+                                        if (badge) {
+                                            const current = parseInt(badge.textContent || '0', 10) || 0;
+                                            const next = Math.max(0, current - (item.read ? 0 : 1));
+                                            badge.textContent = next;
+                                            badge.style.display = next > 0 ? 'block' : 'none';
+                                            studentBadgeOverrideAt = Date.now();
+                                        }
+                                    } catch (e) {}
+                                    // Also notify listeners on this page
+                                    try { window.dispatchEvent(new CustomEvent('studentNotificationsUpdated', { detail: { delta: -1 } })); } catch (e) {}
+                                    refreshUnreadCount();
+                                    window.location.href = '{{ route('student.announcements') }}' + '?open=' + item.id;
+                                });
+                            });
+                            frag.appendChild(div);
+                        });
+                        listContainer.innerHTML = '';
+                        listContainer.appendChild(frag);
+                    })
+                    .catch(() => {
+                        // leave server-rendered content as-is on failure
+                    });
+            }
+
+            // Kick off a quick refresh so the badge appears promptly
+            refreshUnreadCount();
+            // Also refresh when returning via bfcache/back navigation
+            window.addEventListener('pageshow', function(){
+                refreshUnreadCount();
+            });
+            setInterval(refreshUnreadCount, 15000);
+
+            const dropdownToggle = document.getElementById('studentNotificationsDropdown');
+            if (dropdownToggle) {
+                dropdownToggle.addEventListener('click', function(){
+                    loadLatestNotifications();
+                    setTimeout(refreshUnreadCount, 300);
+                });
+            }
+
+            // Listen for cross-page updates when notifications are marked read
+            window.addEventListener('studentNotificationsUpdated', function(e){
+                try {
+                    if (e && e.detail && typeof e.detail.delta === 'number') {
+                        const badge = document.getElementById('notificationBadge');
+                        if (badge) {
+                            const current = parseInt(badge.textContent || '0', 10) || 0;
+                            const next = Math.max(0, current + e.detail.delta);
+                            badge.textContent = next;
+                            badge.style.display = next > 0 ? 'block' : 'none';
+                            studentBadgeOverrideAt = Date.now();
+                        }
+                    }
+                } catch (err) {}
+                // Give backend time to persist read status, then reconcile
+                setTimeout(function(){
+                    refreshUnreadCount();
+                    loadLatestNotifications();
+                }, 2000);
+            });
+        });
+    </script>
     @yield('scripts')
     @stack('scripts')
 </body>

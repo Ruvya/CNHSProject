@@ -61,12 +61,21 @@
 	</div>
 
 	<div class="card">
-		<div class="card-header d-flex justify-content-between align-items-center">
-			<span>School Years</span>
-			@if($active)
-				<span class="badge bg-success">Active: {{ $active->name }}</span>
-			@endif
-		</div>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>School Years</span>
+            <div class="d-flex align-items-center gap-2">
+                @if($active)
+                    <span class="badge bg-success me-2">Active: {{ $active->name }}</span>
+                    <form id="promoteForm" method="POST" action="{{ route('admin.school-years.promote', $active) }}" class="d-inline">
+                        @csrf
+                        <input type="hidden" name="activate_next" value="1">
+                        <button type="button" id="promoteBtn" class="btn btn-sm btn-danger">
+                            Promote Eligible Students
+                        </button>
+                    </form>
+                @endif
+            </div>
+        </div>
 		<div class="card-body">
 			<div class="table-responsive">
 				<table class="table table-striped">
@@ -108,7 +117,7 @@
 											<button class="btn btn-sm btn-warning">Close</button>
 										</form>
 									@endif
-									@if($year->status !== 'archived')
+                                    @if($year->status !== 'archived')
 										<form method="POST" action="{{ route('admin.school-years.archive', $year) }}" class="d-inline">
 											@csrf
 											<button class="btn btn-sm btn-outline-dark">Archive</button>
@@ -120,6 +129,14 @@
 											<button class="btn btn-sm btn-secondary">Reopen</button>
 										</form>
 									@endif
+                                    @if($year->status !== 'active')
+                                        <form method="POST" action="{{ route('admin.school-years.destroy', $year) }}" class="d-inline delete-year-form">
+                                            @csrf
+                                            @method('DELETE')
+                                            <input type="hidden" name="force" value="0">
+                                            <button type="button" class="btn btn-sm btn-danger btn-delete-year">Delete</button>
+                                        </form>
+                                    @endif
 								</div>
 							</td>
 						</tr>
@@ -129,7 +146,70 @@
 			</div>
 		</div>
 	</div>
+
+    @if($active)
+    <div class="card mt-3">
+        <div class="card-header">
+            Promotion Advanced Options (Optional)
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Dropped student IDs (comma-separated)</label>
+                    <textarea form="promoteForm" name="dropped_ids" class="form-control" rows="2" placeholder="e.g., 12,45,87"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Transferred student IDs (comma-separated)</label>
+                    <textarea form="promoteForm" name="transferred_ids" class="form-control" rows="2" placeholder="e.g., 101,205"></textarea>
+                </div>
+            </div>
+            <small class="text-muted d-block mt-2">If provided, these students will be marked accordingly for the next school year during promotion.</small>
+        </div>
+    </div>
+    @endif
 </div>
 @endsection
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('promoteBtn');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+        Swal.fire({
+            title: 'Confirm Promotion',
+            text: 'Are you sure you want to promote all eligible students based on their grades? Only students who passed will be promoted. This action cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, proceed',
+            cancelButtonText: 'Cancel',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('promoteForm').submit();
+            }
+        });
+    });
 
-
+    document.querySelectorAll('.btn-delete-year').forEach(function(delBtn){
+        delBtn.addEventListener('click', function(){
+            const form = this.closest('.delete-year-form');
+            Swal.fire({
+                title: 'Delete School Year?',
+                text: 'This will permanently remove the school year and all associated records (sections, schedules, yearly records). This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete everything',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#d33',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const forceInput = form.querySelector('input[name="force"]');
+                    if (forceInput) forceInput.value = '1';
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
+@endpush

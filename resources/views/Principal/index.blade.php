@@ -259,6 +259,60 @@
     </div>
 
     <!-- Call to Action Section -->
+    <!-- News & Events Section -->
+    <section class="container py-5">
+        <h2 class="text-center mb-5 section-header" data-aos="fade-up"><i class="fas fa-newspaper me-2"></i>News & Events</h2>
+        <div class="row g-4">
+            <div class="col-lg-6" data-aos="fade-right">
+                <div class="welcome-content h-100">
+                    <h4 class="mb-3"><i class="fas fa-bullhorn me-2 text-primary"></i>Latest Announcements</h4>
+                    <ul class="list-unstyled mb-0">
+                        @forelse(($recentAnnouncements ?? collect())->take(3) as $a)
+                            <li class="mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-circle text-primary me-2" style="font-size: 0.5rem; margin-top: 9px;"></i>
+                                    <div>
+                                        <div class="fw-bold">{{ $a->title }}</div>
+                                        <small class="text-muted">{{ $a->created_at->format('M d, Y') }}</small>
+                                    </div>
+                                </div>
+                            </li>
+                        @empty
+                            <li class="text-muted">No announcements yet.</li>
+                        @endforelse
+                    </ul>
+                    <div class="mt-3">
+                        <a href="{{ route('principal.news') }}" class="btn btn-hero-secondary"><i class="fas fa-arrow-right me-1"></i>View all</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6" data-aos="fade-left">
+                <div class="welcome-content h-100">
+                    <h4 class="mb-3"><i class="fas fa-calendar-alt me-2 text-success"></i>Upcoming Events</h4>
+                    <ul class="list-unstyled mb-0">
+                        @forelse(($upcomingEvents ?? collect())->take(3) as $e)
+                            <li class="mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-circle text-success me-2" style="font-size: 0.5rem; margin-top: 9px;"></i>
+                                    <div>
+                                        <div class="fw-bold">{{ $e->title }}</div>
+                                        <small class="text-muted">{{ \Carbon\Carbon::parse($e->start)->format('M d, Y g:i A') }}</small>
+                                    </div>
+                                </div>
+                            </li>
+                        @empty
+                            <li class="text-muted">No upcoming events.</li>
+                        @endforelse
+                    </ul>
+                    <div class="mt-3">
+                        <a href="{{ route('principal.news') }}" class="btn btn-hero-secondary"><i class="fas fa-arrow-right me-1"></i>View all</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Section -->
     <section class="cta-section py-5 text-white text-center" style="background: var(--cnhs-accent-orange);">
         <div class="container">
             <div class="cta-content">
