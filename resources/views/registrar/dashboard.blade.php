@@ -15,14 +15,14 @@
     --cnhs-warning: #F59E0B;
     --cnhs-danger: #EF4444;
     --cnhs-info: #06B6D4;
-    --cnhs-gradient-primary: linear-gradient(135deg, var(--cnhs-primary-blue) 0%, var(--cnhs-secondary-blue) 100%);
-    --cnhs-gradient-orange: linear-gradient(135deg, var(--cnhs-accent-orange) 0%, var(--cnhs-gold) 100%);
+    --cnhs-solid-primary: #1E3A8A;
+    --cnhs-solid-orange: #FF8C00;
     --cnhs-shadow-md: 0 8px 25px rgba(30, 58, 138, 0.12);
     --cnhs-shadow-lg: 0 15px 35px rgba(30, 58, 138, 0.15);
 }
 
 .dashboard-header {
-    background: var(--cnhs-gradient-orange);
+    background: var(--cnhs-solid-orange);
     color: var(--cnhs-white);
     padding: 2.5rem 0 2rem 0;
     margin-bottom: 2.5rem;
@@ -47,7 +47,7 @@
 }
 
 .clean-stat-card {
-    background: linear-gradient(145deg, var(--cnhs-white), var(--cnhs-light-gray));
+    background: var(--cnhs-white);
     border-radius: 20px;
     padding: 2rem;
     box-shadow: var(--cnhs-shadow-md);
@@ -64,7 +64,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: var(--cnhs-gradient-primary);
+    background: var(--cnhs-solid-primary);
     border-radius: 20px 20px 0 0;
 }
 .clean-stat-card:hover {
@@ -88,17 +88,14 @@
     float: right;
     box-shadow: 0 4px 16px rgba(30,58,138,0.10);
 }
-.students-card .stat-icon { background: var(--cnhs-gradient-primary); }
-.subjects-card .stat-icon { background: var(--cnhs-gradient-orange); }
-.teachers-card .stat-icon { background: linear-gradient(135deg, #fa709a, #fee140); }
-.records-card .stat-icon { background: linear-gradient(135deg, #a8edea, #fed6e3); }
+.students-card .stat-icon { background: var(--cnhs-solid-primary); }
+.subjects-card .stat-icon { background: var(--cnhs-solid-orange); }
+.teachers-card .stat-icon { background: #fa709a; }
+.records-card .stat-icon { background: #a8edea; }
 .stat-content h3 {
     font-size: 2.5rem;
     font-weight: 800;
-    background: var(--cnhs-gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--cnhs-solid-primary);
     line-height: 1.2;
     margin-bottom: 0.5rem;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
@@ -116,7 +113,7 @@
 }
 
 .action-group-card {
-    background: linear-gradient(145deg, var(--cnhs-white), var(--cnhs-light-gray));
+    background: var(--cnhs-white);
     border-radius: 20px;
     box-shadow: var(--cnhs-shadow-md);
     overflow: hidden;
@@ -125,7 +122,7 @@
     margin-bottom: 1rem;
 }
 .action-group-header {
-    background: var(--cnhs-gradient-primary);
+    background: var(--cnhs-solid-primary);
     color: var(--cnhs-white);
     padding: 1.5rem;
     display: flex;
@@ -150,7 +147,7 @@
     box-shadow: 0 2px 8px rgba(30,58,138,0.04);
 }
 .action-item:hover {
-    background: var(--cnhs-gradient-orange);
+    background: var(--cnhs-solid-orange);
     color: var(--cnhs-white);
     text-decoration: none;
     transform: translateX(5px) scale(1.03);
@@ -160,7 +157,7 @@
 .action-item span { font-weight: 600; }
 
 .analytics-card {
-    background: linear-gradient(145deg, var(--cnhs-white), var(--cnhs-light-gray));
+    background: var(--cnhs-white);
     border-radius: 20px;
     box-shadow: var(--cnhs-shadow-md);
     overflow: hidden;
@@ -168,7 +165,7 @@
     border: none;
 }
 .analytics-header {
-    background: var(--cnhs-gradient-primary);
+    background: var(--cnhs-solid-primary);
     color: var(--cnhs-white);
     padding: 1.5rem;
 }
@@ -179,7 +176,7 @@
     border-radius: 12px;
     padding: 1.5rem;
     position: relative;
-    height: 300px;
+    height: 420px;
     width: 100%;
     box-shadow: 0 2px 8px rgba(30,58,138,0.04);
 }
@@ -191,21 +188,76 @@
     text-align: center;
 }
 .chart-container canvas {
-    max-height: 250px !important;
+    max-height: 360px !important;
     width: 100% !important;
+}
+.angled-header-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f97316;
+    color: white;
+    padding: 2.2rem 2.5rem 2.2rem 2.5rem;
+    border-radius: 16px;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 10px 30px rgba(249, 115, 22, 0.18);
+    position: relative;
+    overflow: hidden;
+    min-height: 120px;
+}
+.header-left-content {
+    display: flex;
+    align-items: center;
+}
+.header-left-content .icon {
+    font-size: 2.8rem;
+    margin-right: 1.5rem;
+    opacity: 0.92;
+}
+.header-left-content .title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 0.2rem;
+    line-height: 1.1;
+}
+.header-left-content .subtitle {
+    font-size: 1.1rem;
+    font-weight: 500;
+    opacity: 0.95;
+    display: block;
+}
+@media (max-width: 768px) {
+    .angled-header-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.2rem 1rem;
+        min-height: 100px;
+    }
+    .header-left-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .header-left-content .icon {
+        margin-bottom: 0.7rem;
+        margin-right: 0;
+    }
 }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid py-4">
-
-    <!-- Dashboard Header -->
-    <div class="dashboard-header">
-        <div class="container-fluid">
-            <h1 class="dashboard-title">Registrar Dashboard</h1>
-            <p class="dashboard-subtitle">Welcome back, {{ auth()->guard('registrar')->user()->first_name }}! Here's your school's overview.</p>
+    <!-- Modern Angled Header Card -->
+    <div class="angled-header-card mb-4">
+        <div class="header-left-content">
+            <span class="icon"><i class="fas fa-clipboard-check"></i></span>
+            <div>
+                <span class="title">Registrar Dashboard</span>
+                <span class="subtitle">Welcome back, {{ auth()->guard('registrar')->user() ? auth()->guard('registrar')->user()->first_name : 'Registrar' }}! Here's your school's overview.</span>
+            </div>
         </div>
+        <!-- Optionally, you can add a right-aligned button or badge here -->
     </div>
 
     <!-- Statistics Cards -->
@@ -259,23 +311,12 @@
     </div>
 
     <div class="row g-4">
-        <!-- Quick Actions -->
-        <div class="col-lg-4">
-            <div class="action-group-card">
-                <div class="action-group-header"><i class="fas fa-bolt"></i><h6>Quick Actions</h6></div>
-                <div class="action-group-body">
-                    <a href="{{ route('registrar.yearly-records.index') }}" class="action-item"><i class="fas fa-calendar-alt"></i><span>Yearly Records</span></a>
-                    <a href="{{ route('registrar.students.upload') }}" class="action-item"><i class="fas fa-upload"></i><span>Upload Students</span></a>
-                    <a href="{{ route('registrar.students.create') }}" class="action-item"><i class="fas fa-user-plus"></i><span>Generate Credentials</span></a>
-                    <a href="{{ route('registrar.subject-assignments.index') }}" class="action-item"><i class="fas fa-user-tie"></i><span>Assign Subjects to Teachers</span></a>
-                    <a href="{{ route('registrar.student-subject-assignments.index') }}" class="action-item"><i class="fas fa-user-graduate"></i><span>Assign Subjects to Students</span></a>
-                </div>
-            </div>
-        </div>
+      
+        
 
-        <!-- Analytics Overview -->
-        <div class="col-lg-8">
-            <div class="analytics-card">
+        		<!-- Analytics Overview -->
+		<div class="col-lg-12">
+			<div class="analytics-card">
                 <div class="analytics-header"><h5><i class="fas fa-chart-line me-2"></i>Enrollment Analytics</h5></div>
                 <div class="analytics-body">
                     <div class="chart-container">

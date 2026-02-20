@@ -36,7 +36,7 @@ class AutomaticSubjectAssignmentController extends Controller
         $studentsWithoutSubjects = $totalStudents - $studentsWithSubjects;
         $studentsWithIncompleteData = Student::where(function($query) {
             $query->whereNull('track')
-                  ->orWhereNull('strand')
+                  ->orWhereNull('cluster')
                   ->orWhereNull('grade_level');
         })->count();
 
@@ -83,7 +83,7 @@ class AutomaticSubjectAssignmentController extends Controller
                 ->with('success', "✅ Successfully assigned {$assignedCount} subjects to {$student->first_name} {$student->last_name}!");
         } else {
             return redirect()->back()
-                ->with('error', 'Failed to assign subjects. Please check the student\'s track and strand information.');
+                ->with('error', 'Failed to assign subjects. Please check the student\'s track and cluster information.');
         }
     }
 
@@ -149,10 +149,10 @@ class AutomaticSubjectAssignmentController extends Controller
     public function curriculumMapping()
     {
         // Get all tracks and their subjects
-        $tracks = Subject::select('track', 'strand', 'grade_level')
+        $tracks = Subject::select('track', 'cluster', 'grade_level')
             ->distinct()
             ->orderBy('track')
-            ->orderBy('strand')
+            ->orderBy('cluster')
             ->orderBy('grade_level')
             ->get()
             ->groupBy('track');
@@ -172,13 +172,13 @@ class AutomaticSubjectAssignmentController extends Controller
     }
 
     /**
-     * Get subjects for a specific track/strand combination (AJAX)
+     * Get subjects for a specific track/cluster combination (AJAX)
      */
-    public function getSubjectsForTrackStrand(Request $request)
+    public function getSubjectsForTrackCluster(Request $request)
     {
         $request->validate([
             'track' => 'required|string',
-            'strand' => 'required|string',
+            'cluster' => 'required|string',
             'grade_level' => 'required|string'
         ]);
 
@@ -187,7 +187,7 @@ class AutomaticSubjectAssignmentController extends Controller
                 $query->where('is_core_subject', true)
                       ->orWhere(function($subQuery) use ($request) {
                           $subQuery->where('track', $request->track)
-                                   ->where('strand', $request->strand);
+                                   ->where('cluster', $request->cluster);
                       });
             })
             ->with('teacher')
@@ -209,14 +209,14 @@ class AutomaticSubjectAssignmentController extends Controller
     {
         $request->validate([
             'track' => 'required|string',
-            'strand' => 'required|string',
+            'cluster' => 'required|string',
             'grade_level' => 'required|string'
         ]);
 
         // Create a temporary student object for testing
         $testStudent = new Student([
             'track' => $request->track,
-            'strand' => $request->strand,
+            'cluster' => $request->cluster,
             'grade_level' => $request->grade_level
         ]);
 
@@ -238,7 +238,7 @@ class AutomaticSubjectAssignmentController extends Controller
     {
         $studentsWithIncompleteData = Student::where(function($query) {
             $query->whereNull('track')
-                  ->orWhereNull('strand')
+                  ->orWhereNull('cluster')
                   ->orWhereNull('grade_level');
         })->get();
 
@@ -254,7 +254,7 @@ class AutomaticSubjectAssignmentController extends Controller
     {
         $request->validate([
             'track' => 'required|string',
-            'strand' => 'required|string',
+            'cluster' => 'required|string',
             'grade_level' => 'required|string'
         ]);
 
@@ -262,7 +262,7 @@ class AutomaticSubjectAssignmentController extends Controller
         
         $student->update([
             'track' => $request->track,
-            'strand' => $request->strand,
+            'cluster' => $request->cluster,
             'grade_level' => $request->grade_level
         ]);
 

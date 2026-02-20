@@ -11,7 +11,7 @@
                         <p class="text-muted">Welcome back! Please login to your account.</p>
                     </div>
 
-                    <form method="POST" action="{{ route('principal.login') }}">
+                    <form method="POST" action="{{ route('login') }}">
                         @csrf
 
                         <div class="mb-4">

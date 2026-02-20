@@ -25,18 +25,6 @@
             </a>
         </li>
         <li>
-            <a href="{{ route('registrar.subjects.index') }}" class="{{ request()->routeIs('registrar.subjects*') ? 'active' : '' }}">
-                <i class="fas fa-book"></i>
-                <span>Subjects</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('registrar.subject-assignments.index') }}" class="{{ request()->routeIs('registrar.subject-assignments*') ? 'active' : '' }}">
-                <i class="fas fa-chalkboard-teacher"></i>
-                <span>Subject Assignment</span>
-            </a>
-        </li>
-        <li>
             <a href="{{ route('registrar.automatic-subject-assignment.index') }}" class="{{ request()->routeIs('registrar.automatic-subject-assignment*') ? 'active' : '' }}">
                 <i class="fas fa-cogs"></i>
                 <span>Auto-Assign Subjects</span>

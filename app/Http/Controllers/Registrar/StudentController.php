@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Registrar;
 
 use App\Http\Controllers\Controller;
 use App\Models\Student;
+use App\Models\Section;
 use App\Models\Subject;
 use App\Models\Grade;
+use App\Models\TemporaryStudentCredential;
 use App\Imports\StudentsImport;
 use App\Exports\StudentTemplateExport;
 use App\Helpers\UploadHelper;
@@ -36,8 +38,8 @@ class StudentController extends Controller
             $query->where('track', $request->track);
         }
 
-        if ($request->filled('strand')) {
-            $query->where('strand', $request->strand);
+        if ($request->filled('cluster')) {
+            $query->where('cluster', $request->cluster);
         }
 
         if ($request->filled('enrollment_status')) {
@@ -77,14 +79,14 @@ class StudentController extends Controller
         $gradeLevels = Student::distinct()->pluck('grade_level')->filter();
         $sections = Student::distinct()->pluck('section')->filter();
         $tracks = Student::distinct()->pluck('track')->filter();
-        $strands = Student::distinct()->pluck('strand')->filter();
+        $clusters = Student::distinct()->pluck('cluster')->filter();
 
         return view('registrar.students.index', compact(
             'students',
             'gradeLevels',
             'sections',
             'tracks',
-            'strands'
+            'clusters'
         ));
     }
 
@@ -93,7 +95,11 @@ class StudentController extends Controller
      */
     public function create()
     {
-        return view('registrar.students.create');
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+        return view('registrar.students.create', compact('tracks'));
     }
 
     /**
@@ -122,6 +128,21 @@ class StudentController extends Controller
         $studentData = $request->all();
         $studentData['password'] = Hash::make($request->password);
 
+        // Validate section-strand consistency when provided
+        if (!empty($studentData['section'])) {
+            $sectionModel = Section::where('name', $studentData['section'])->first();
+            if ($sectionModel) {
+                $sectionStrand = $sectionModel->strand ?: $sectionModel->track;
+                $studentStrand = ($studentData['strand'] ?? null) ?: ($studentData['track'] ?? null);
+                if ($studentStrand && strcasecmp($sectionStrand, $studentStrand) !== 0) {
+                    return back()->withErrors(['section' => "Selected section does not belong to the student's strand."])->withInput();
+                }
+                if (method_exists($sectionModel, 'isFull') && $sectionModel->isFull()) {
+                    return back()->withErrors(['section' => 'Selected section is already full.'])->withInput();
+                }
+            }
+        }
+
         $student = Student::create($studentData);
 
         return redirect()->route('registrar.students.index')
@@ -131,42 +152,69 @@ class StudentController extends Controller
     /**
      * Display the specified student
      */
-    public function show(Student $student)
+    public function show(Student $student, Request $request)
     {
+        // Determine selected school year (from query or active)
+        $selectedYear = $request->query('school_year');
+        if (!$selectedYear) {
+            $selectedYear = optional(\App\Models\SchoolYear::active()->first())->name;
+        }
+
         // Check if grades table exists before trying to load grades
         $hasGradesTable = \Illuminate\Support\Facades\Schema::hasTable('grades');
 
+        // Eager load subjects limited to the selected school year and their grades for this student
+        $student->load(['subjects' => function ($q) use ($selectedYear) {
+            if ($selectedYear) {
+                $q->wherePivot('school_year', $selectedYear);
+            }
+        }]);
+
+        // Load yearly record for the selected school year
+        $yearlyRecord = \App\Models\StudentYearlyRecord::where('student_id', $student->id)
+            ->when($selectedYear, function($q) use ($selectedYear) {
+                $q->where('school_year', $selectedYear);
+            })
+            ->first();
+
+        // Load grades and map by subject for quick lookup in the view
+        $gradesBySubject = collect();
         if ($hasGradesTable) {
-            $student->load(['subjects.grades' => function($query) use ($student) {
-                $query->where('student_id', $student->id);
+            $student->load(['grades' => function($q) use ($selectedYear) {
+                if ($selectedYear) {
+                    $q->where('school_year', $selectedYear);
+                }
             }, 'grades.subject']);
-        } else {
-            $student->load(['subjects']);
+            $gradesBySubject = $student->grades->keyBy('subject_id');
         }
 
-        // Calculate academic statistics
-        $totalSubjects = $student->subjects()->count();
+        // Determine available school years for this student (for quick switching)
+        $availableSchoolYears = \App\Models\StudentYearlyRecord::where('student_id', $student->id)
+            ->orderByDesc('school_year')
+            ->pluck('school_year');
+
+        // Calculate academic statistics based on the selected school year
         $enrolledSubjects = $student->subjects;
+        $totalSubjects = $enrolledSubjects->count();
 
-        // Get grades from pivot table and grades table
         $allGrades = collect();
-
-        // From pivot table
         foreach ($enrolledSubjects as $subject) {
-            if ($subject->pivot && $subject->pivot->grade) {
-                $allGrades->push($subject->pivot->grade);
+            if ($subject->pivot && $subject->pivot->grade !== null) {
+                $allGrades->push((float)$subject->pivot->grade);
             }
         }
-
-        // From grades table (only if table exists)
         if ($hasGradesTable) {
-            $gradeRecords = $student->grades()->whereNotNull('final_grade')->get();
+            $gradeRecords = $student->grades()->when($selectedYear, function($q) use ($selectedYear){
+                    $q->where('school_year', $selectedYear);
+                })
+                ->whereNotNull('final_grade')
+                ->get();
             foreach ($gradeRecords as $grade) {
-                $allGrades->push($grade->final_grade);
+                $allGrades->push((float)$grade->final_grade);
             }
         }
 
-        $averageGrade = $allGrades->count() > 0 ? $allGrades->avg() : null;
+        $averageGrade = $allGrades->count() > 0 ? round($allGrades->avg(), 2) : null;
         $passedSubjects = $allGrades->filter(function($grade) {
             return $grade >= 75;
         })->count();
@@ -174,13 +222,17 @@ class StudentController extends Controller
             return $grade < 75;
         })->count();
 
-        return view('registrar.students.show', compact(
-            'student',
-            'totalSubjects',
-            'averageGrade',
-            'passedSubjects',
-            'failedSubjects'
-        ));
+        return view('registrar.students.show', [
+            'student' => $student,
+            'totalSubjects' => $totalSubjects,
+            'averageGrade' => $averageGrade,
+            'passedSubjects' => $passedSubjects,
+            'failedSubjects' => $failedSubjects,
+            'schoolYear' => $selectedYear,
+            'yearlyRecord' => $yearlyRecord,
+            'gradesBySubject' => $gradesBySubject,
+            'availableSchoolYears' => $availableSchoolYears,
+        ]);
     }
 
     /**
@@ -188,7 +240,11 @@ class StudentController extends Controller
      */
     public function edit(Student $student)
     {
-        return view('registrar.students.edit', compact('student'));
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+        return view('registrar.students.edit', compact('student', 'tracks'));
     }
 
     /**
@@ -218,6 +274,21 @@ class StudentController extends Controller
         if ($request->filled('password')) {
             $request->validate(['password' => 'min:8']);
             $studentData['password'] = Hash::make($request->password);
+        }
+
+        // Validate section-strand consistency when provided
+        if (!empty($studentData['section'])) {
+            $sectionModel = Section::where('name', $studentData['section'])->first();
+            if ($sectionModel) {
+                $sectionStrand = $sectionModel->strand ?: $sectionModel->track;
+                $studentStrand = ($studentData['strand'] ?? null) ?: ($studentData['track'] ?? null);
+                if ($studentStrand && strcasecmp($sectionStrand, $studentStrand) !== 0) {
+                    return back()->withErrors(['section' => "Selected section does not belong to the student's strand."])->withInput();
+                }
+                if (method_exists($sectionModel, 'isFull') && $sectionModel->isFull()) {
+                    return back()->withErrors(['section' => 'Selected section is already full.'])->withInput();
+                }
+            }
         }
 
         $student->update($studentData);
@@ -408,6 +479,7 @@ class StudentController extends Controller
                 'skip_count' => $import->getSkipCount(),
                 'error_count' => count($import->getErrors()),
                 'errors' => $import->getErrors(),
+                'detected_columns' => $import->getDetectedColumns(),
             ];
 
             // Calculate processing time
@@ -425,8 +497,17 @@ class StudentController extends Controller
                     ->with('import_summary', $summary);
             }
 
+            // Create detailed success message
+            $successMessage = 'Students imported successfully! ';
+            if ($summary['success_count'] > 0) {
+                $successMessage .= $summary['success_count'] . ' new students created. ';
+            }
+            if ($summary['update_count'] > 0) {
+                $successMessage .= $summary['update_count'] . ' existing student profiles updated. ';
+            }
+
             return redirect()->route('registrar.students.index')
-                ->with('success', 'Students imported successfully!')
+                ->with('success', $successMessage)
                 ->with('import_summary', $summary);
 
         } catch (\Throwable $e) {
@@ -459,71 +540,93 @@ class StudentController extends Controller
      */
     public function downloadTemplate(Request $request)
     {
+        // SF1-SHS Format Headers based on DepEd School Form 1
         $headers = [
-            'student_id',
-            'first_name',
-            'middle_name',
-            'last_name',
-            'email',
-            'grade_level',
-            'section',
-            'track',
-            'strand',
-            'gender',
-            'date_of_birth',
-            'place_of_birth',
-            'nationality',
-            'religion',
-            'civil_status',
-            'lrn',
-            'profile_picture',
-            'contact_number',
-            'address',
-            'parent_name',
-            'parent_contact',
-            'advisor',
-            'province',
-            'municipality',
-            'barangay',
-            'permanent_address',
-            'phone',
-            'emergency_name',
-            'emergency_phone',
-            'emergency_relationship'
+            'LRN',
+            'Last Name',
+            'First Name',
+            'Middle Name',
+            'Name Extension',
+            'Date of Birth',
+            'Age',
+            'Sex',
+            'Place of Birth',
+            'Mother Tongue',
+            'IP/Ethnicity',
+            'Religion',
+            'Complete Address',
+            'Father\'s Name',
+            'Mother\'s Name',
+            'Guardian\'s Name',
+            'Relationship',
+            'Contact Number',
+            'Date of Enrollment',
+            'Grade Level',
+            'Section',
+            'Track',
+            'Cluster',
+            'Adviser',
+            'School Year',
+            'Remarks'
         ];
 
+        // SF1-SHS Format Sample Data
         $sampleData = [
             [
-                'student_id' => '2024-001',
-                'first_name' => 'Juan',
-                'middle_name' => 'Santos',
-                'last_name' => 'Dela Cruz',
-                'email' => 'juan.delacruz@example.com',
-                'grade_level' => 'Grade 11',
-                'section' => 'A',
-                'track' => 'STEM',
-                'strand' => 'Science, Technology, Engineering and Mathematics',
-                'gender' => 'Male',
-                'date_of_birth' => '2006-05-15',
-                'place_of_birth' => 'Quezon City',
-                'nationality' => 'Filipino',
-                'religion' => 'Catholic',
-                'civil_status' => 'Single',
-                'lrn' => '123456789012',
-                'profile_picture' => 'juan_delacruz.jpg',
-                'contact_number' => '09123456789',
-                'address' => '123 Main St, City',
-                'parent_name' => 'Maria Dela Cruz',
-                'parent_contact' => '09987654321',
-                'advisor' => 'Ms. Teacher',
-                'province' => 'Metro Manila',
-                'municipality' => 'Quezon City',
-                'barangay' => 'Barangay 1',
-                'permanent_address' => '123 Main St, City',
-                'phone' => '09123456789',
-                'emergency_name' => 'Maria Dela Cruz',
-                'emergency_phone' => '09987654321',
-                'emergency_relationship' => 'Mother'
+                'LRN' => '123456789012',
+                'Last Name' => 'DELA CRUZ',
+                'First Name' => 'JUAN',
+                'Middle Name' => 'SANTOS',
+                'Name Extension' => '',
+                'Date of Birth' => '05/15/2006',
+                'Age' => '17',
+                'Sex' => 'M',
+                'Place of Birth' => 'QUEZON CITY',
+                'Mother Tongue' => 'TAGALOG',
+                'IP/Ethnicity' => 'FILIPINO',
+                'Religion' => 'CATHOLIC',
+                'Complete Address' => '123 MAIN ST, QUEZON CITY',
+                'Father\'s Name' => 'PEDRO DELA CRUZ',
+                'Mother\'s Name' => 'MARIA SANTOS DELA CRUZ',
+                'Guardian\'s Name' => 'MARIA SANTOS DELA CRUZ',
+                'Relationship' => 'MOTHER',
+                'Contact Number' => '09123456789',
+                'Date of Enrollment' => '08/15/2024',
+                'Grade Level' => 'Grade 11',
+                'Section' => 'EINSTEIN',
+                'Track' => 'Academic Track',
+                'Strand' => 'STEM',
+                'Adviser' => 'MS. TEACHER',
+                'School Year' => \App\Models\SchoolYear::active()->first()?->name ?? date('Y') . '-' . (date('Y') + 1),
+                'Remarks' => 'NEW'
+            ],
+            [
+                'LRN' => '123456789013',
+                'Last Name' => 'GARCIA',
+                'First Name' => 'MARIA',
+                'Middle Name' => 'LOPEZ',
+                'Name Extension' => '',
+                'Date of Birth' => '03/22/2006',
+                'Age' => '17',
+                'Sex' => 'F',
+                'Place of Birth' => 'MANILA',
+                'Mother Tongue' => 'TAGALOG',
+                'IP/Ethnicity' => 'FILIPINO',
+                'Religion' => 'CATHOLIC',
+                'Complete Address' => '456 RIZAL ST, MANILA',
+                'Father\'s Name' => 'JOSE GARCIA',
+                'Mother\'s Name' => 'ANA LOPEZ GARCIA',
+                'Guardian\'s Name' => 'ANA LOPEZ GARCIA',
+                'Relationship' => 'MOTHER',
+                'Contact Number' => '09987654321',
+                'Date of Enrollment' => '08/15/2024',
+                'Grade Level' => 'Grade 12',
+                'Section' => 'NEWTON',
+                'Track' => 'TVL Track',
+                'Strand' => 'ICT',
+                'Adviser' => 'MR. ADVISOR',
+                'School Year' => \App\Models\SchoolYear::active()->first()?->name ?? date('Y') . '-' . (date('Y') + 1),
+                'Remarks' => 'TRANSFEREE'
             ]
         ];
 
@@ -533,8 +636,10 @@ class StudentController extends Controller
         if ($format === 'excel') {
             // Create Excel template using dedicated export class
             try {
-                $export = new StudentTemplateExport($headers, $sampleData);
-                return Excel::download($export, 'student_upload_template.xlsx');
+                // For the new SF1-SHS format, we don't need to pass headers and sample data
+                // as they are built directly in the export class
+                $export = new StudentTemplateExport([], []);
+                return Excel::download($export, 'SF1-SHS_Student_Register_Template.xlsx');
             } catch (\Exception $e) {
                 // Fallback to CSV if Excel fails
                 return redirect()->route('registrar.students.template')
@@ -542,41 +647,37 @@ class StudentController extends Controller
             }
         }
 
-        // Default to CSV format
+        // Default to CSV format - SF1-SHS Format
         $csvData = [
-            '2024-001',
-            'Juan',
-            'Santos',
-            'Dela Cruz',
-            'juan.delacruz@example.com',
-            'Grade 11',
-            'A',
-            'STEM',
-            'Science, Technology, Engineering and Mathematics',
-            'Male',
-            '2006-05-15',
-            'Quezon City',
-            'Filipino',
-            'Catholic',
-            'Single',
             '123456789012',
-            'juan_delacruz.jpg',
+            'DELA CRUZ',
+            'JUAN',
+            'SANTOS',
+            '',
+            '05/15/2006',
+            '17',
+            'M',
+            'QUEZON CITY',
+            'TAGALOG',
+            'FILIPINO',
+            'CATHOLIC',
+            '123 MAIN ST, QUEZON CITY',
+            'PEDRO DELA CRUZ',
+            'MARIA SANTOS DELA CRUZ',
+            'MARIA SANTOS DELA CRUZ',
+            'MOTHER',
             '09123456789',
-            '123 Main St, City',
-            'Maria Dela Cruz',
-            '09987654321',
-            'Ms. Teacher',
-            'Metro Manila',
-            'Quezon City',
-            'Barangay 1',
-            '123 Main St, City',
-            '09123456789',
-            'Maria Dela Cruz',
-            '09987654321',
-            'Mother'
+            '08/15/2024',
+            'Grade 11',
+            'EINSTEIN',
+            'Academic Track',
+            'STEM',
+            'MS. TEACHER',
+            '2024-2025',
+            'NEW'
         ];
 
-        $filename = 'student_upload_template.csv';
+        $filename = 'SF1-SHS_Student_Register_Template.csv';
 
         $callback = function() use ($headers, $csvData) {
             $file = fopen('php://output', 'w');
@@ -732,11 +833,13 @@ class StudentController extends Controller
             $data['track'] = $track;
         }
 
-        // Generate a temporary password if not provided
+        // Generate "Temp_123" password structure
+        $plainPassword = 'Temp_123';
         if (empty($data['password'])) {
-            $data['password'] = Hash::make('temp' . $data['student_id']);
+            $data['password'] = Hash::make($plainPassword);
             $data['is_temporary_account'] = true;
         } else {
+            $plainPassword = $data['password']; // Use provided password
             $data['password'] = Hash::make($data['password']);
         }
 
@@ -746,7 +849,18 @@ class StudentController extends Controller
         $data['allow_profile_edit'] = false; // Prevent students from editing
         $data['profile_completed'] = false;
 
-        Student::create($data);
+        // Create the student record
+        $student = Student::create($data);
+
+        // Create TemporaryStudentCredential record for admin portal display
+        TemporaryStudentCredential::create([
+            'student_id' => $data['student_id'],
+            'password' => $plainPassword, // Store plain password for display
+            'created_by_registrar_id' => auth()->guard('registrar')->id(),
+            'source' => 'csv_upload',
+            'notes' => 'Generated from CSV upload - ' . ($gradeLevel ?? 'Unknown Grade') . ' - ' . ($track ?? 'Unknown Track'),
+            'is_used' => false
+        ]);
     }
 
     /**

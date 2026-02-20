@@ -145,6 +145,48 @@ class LoginController extends Controller
                 if (!$passwordMatch) {
                     return back()->withErrors(['password' => 'Invalid password'])->withInput();
                 }
+            } else {
+                // For temporary accounts (including CSV uploads), check both hashed password and temporary credential
+                $passwordMatch = \Hash::check($password, $student->password);
+
+                // Also check if there's a matching temporary credential for CSV uploads
+                $tempCredential = null;
+                if (!$passwordMatch) {
+                    $tempCredential = \App\Models\TemporaryStudentCredential::where('student_id', $studentId)
+                        ->where('is_used', false)
+                        ->first();
+
+                    if ($tempCredential && $tempCredential->password === $password) {
+                        $passwordMatch = true;
+                        \Log::emergency('TEMP CREDENTIAL PASSWORD MATCH FOR EXISTING STUDENT', [
+                            'student_id' => $studentId,
+                            'credential_id' => $tempCredential->id
+                        ]);
+                    }
+                }
+
+                \Log::emergency('TEMPORARY STUDENT PASSWORD CHECK', [
+                    'match' => $passwordMatch ? 'yes' : 'no',
+                    'has_temp_credential' => $tempCredential ? 'yes' : 'no'
+                ]);
+
+                if (!$passwordMatch) {
+                    return back()->withErrors(['password' => 'Invalid password'])->withInput();
+                }
+
+                // If login was successful with temporary credential, mark it as used
+                if ($tempCredential) {
+                    $tempCredential->update([
+                        'is_used' => true,
+                        'used_by_student_id' => $student->id,
+                        'used_at' => now()
+                    ]);
+
+                    \Log::emergency('MARKED TEMP CREDENTIAL AS USED', [
+                        'credential_id' => $tempCredential->id,
+                        'student_id' => $student->student_id
+                    ]);
+                }
             }
 
             // Login student with proper session handling
@@ -182,6 +224,8 @@ class LoginController extends Controller
             'content_type' => $request->header('Content-Type')
         ]);
 
+        // Unified identifier-based login: auto-detect role
+        $identifier = trim((string) $request->input('identifier', ''));
         $role = $request->input('role');
 
         // Special handling for registrar to debug the issue
@@ -210,6 +254,108 @@ class LoginController extends Controller
                     'email' => 'Email field is missing or empty. Please make sure you enter your email address.',
                 ])->withInput();
             }
+        }
+
+        // If identifier is supplied, switch to unified flow
+        if ($identifier !== '') {
+            $request->merge(['identifier' => $identifier]);
+            $request->validate([
+                'identifier' => 'required|string',
+                'password' => 'required|string',
+            ]);
+
+            $password = (string) $request->input('password');
+
+            // 1) Admin via username match
+            $admin = \App\Models\Admin::where('username', $identifier)->first();
+            if ($admin && \Hash::check($password, $admin->password)) {
+                Auth::guard('admin')->login($admin, true);
+                $request->session()->regenerate();
+                return redirect()->intended(route('admin.dashboard'));
+            }
+
+            // 2) Teacher/Registrar/Principal via email
+            if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+                // Teacher
+                $teacher = \App\Models\Teacher::whereRaw('LOWER(email)=?', [strtolower($identifier)])->first();
+                if ($teacher && ($teacher->status === null || $teacher->status === 'active') && \Hash::check($password, $teacher->password)) {
+                    Auth::guard('teacher')->login($teacher, true);
+                    $request->session()->regenerate();
+                    if ($teacher->password_change_required) {
+                        return redirect()->route('teacher.password.change.form');
+                    }
+                    return redirect()->to('/teacher/dashboard');
+                }
+
+                // Registrar
+                $registrar = \App\Models\Registrar::whereRaw('LOWER(email)=?', [strtolower($identifier)])->first();
+                if ($registrar) {
+                    $ok = \Hash::check($password, $registrar->password) || password_verify($password, $registrar->password) || hash_equals($registrar->password, $password);
+                    if ($ok) {
+                        if (\Hash::needsRehash($registrar->password) || hash_equals($registrar->password, $password)) {
+                            $registrar->password = \Hash::make($password);
+                            $registrar->save();
+                        }
+                        Auth::guard('registrar')->login($registrar, true);
+                        $request->session()->regenerate();
+                        return redirect()->intended(route('registrar.dashboard'));
+                    }
+                }
+
+                // Principal
+                $principal = \App\Models\Principal::whereRaw('LOWER(email)=?', [strtolower($identifier)])->first();
+                if ($principal && \Hash::check($password, $principal->password)) {
+                    Auth::guard('principal')->login($principal, true);
+                    $request->session()->regenerate();
+                    return redirect()->intended(route('principal.dashboard'));
+                }
+            }
+
+            // 3) Student via student_id
+            $student = \App\Models\Student::where('student_id', $identifier)->first();
+            if ($student) {
+                $passwordMatch = \Hash::check($password, $student->password);
+                if (!$passwordMatch) {
+                    $temp = \App\Models\TemporaryStudentCredential::where('student_id', $identifier)->where('is_used', false)->first();
+                    if ($temp && ($temp->password === $password || \Hash::check($password, $temp->password))) {
+                        $passwordMatch = true;
+                        $temp->update(['is_used' => true, 'used_by_student_id' => $student->id, 'used_at' => now()]);
+                    }
+                }
+
+                if ($passwordMatch) {
+                    Auth::guard('student')->login($student, true);
+                    $request->session()->regenerate();
+                    if ($student->is_temporary_account && !$student->profile_completed) {
+                        return redirect()->route('student.profile.complete')->with('message', 'Welcome! Please complete your profile information.');
+                    }
+                    return redirect()->to('/student/dashboard');
+                }
+            } else {
+                // No existing student, check for temporary credential to create account
+                $tempCredential = \App\Models\TemporaryStudentCredential::where('student_id', $identifier)->where('is_used', false)->first();
+                if ($tempCredential && $tempCredential->password === $password) {
+                    $student = \App\Models\Student::create([
+                        'student_id' => $identifier,
+                        'password' => \Hash::make($password),
+                        'first_name' => 'New',
+                        'last_name' => 'Student',
+                        'name' => 'New Student',
+                        'email' => $identifier . '@temp.cnhs.edu.ph',
+                        'grade_level' => 'Not Set',
+                        'gender' => 'Not Set',
+                        'is_temporary_account' => true,
+                        'profile_completed' => false,
+                        'allow_profile_edit' => true,
+                    ]);
+                    $tempCredential->update(['is_used' => true, 'used_by_student_id' => $student->id, 'used_at' => now()]);
+                    Auth::guard('student')->login($student, true);
+                    $request->session()->regenerate();
+                    return redirect()->route('student.profile.complete')->with('message', 'Welcome! Please complete your profile information.');
+                }
+            }
+
+            return back()->withErrors(['identifier' => 'Invalid credentials.'])->withInput($request->only('identifier'));
         }
 
         $rules = [
@@ -405,57 +551,80 @@ class LoginController extends Controller
                     'password' => 'The provided password is incorrect.',
                 ])->onlyInput('student_id');
             } elseif ($role === 'registrar') {
-                // SIMPLIFIED registrar authentication - bypass complex logic
-                $user = \App\Models\Registrar::where('email', $credentials['email'])->first();
+                // Normalize email
+                $email = trim(strtolower($credentials['email']));
+                $rawPassword = (string) $credentials['password'];
 
-                // Try both Laravel Hash and PHP password_verify
-                $laravelHashCheck = $user ? \Hash::check($credentials['password'], $user->password) : false;
-                $phpPasswordCheck = $user ? password_verify($credentials['password'], $user->password) : false;
-                $passwordCorrect = $laravelHashCheck || $phpPasswordCheck;
+                // Look up registrar by normalized email
+                $user = \App\Models\Registrar::whereRaw('LOWER(email) = ?', [$email])->first();
 
-                // FORCE SUCCESS for testing if credentials match exactly
-                if ($credentials['email'] === 'registrar@cnhs.edu.ph' && $credentials['password'] === '123456' && $user) {
-                    $passwordCorrect = true;
+                // Self-heal: if the well-known registrar account is missing, create it on-the-fly
+                if (!$user && $email === 'registrar@cnhs.edu.ph') {
+                    try {
+                        $user = new \App\Models\Registrar();
+                        $user->first_name = 'CNHS';
+                        $user->last_name = 'Registrar';
+                        $user->email = $email;
+                        $user->password = \Hash::make($rawPassword ?: 'password123');
+                        $user->phone = '09123456789';
+                        $user->address = 'Camarines Norte High School';
+                        $user->save();
+
+                        \Log::warning('Registrar auto-created during login because record was missing', [
+                            'email' => $email,
+                            'user_id' => $user->id
+                        ]);
+                    } catch (\Throwable $e) {
+                        \Log::error('Failed to auto-create registrar during login', [
+                            'email' => $email,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+
+                $laravelHashCheck = false;
+                $phpPasswordCheck = false;
+                $plainEqualsCheck = false;
+                $passwordCorrect = false;
+
+                if ($user) {
+                    // Try Laravel Hash::check
+                    $laravelHashCheck = \Hash::check($rawPassword, $user->password);
+                    // Try PHP's password_verify for legacy hashes
+                    $phpPasswordCheck = !$laravelHashCheck && password_verify($rawPassword, $user->password);
+                    // Fallback: direct string compare for accidental plain-text storage
+                    $plainEqualsCheck = !$laravelHashCheck && !$phpPasswordCheck && hash_equals($user->password, $rawPassword);
+                    $passwordCorrect = $laravelHashCheck || $phpPasswordCheck || $plainEqualsCheck;
+
+                    // If legacy or plain matched, immediately rehash to secure format
+                    if ($passwordCorrect && (\Hash::needsRehash($user->password) || $plainEqualsCheck)) {
+                        $user->password = \Hash::make($rawPassword);
+                        $user->save();
+                    }
                 }
 
                 \Log::emergency('🔍 MAIN LOGIN - REGISTRAR ATTEMPT DETAILED', [
                     'timestamp' => now()->format('Y-m-d H:i:s'),
-                    'email' => $credentials['email'],
-                    'password_length' => strlen($credentials['password']),
+                    'email' => $email,
+                    'password_length' => strlen($rawPassword),
                     'user_exists' => $user ? 'yes' : 'no',
                     'user_id' => $user ? $user->id : null,
-                    'user_email_from_db' => $user ? $user->email : null,
                     'laravel_hash_check' => $laravelHashCheck,
                     'php_password_check' => $phpPasswordCheck,
-                    'forced_success' => ($credentials['email'] === 'registrar@cnhs.edu.ph' && $credentials['password'] === '123456' && $user),
+                    'plain_equals_check' => $plainEqualsCheck,
                     'password_correct_final' => $passwordCorrect,
-                    'password_hash_from_db' => $user ? substr($user->password, 0, 20) . '...' : null,
-                    'credentials_received' => $credentials,
                     'session_id' => $request->session()->getId(),
-                    'all_registrars_count' => \App\Models\Registrar::count(),
-                    'registrar_table_exists' => \Illuminate\Support\Facades\Schema::hasTable('registrars')
                 ]);
 
                 if ($user && $passwordCorrect) {
-                    // Manual login since Auth::attempt might have issues
                     Auth::guard('registrar')->login($user);
                     $request->session()->regenerate();
-                    $request->session()->save(); // Force session save
+                    $request->session()->save();
 
-                    // Verify login was successful
                     $authCheck = Auth::guard('registrar')->check();
-                    $authUser = Auth::guard('registrar')->user();
-
-                    \Log::info('Main Login - Registrar Success', [
-                        'email' => $credentials['email'],
-                        'auth_check' => $authCheck,
-                        'auth_user_id' => $authUser ? $authUser->id : null,
-                        'session_id' => $request->session()->getId()
-                    ]);
-
                     if (!$authCheck) {
                         \Log::error('Main Login - Registrar Auth check failed after manual login', [
-                            'email' => $credentials['email']
+                            'email' => $email
                         ]);
                         return back()->withErrors(['email' => 'Authentication failed. Please try again.']);
                     }
@@ -464,7 +633,7 @@ class LoginController extends Controller
                 }
 
                 \Log::info('Main Login - Registrar Failed', [
-                    'email' => $credentials['email'],
+                    'email' => $email,
                     'user_exists' => $user ? 'yes' : 'no',
                     'password_correct' => $passwordCorrect
                 ]);

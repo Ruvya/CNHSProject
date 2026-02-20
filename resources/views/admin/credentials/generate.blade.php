@@ -5,7 +5,7 @@
 @section('content')
 <div class="page-header">
     <h1 class="page-title">Generate Student Credentials</h1>
-    <p class="page-subtitle">Create unique login credentials for students that can be used for first-time login</p>
+    <p class="page-subtitle">Create unique login credentials for students. All generated credentials use the default password: <code class="bg-light px-2 py-1 rounded">Temp_123</code></p>
     <div class="page-actions">
         <a href="{{ route('admin.credentials.index') }}" class="btn btn-outline-secondary">
             <i class="fas fa-list me-2"></i>View All Credentials
@@ -14,6 +14,18 @@
             <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
         </a>
     </div>
+</div>
+
+<!-- Information Alert -->
+<div class="alert alert-info">
+    <h6><i class="fas fa-info-circle me-2"></i>Default Password Information</h6>
+    <p class="mb-2">All generated student credentials will use the standard temporary password:</p>
+    <ul class="mb-2">
+        <li><strong>Password:</strong> <code class="bg-light px-2 py-1 rounded">Temp_123</code> (case-sensitive)</li>
+        <li>Students use their assigned Student ID as the username</li>
+        <li>Students can change their password after first login</li>
+    </ul>
+    <small class="text-muted">This ensures consistency and makes it easy for students to access their accounts.</small>
 </div>
 
 <div class="row">

@@ -14,26 +14,32 @@
             /* margin-left: 250px !important; */
         }
 
-        /* Profile Header */
+        /* Profile Header - Match Dashboard Banner */
         .profile-header {
             margin-bottom: 1.5rem;
-            padding: 1.25rem;
-            background-image: linear-gradient(to right, #FFA726, #FF7043);
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(255, 112, 67, 0.3);
+            padding: 1.75rem 2rem;
+            background: linear-gradient(135deg, #ffa62b 0%, #ff7b2c 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 24px rgba(16, 24, 40, 0.08);
             position: relative;
+            overflow: hidden;
+            color: #ffffff;
         }
         .profile-header::before{
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 50%;
-        height: 100%;
-        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
-        clip-path: polygon(100% 0, 100% 100%, 0 100%, 20% 0);
-        opacity: 0.9;
-        z-index: 1;
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 65%;
+            background: linear-gradient(135deg, #3961e7 0%, #2f50d1 100%);
+            clip-path: polygon(22% 0, 100% 0, 100% 100%, 0 100%);
+            opacity: 1;
+            z-index: 1;
+        }
+        .profile-header .header-content{
+            position: relative;
+            z-index: 2;
         }
 
         .profile-header h1 {
@@ -289,11 +295,13 @@
 
 @section('content')
 <div class="profile-header">
-    <h1>Student Profile</h1>
-    @php
-        $student = Auth::guard('student')->user();
-    @endphp
-    <p class="last-updated">Last updated: <span id="lastUpdated">{{ $student ? $student->updated_at->diffForHumans() : 'N/A' }}</span></p>
+    <div class="header-content">
+        <h1>Student Profile</h1>
+        @php
+            $student = Auth::guard('student')->user();
+        @endphp
+        <p class="last-updated">Last updated: <span id="lastUpdated">{{ $student ? $student->updated_at->diffForHumans() : 'N/A' }}</span></p>
+    </div>
 </div>
 
 @if(session('success'))

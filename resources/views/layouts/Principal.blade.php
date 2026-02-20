@@ -197,16 +197,44 @@
         }
 
         /* Additional Styles */
-        @yield('styles')
     </style>
+    @yield('styles')
 </head>
 <body>
+
+    <!-- Sidebar -->
+    <nav id="sidebar">
+        <div class="profile-section">
+            <img src="{{ asset('images/principal-avatar.jpg') }}" alt="Principal" onerror="this.src='https://via.placeholder.com/80'">
+            <h6 class="mb-0">Principal</h6>
+            <small>Administrator</small>
+        </div>
+        <div class="sidebar-menu">
+            <a href="{{ route('principal.dashboard') }}" class="sidebar-link {{ request()->routeIs('principal.dashboard') ? 'active' : '' }}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="" class="sidebar-link">
+                <i class="fas fa-users"></i> Students
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-chalkboard-teacher"></i> Teachers
+            </a>
+            <a href="{{ route('principal.announcements.index') }}" class="sidebar-link {{ request()->routeIs('principal.announcements.*') ? 'active' : '' }}">
+                <i class="fas fa-bullhorn"></i> My Announcements
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-calendar-alt"></i> Events
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-file-alt"></i> Reports
+
     <!-- Header -->
     <header class="header">
         <div class="header-brand">
             <img src="{{ asset('images/CNHS.png') }}" alt="CNHS Logo">
             <a href="{{ route('principal.dashboard') }}" class="portal-text">
                 CNHS PORTAL
+
             </a>
         </div>
         <div class="header-actions">

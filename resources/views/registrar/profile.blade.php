@@ -43,7 +43,7 @@
                 </div>
                 <div class="card-body text-center">
                     <div class="position-relative d-inline-block mb-3">
-                        <img src="{{ auth()->guard('registrar')->user()->profile_picture ? asset('storage/' . auth()->guard('registrar')->user()->profile_picture) : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->guard('registrar')->user()->full_name) . '&background=6366f1&color=ffffff&size=150' }}"
+                        <img src="{{ auth()->guard('registrar')->user() && auth()->guard('registrar')->user()->profile_picture ? asset('storage/' . auth()->guard('registrar')->user()->profile_picture) : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->guard('registrar')->user() ? auth()->guard('registrar')->user()->full_name : 'Registrar') . '&background=6366f1&color=ffffff&size=150' }}"
                              class="rounded-circle border border-3 border-primary"
                              width="150" height="150" alt="Profile Picture" id="profilePreview">
                         <div class="position-absolute bottom-0 end-0">
@@ -52,8 +52,8 @@
                             </label>
                         </div>
                     </div>
-                    <h4 class="mb-1">{{ auth()->guard('registrar')->user()->full_name }}</h4>
-                    <p class="text-muted mb-2">{{ auth()->guard('registrar')->user()->email }}</p>
+                    <h4 class="mb-1">{{ auth()->guard('registrar')->user() ? auth()->guard('registrar')->user()->full_name : 'Registrar' }}</h4>
+                    <p class="text-muted mb-2">{{ auth()->guard('registrar')->user() ? auth()->guard('registrar')->user()->email : 'N/A' }}</p>
                     <span class="badge bg-success">Active Registrar</span>
 
                     <hr class="my-3">
@@ -85,11 +85,11 @@
                     <ul class="list-unstyled mb-0">
                         <li class="mb-2">
                             <strong>Account Created:</strong><br>
-                            <small class="text-muted">{{ auth()->guard('registrar')->user()->created_at->format('M d, Y \a\t g:i A') }}</small>
+                            <small class="text-muted">{{ auth()->guard('registrar')->user() ? auth()->guard('registrar')->user()->created_at->format('M d, Y \a\t g:i A') : 'N/A' }}</small>
                         </li>
                         <li class="mb-2">
                             <strong>Last Updated:</strong><br>
-                            <small class="text-muted">{{ auth()->guard('registrar')->user()->updated_at->format('M d, Y \a\t g:i A') }}</small>
+                            <small class="text-muted">{{ auth()->guard('registrar')->user() ? auth()->guard('registrar')->user()->updated_at->format('M d, Y \a\t g:i A') : 'N/A' }}</small>
                         </li>
                         <li class="mb-2">
                             <strong>Account Status:</strong><br>
@@ -123,7 +123,7 @@
                                 <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('first_name') is-invalid @enderror"
                                        id="first_name" name="first_name"
-                                       value="{{ old('first_name', auth()->guard('registrar')->user()->first_name) }}"
+                                       value="{{ old('first_name', auth()->guard('registrar')->user() ? auth()->guard('registrar')->user()->first_name : '') }}"
                                        required>
                                 @error('first_name')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -133,7 +133,7 @@
                                 <label for="last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('last_name') is-invalid @enderror"
                                        id="last_name" name="last_name"
-                                       value="{{ old('last_name', auth()->guard('registrar')->user()->last_name) }}"
+                                       value="{{ old('last_name', auth()->guard('registrar')->user() ? auth()->guard('registrar')->user()->last_name : '') }}"
                                        required>
                                 @error('last_name')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -145,7 +145,7 @@
                             <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
                             <input type="email" class="form-control @error('email') is-invalid @enderror"
                                    id="email" name="email"
-                                   value="{{ old('email', auth()->guard('registrar')->user()->email) }}"
+                                   value="{{ old('email', auth()->guard('registrar')->user() ? auth()->guard('registrar')->user()->email : '') }}"
                                    required>
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -159,13 +159,13 @@
                         <div class="mb-3">
                             <label class="form-label">Profile Picture</label>
                             <div class="d-flex align-items-center">
-                                <img src="{{ auth()->guard('registrar')->user()->profile_picture ? asset('storage/' . auth()->guard('registrar')->user()->profile_picture) : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->guard('registrar')->user()->full_name) . '&background=6366f1&color=ffffff&size=60' }}"
+                                <img src="{{ auth()->guard('registrar')->user() && auth()->guard('registrar')->user()->profile_picture ? asset('storage/' . auth()->guard('registrar')->user()->profile_picture) : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->guard('registrar')->user() ? auth()->guard('registrar')->user()->full_name : 'Registrar') . '&background=6366f1&color=ffffff&size=60' }}"
                                      class="rounded-circle me-3" width="60" height="60" alt="Current Profile" id="currentProfilePreview">
                                 <div>
                                     <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('profile_picture').click()">
                                         <i class="fas fa-upload me-1"></i>Choose New Picture
                                     </button>
-                                    @if(auth()->guard('registrar')->user()->profile_picture)
+                                    @if(auth()->guard('registrar')->user() && auth()->guard('registrar')->user()->profile_picture)
                                         <button type="button" class="btn btn-outline-danger btn-sm ms-2" onclick="removeProfilePicture()">
                                             <i class="fas fa-trash me-1"></i>Remove
                                         </button>
@@ -309,7 +309,7 @@ function removeProfilePicture() {
         document.getElementById('profileForm').appendChild(removeInput);
 
         // Update preview images to default
-        const defaultImage = 'https://ui-avatars.com/api/?name={{ urlencode(auth()->guard('registrar')->user()->full_name) }}&background=6366f1&color=ffffff&size=150';
+        const defaultImage = 'https://ui-avatars.com/api/?name={{ urlencode(auth()->guard('registrar')->user() ? auth()->guard('registrar')->user()->full_name : 'Registrar') }}&background=6366f1&color=ffffff&size=150';
         document.getElementById('profilePreview').src = defaultImage;
         document.getElementById('currentProfilePreview').src = defaultImage.replace('150', '60');
 
@@ -323,7 +323,7 @@ function resetForm() {
         document.getElementById('profileForm').reset();
 
         // Reset profile picture previews
-        const originalImage = '{{ auth()->guard('registrar')->user()->profile_picture ? asset('storage/' . auth()->guard('registrar')->user()->profile_picture) : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->guard('registrar')->user()->full_name) . '&background=6366f1&color=ffffff&size=150' }}';
+        const originalImage = '{{ auth()->guard('registrar')->user() && auth()->guard('registrar')->user()->profile_picture ? asset('storage/' . auth()->guard('registrar')->user()->profile_picture) : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->guard('registrar')->user() ? auth()->guard('registrar')->user()->full_name : 'Registrar') . '&background=6366f1&color=ffffff&size=150' }}';
         document.getElementById('profilePreview').src = originalImage;
         document.getElementById('currentProfilePreview').src = originalImage.replace('150', '60');
 

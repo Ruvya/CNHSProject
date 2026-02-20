@@ -54,18 +54,17 @@
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label for="code" class="form-label fw-semibold">
-                                        Subject Code <span class="text-warning">(Editable)</span>
+                                        Subject Code (Optional)
                                     </label>
                                     <input type="text"
                                            class="form-control @error('code') is-invalid @enderror"
                                            id="code"
                                            name="code"
                                            value="{{ old('code', $subject->code) }}"
-                                           placeholder="e.g., GENMATH"
-                                           style="text-transform: uppercase;"
-                                           required>
-                                    <div class="form-text text-warning">
-                                        <i class="fas fa-edit me-1"></i>You can modify the subject code if needed
+                                           placeholder="e.g., ENG101, MATH11 (Optional)"
+                                           style="text-transform: uppercase;">
+                                    <div class="form-text text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>Subject code is optional. Leave blank if not needed.
                                     </div>
                                     @error('code')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -122,34 +121,17 @@
                                             name="track"
                                             required>
                                         <option value="">Select Track</option>
-                                        <option value="Academic Track" {{ old('track', $subject->track) == 'Academic Track' ? 'selected' : '' }}>Academic Track</option>
-                                        <option value="TVL Track" {{ old('track', $subject->track) == 'TVL Track' ? 'selected' : '' }}>TVL Track</option>
-                                        <option value="Sports Track" {{ old('track', $subject->track) == 'Sports Track' ? 'selected' : '' }}>Sports Track</option>
-                                        <option value="Arts and Design Track" {{ old('track', $subject->track) == 'Arts and Design Track' ? 'selected' : '' }}>Arts and Design Track</option>
+                                        @foreach($tracks as $track)
+                                            <option value="{{ $track->name }}" {{ old('track', $subject->track) == $track->name ? 'selected' : '' }}>
+                                                {{ $track->name }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                     @error('track')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <label for="strand" class="form-label fw-semibold">
-                                        Strand <span class="text-danger">*</span>
-                                    </label>
-                                    <select class="form-select @error('strand') is-invalid @enderror"
-                                            id="strand"
-                                            name="strand"
-                                            required>
-                                        <option value="">Select Strand</option>
-                                        <!-- Options will be populated by JavaScript based on track selection -->
-                                    </select>
-                                    @error('strand')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
                                     <label for="cluster" class="form-label fw-semibold">
                                         Cluster
                                     </label>
@@ -157,12 +139,15 @@
                                             id="cluster"
                                             name="cluster">
                                         <option value="">Select Cluster (Optional)</option>
-                                        <!-- Options will be populated by JavaScript based on strand selection -->
+                                        <!-- Options will be populated by JavaScript based on track selection -->
                                     </select>
                                     @error('cluster')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+                            </div>
+
+                            <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="specialization" class="form-label fw-semibold">
                                         Specialization
@@ -258,10 +243,105 @@
                                                value="1"
                                                {{ old('is_master_subject', $subject->is_master_subject) ? 'checked' : '' }}>
                                         <label class="form-check-label fw-semibold" for="is_master_subject">
-                                            Master Subject
+                                            Elective Subject
                                         </label>
                                         <div class="form-text">Check if this is a master subject template</div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Schedule Section -->
+                        <div class="form-section mb-4">
+                            <h6 class="section-title border-bottom pb-2 mb-3">
+                                <i class="fas fa-clock me-2 text-success"></i>
+                                Class Schedule
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="schedule_days" class="form-label fw-semibold">
+                                        Days of the Week
+                                    </label>
+                                    <div class="row">
+                                        @php
+                                            $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                                            $oldDays = old('schedule_days', $subject->schedule_days_array);
+                                        @endphp
+                                        @foreach($days as $day)
+                                            <div class="col-md-3 col-sm-4 col-6 mb-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           name="schedule_days[]" 
+                                                           value="{{ $day }}" 
+                                                           id="day_{{ strtolower($day) }}"
+                                                           {{ in_array($day, $oldDays) ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="day_{{ strtolower($day) }}">
+                                                        {{ $day }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    @error('schedule_days')
+                                        <div class="text-danger small">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="start_time" class="form-label fw-semibold">
+                                        Start Time
+                                    </label>
+                                    <input type="time" 
+                                           class="form-control @error('start_time') is-invalid @enderror"
+                                           id="start_time"
+                                           name="start_time"
+                                           value="{{ old('start_time', $subject->start_time) }}">
+                                    @error('start_time')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="end_time" class="form-label fw-semibold">
+                                        End Time
+                                    </label>
+                                    <input type="time" 
+                                           class="form-control @error('end_time') is-invalid @enderror"
+                                           id="end_time"
+                                           name="end_time"
+                                           value="{{ old('end_time', $subject->end_time) }}">
+                                    @error('end_time')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="room" class="form-label fw-semibold">
+                                        Room/Venue
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control @error('room') is-invalid @enderror"
+                                           id="room"
+                                           name="room"
+                                           value="{{ old('room', $subject->room) }}"
+                                           placeholder="e.g., Room 101, Computer Lab">
+                                    @error('room')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="schedule_notes" class="form-label fw-semibold">
+                                        Schedule Notes
+                                    </label>
+                                    <textarea class="form-control @error('schedule_notes') is-invalid @enderror"
+                                              id="schedule_notes"
+                                              name="schedule_notes"
+                                              rows="2"
+                                              placeholder="Additional schedule information (e.g., 'First half of semester only', 'Alternating weeks')">{{ old('schedule_notes', $subject->schedule_notes) }}</textarea>
+                                    @error('schedule_notes')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
@@ -323,120 +403,96 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // DepEd Curriculum Data Structure (same as create form)
-    const curriculumData = {
-        'Academic Track': {
-            'STEM': {
-                clusters: ['Mathematics and Science', 'Engineering', 'Medical and Health Sciences'],
-                specializations: ['Pre-Engineering', 'Pre-Medicine', 'Computer Science', 'Applied Physics']
-            },
-            'ABM': {
-                clusters: ['Business and Entrepreneurship', 'Accounting and Finance'],
-                specializations: ['Business Management', 'Accounting', 'Marketing', 'Entrepreneurship']
-            },
-            'HUMSS': {
-                clusters: ['Social Sciences', 'Humanities', 'Communication Arts'],
-                specializations: ['Political Science', 'Psychology', 'Literature', 'Communication']
-            },
-            'GAS': {
-                clusters: ['General Academic Strand'],
-                specializations: ['General Academic Subjects']
-            }
-        },
-        'TVL Track': {
-            'ICT': {
-                clusters: ['Computer Programming', 'Computer Systems Servicing', 'Animation'],
-                specializations: ['Web Development', 'Mobile App Development', 'Network Administration']
-            },
-            'HE': {
-                clusters: ['Cookery', 'Food and Beverage Services', 'Housekeeping'],
-                specializations: ['Culinary Arts', 'Hotel Management', 'Tourism Services']
-            },
-            'IA': {
-                clusters: ['Electrical Installation', 'Electronics', 'Welding'],
-                specializations: ['Electrical Technology', 'Electronics Technology', 'Mechanical Technology']
-            },
-            'AFA': {
-                clusters: ['Agri-Fishery Arts', 'Animal Production', 'Crop Production'],
-                specializations: ['Agriculture', 'Fishery', 'Livestock Production']
-            }
-        },
-        'Sports Track': {
-            'Sports': {
-                clusters: ['Sports Science', 'Physical Education'],
-                specializations: ['Athletic Training', 'Sports Management', 'Physical Therapy']
-            }
-        },
-        'Arts and Design Track': {
-            'Arts and Design': {
-                clusters: ['Visual Arts', 'Performing Arts', 'Media Arts'],
-                specializations: ['Fine Arts', 'Music', 'Theater Arts', 'Digital Arts']
-            }
-        }
-    };
-
     const trackSelect = document.getElementById('track');
-    const strandSelect = document.getElementById('strand');
     const clusterSelect = document.getElementById('cluster');
     const codeInput = document.getElementById('code');
+    const coreSubjectCheckbox = document.getElementById('is_core_subject');
+    const electiveSubjectCheckbox = document.getElementById('is_master_subject');
+    const gradeLevelSelect = document.getElementById('grade_level');
+    const gradingSelect = document.getElementById('grading');
 
     // Current values from the subject
     const currentTrack = '{{ old("track", $subject->track) }}';
-    const currentStrand = '{{ old("strand", $subject->strand) }}';
     const currentCluster = '{{ old("cluster", $subject->cluster) }}';
 
     // Initialize form with current values
     function initializeForm() {
         if (currentTrack) {
-            populateStrands(currentTrack);
-            if (currentStrand) {
-                strandSelect.value = currentStrand;
-                populateClusters(currentTrack, currentStrand);
+            // Find track ID by name
+            loadClustersByTrackName(currentTrack).then(() => {
                 if (currentCluster) {
                     clusterSelect.value = currentCluster;
                 }
+            });
+        }
+    }
+
+    // Load clusters by track name (fetches track ID first, then clusters)
+    async function loadClustersByTrackName(trackName) {
+        if (!trackName) {
+            clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
+            return;
+        }
+
+        // First, get the track ID from the name
+        const tracks = @json(\App\Models\Track::active()->get(['id', 'name']));
+        const track = tracks.find(t => t.name === trackName);
+        
+        if (!track) {
+            clusterSelect.innerHTML = '<option value="">No clusters available</option>';
+            return;
+        }
+
+        // Now fetch clusters by track ID
+        await loadClustersByTrackId(track.id);
+    }
+
+    // Load clusters by track ID using AJAX
+    async function loadClustersByTrackId(trackId) {
+        if (!trackId) {
+            clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
+            return;
+        }
+
+        clusterSelect.innerHTML = '<option value="">Loading clusters...</option>';
+        clusterSelect.disabled = true;
+
+        try {
+            const response = await fetch(`/admin/api/clusters/by-track/${trackId}`);
+            const data = await response.json();
+
+            clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
+            
+            if (data.success && data.clusters && data.clusters.length > 0) {
+                data.clusters.forEach(cluster => {
+                    const option = document.createElement('option');
+                    option.value = cluster.name;
+                    option.textContent = cluster.name;
+                    if (cluster.description) {
+                        option.textContent += ' - ' + cluster.description;
+                    }
+                    clusterSelect.appendChild(option);
+                });
+            } else {
+                clusterSelect.innerHTML = '<option value="">No clusters available for this track</option>';
             }
+        } catch (error) {
+            console.error('Error loading clusters:', error);
+            clusterSelect.innerHTML = '<option value="">Error loading clusters</option>';
+        } finally {
+            clusterSelect.disabled = false;
         }
     }
 
-    // Populate strands based on track
-    function populateStrands(selectedTrack) {
-        strandSelect.innerHTML = '<option value="">Select Strand</option>';
-        if (selectedTrack && curriculumData[selectedTrack]) {
-            Object.keys(curriculumData[selectedTrack]).forEach(strand => {
-                const option = document.createElement('option');
-                option.value = strand;
-                option.textContent = strand;
-                strandSelect.appendChild(option);
-            });
-        }
-    }
-
-    // Populate clusters based on track and strand
-    function populateClusters(selectedTrack, selectedStrand) {
-        clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
-        if (selectedTrack && selectedStrand && curriculumData[selectedTrack][selectedStrand]) {
-            const clusters = curriculumData[selectedTrack][selectedStrand].clusters;
-            clusters.forEach(cluster => {
-                const option = document.createElement('option');
-                option.value = cluster;
-                option.textContent = cluster;
-                clusterSelect.appendChild(option);
-            });
-        }
+    // Populate clusters based on track (using track name)
+    function populateClusters(selectedTrack) {
+        loadClustersByTrackName(selectedTrack);
     }
 
     // Event listeners
     trackSelect.addEventListener('change', function() {
         const selectedTrack = this.value;
-        populateStrands(selectedTrack);
-        clusterSelect.innerHTML = '<option value="">Select Cluster (Optional)</option>';
-    });
-
-    strandSelect.addEventListener('change', function() {
-        const selectedTrack = trackSelect.value;
-        const selectedStrand = this.value;
-        populateClusters(selectedTrack, selectedStrand);
+        populateClusters(selectedTrack);
     });
 
     // Ensure code is always uppercase
@@ -446,7 +502,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Auto-map semester to grading period
     const semesterSelect = document.getElementById('semester');
-    const gradingSelect = document.getElementById('grading');
 
     semesterSelect.addEventListener('change', function() {
         const semester = this.value;
@@ -459,11 +514,45 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Core Subject auto-assign logic
+    coreSubjectCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            // Auto-assign default values but keep fields enabled and editable
+            if (!gradeLevelSelect.value) gradeLevelSelect.value = 'Grade 11';
+            if (!trackSelect.value) trackSelect.value = 'All';
+            if (!clusterSelect.value) clusterSelect.value = 'All';
+            if (!gradingSelect.value) gradingSelect.value = 'All Gradings';
+            // Note: All fields remain enabled and editable
+            // Note: Elective Subject remains enabled and clickable
+        }
+        // Fields remain fully functional regardless of Core Subject selection
+    });
+
+    // Elective Subject logic - now independent of Core Subject
+    electiveSubjectCheckbox.addEventListener('change', function() {
+        // Elective subjects can be selected independently
+        // No longer disables Core Subject checkbox
+    });
+
+    // On page load, if checked, apply logic
+    if (coreSubjectCheckbox.checked) {
+        // Auto-assign default values but keep fields enabled and editable
+        if (!gradeLevelSelect.value) gradeLevelSelect.value = 'Grade 11';
+        if (!trackSelect.value) trackSelect.value = 'All';
+        if (!clusterSelect.value) clusterSelect.value = 'All';
+        if (!gradingSelect.value) gradingSelect.value = 'All Gradings';
+        // Note: All fields remain enabled and editable
+        // Note: Elective Subject remains enabled and clickable
+    }
+    // Both checkboxes remain enabled and independent
+    // All curriculum fields remain fully functional
+
     // Form validation
     document.getElementById('subjectForm').addEventListener('submit', function(e) {
-        const requiredFields = ['name', 'code', 'grade_level', 'track', 'strand', 'grading'];
+        const requiredFields = ['name', 'code'];
         let isValid = true;
 
+        // Always validate name and code
         requiredFields.forEach(fieldName => {
             const field = document.getElementById(fieldName);
             if (!field.value.trim()) {
@@ -473,6 +562,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 field.classList.remove('is-invalid');
             }
         });
+
+        // Only validate grade_level, track, and grading if Core Subject is NOT checked
+        if (!coreSubjectCheckbox.checked) {
+            const conditionalFields = ['grade_level', 'track', 'grading'];
+            conditionalFields.forEach(fieldName => {
+                const field = document.getElementById(fieldName);
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+        } else {
+            // If Core Subject is checked, ensure disabled fields have their values
+            // and remove any invalid styling
+            document.getElementById('grade_level').classList.remove('is-invalid');
+            document.getElementById('track').classList.remove('is-invalid');
+            document.getElementById('grading').classList.remove('is-invalid');
+        }
 
         if (!isValid) {
             e.preventDefault();

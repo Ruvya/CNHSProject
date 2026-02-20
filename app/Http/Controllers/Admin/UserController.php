@@ -17,7 +17,18 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $teachers = Teacher::orderBy('name')->get();
+        // Optional text query to search users (teachers and students)
+        $query = trim((string) $request->get('q'));
+
+        // Teachers list (apply search if provided)
+        $teachersQuery = Teacher::query();
+        if ($query !== '') {
+            $teachersQuery->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('email', 'like', "%{$query}%");
+            });
+        }
+        $teachers = $teachersQuery->orderBy('name')->get();
 
         // Get all available grade levels for the filter dropdown
         $availableGradeLevels = Student::select('grade_level')
@@ -35,6 +46,16 @@ class UserController extends Controller
             $studentsQuery->where('grade_level', $selectedGradeLevel);
         }
 
+        // Apply text search to students if provided
+        if ($query !== '') {
+            $studentsQuery->where(function ($q) use ($query) {
+                $q->where('first_name', 'like', "%{$query}%")
+                  ->orWhere('last_name', 'like', "%{$query}%")
+                  ->orWhere('student_id', 'like', "%{$query}%")
+                  ->orWhere('email', 'like', "%{$query}%");
+            });
+        }
+
         $students = $studentsQuery->orderBy('first_name')->get();
 
         // Count students by grade level for statistics
@@ -48,7 +69,8 @@ class UserController extends Controller
             'students',
             'availableGradeLevels',
             'selectedGradeLevel',
-            'studentsByGrade'
+            'studentsByGrade',
+            'query'
         ));
     }
 
@@ -127,7 +149,11 @@ class UserController extends Controller
     // Teacher Management
     public function createTeacher()
     {
-        return view('admin.users.create-teacher');
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+        return view('admin.users.create-teacher', compact('tracks'));
     }
 
     public function storeTeacher(Request $request)
@@ -136,7 +162,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:teachers',
             'password' => 'required|string|min:8|confirmed',
-            'strand' => 'nullable|string|max:255',
+            'track' => 'nullable|string|max:255',
+            'cluster' => 'nullable|string|max:255',
             'contact_number' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:500',
             'status' => 'required|in:active,inactive',
@@ -168,7 +195,11 @@ class UserController extends Controller
 
     public function editTeacher(Teacher $teacher)
     {
-        return view('admin.users.edit-teacher', compact('teacher'));
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+        return view('admin.users.edit-teacher', compact('teacher', 'tracks'));
     }
 
     /**
@@ -207,7 +238,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('teachers')->ignore($teacher->id)],
             'password' => 'nullable|string|min:8|confirmed',
-            'strand' => 'nullable|string|max:255',
+            'track' => 'nullable|string|max:255',
+            'cluster' => 'nullable|string|max:255',
             'contact_number' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:500',
             'status' => 'required|in:active,inactive',

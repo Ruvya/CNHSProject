@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Subject;
 use Illuminate\Support\Facades\Auth;
+use App\Services\SemesterService;
 
 class SubjectController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $student = Auth::guard('student')->user();
+        $selectedSemester = $request->get('semester');
 
         // Get all subjects assigned to this student
         // Note: We don't need additional filtering here because subjects should only be assigned
@@ -20,6 +22,14 @@ class SubjectController extends Controller
             ->with('teacher')
             ->get();
 
+        // Optional semester filter based on subject's semester
+        if (!empty($selectedSemester)) {
+            $assignedSubjects = $assignedSubjects->filter(function ($subject) use ($selectedSemester) {
+                $subjectSemester = $subject->semester ?? null;
+                return empty($subjectSemester) || $subjectSemester === $selectedSemester;
+            })->values();
+        }
+
         // Categorize subjects according to DepEd curriculum structure
         $coreSubjects = $assignedSubjects->where('is_core_subject', true);
 
@@ -27,17 +37,17 @@ class SubjectController extends Controller
         $appliedSubjects = $assignedSubjects->where('track', $student->track)
             ->where('is_core_subject', false)
             ->filter(function($subject) {
-                return empty($subject->strand) || $subject->strand === null;
+                return empty($subject->cluster) || $subject->cluster === null;
             });
 
         // Specialized subjects (strand-specific)
-        $specializedSubjects = $assignedSubjects->where('strand', $student->strand)
+        $specializedSubjects = $assignedSubjects->where('cluster', $student->cluster)
             ->where('is_core_subject', false)
-            ->where('strand', '!=', null);
+            ->where('cluster', '!=', null);
 
         // Legacy categorization for backward compatibility
-        $trackSubjects = $assignedSubjects->where('track', $student->track)->where('is_core_subject', false)->where('strand', '!=', $student->strand);
-        $strandSubjects = $assignedSubjects->where('strand', $student->strand)->where('is_core_subject', false);
+        $trackSubjects = $assignedSubjects->where('track', $student->track)->where('is_core_subject', false)->where('cluster', '!=', $student->cluster);
+        $clusterSubjects = $assignedSubjects->where('cluster', $student->cluster)->where('is_core_subject', false);
 
         // Calculate statistics
         $totalAssigned = $assignedSubjects->count();
@@ -53,6 +63,8 @@ class SubjectController extends Controller
         // Add a simple $subjects variable for the view template compatibility
         $subjects = $assignedSubjects;
 
+        $semesterOptions = SemesterService::getSemesterOptions();
+
         return view('student.subjects', compact(
             'student',
             'subjects',
@@ -61,12 +73,14 @@ class SubjectController extends Controller
             'appliedSubjects',
             'specializedSubjects',
             'trackSubjects',
-            'strandSubjects',
+            'clusterSubjects',
             'totalAssigned',
             'subjectsWithTeachers',
             'subjectsWithoutTeachers',
             'hasCompleteAssignment',
-            'assignmentStatus'
+            'assignmentStatus',
+            'semesterOptions',
+            'selectedSemester'
         ));
     }
 
@@ -75,10 +89,10 @@ class SubjectController extends Controller
      */
     private function getAssignmentStatus($student)
     {
-        if (!$student->track || !$student->strand || !$student->grade_level) {
+        if (!$student->track || !$student->cluster || !$student->grade_level) {
             return [
                 'status' => 'incomplete_data',
-                'message' => 'Your track, strand, or grade level information is incomplete. Please contact the registrar to update your information.',
+                'message' => 'Your track, cluster, or grade level information is incomplete. Please contact the registrar to update your information.',
                 'color' => 'warning'
             ];
         }
@@ -86,7 +100,7 @@ class SubjectController extends Controller
         if ($student->subjects->count() == 0) {
             return [
                 'status' => 'no_subjects',
-                'message' => 'No subjects have been assigned yet. Subjects will be automatically assigned based on your track and strand.',
+                'message' => 'No subjects have been assigned yet. Subjects will be automatically assigned based on your track and cluster.',
                 'color' => 'info'
             ];
         }
@@ -94,14 +108,14 @@ class SubjectController extends Controller
         if (!$student->hasCompleteSubjectAssignment()) {
             return [
                 'status' => 'needs_update',
-                'message' => 'Your subject assignment may need updating based on your current track and strand.',
+                'message' => 'Your subject assignment may need updating based on your current track and cluster.',
                 'color' => 'warning'
             ];
         }
 
         return [
             'status' => 'complete',
-            'message' => 'Your subjects have been automatically assigned based on your track and strand.',
+            'message' => 'Your subjects have been automatically assigned based on your track and cluster.',
             'color' => 'success'
         ];
     }

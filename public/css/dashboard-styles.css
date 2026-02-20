@@ -9,6 +9,11 @@
     --gray-800: #5a5c69;
 }
 
+/* Global Font Family */
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
 /* Main Content Layout */
 .main-content {
     padding: 2rem;

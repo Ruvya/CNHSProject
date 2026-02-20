@@ -2,18 +2,102 @@
 
 @section('title', 'Class List')
 
+@section('styles')
+<style>
+    /* New Header Style */
+    .page-header-design {
+        background: linear-gradient(115deg, #f97316 60%, #3b82f6 60%);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(249, 115, 22, 0.25);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .header-left-content {
+        display: flex;
+        align-items: center;
+    }
+    .header-left-content i {
+        font-size: 3rem;
+        margin-right: 1.5rem;
+        opacity: 0.8;
+    }
+    .header-left-content h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+    .header-left-content p {
+        margin: 0.25rem 0 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+    .header-right-content .student-count-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.75rem 1.25rem;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        font-size: 1rem;
+        backdrop-filter: blur(10px);
+    }
+    .header-right-content .student-count-badge i {
+        margin-right: 0.5rem;
+    }
+
+    /* Existing styles from the file */
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .btn-group .dropdown-toggle::after {
+        margin-left: 0.255em;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        transition: background-color 0.2s ease;
+    }
+</style>
+@endsection
+
 @section('content')
 <div class="container-fluid">
     <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="mb-1">Class List</h2>
-                    <p class="text-muted">Manage your students and their grades</p>
+             <div class="page-header-design">
+                <div class="header-left-content">
+                    <i class="fas fa-users"></i>
+                    <div>
+                        <h1>Class List</h1>
+                        <p>Manage your students and their grades</p>
+                    </div>
                 </div>
-                <div>
-                    <span class="badge bg-primary fs-6">{{ $students->count() }} Students</span>
+                <div class="header-right-content">
+                    <div class="student-count-badge">
+                        <i class="fas fa-user-graduate"></i>
+                        <span>{{ $students->count() }} Students</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -87,12 +171,30 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-users me-2"></i>Students
-                        @if(request()->hasAny(['subject_id', 'grade_level', 'section']))
-                            <small class="text-muted">(Filtered Results)</small>
-                        @endif
-                    </h5>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-users me-2"></i>Students
+                            @if(request()->hasAny(['subject_id', 'grade_level', 'section']))
+                                <small class="text-muted">(Filtered Results)</small>
+                            @endif
+                        </h5>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-sort me-1"></i>Sort
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+                                <li><h6 class="dropdown-header">Sort By</h6></li>
+                                <li><a class="dropdown-item sort-option" href="#" data-sort="name" data-direction="asc">Name (A-Z)</a></li>
+                                <li><a class="dropdown-item sort-option" href="#" data-sort="name" data-direction="desc">Name (Z-A)</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item sort-option" href="#" data-sort="grade_level" data-direction="asc">Grade Level (Low-High)</a></li>
+                                <li><a class="dropdown-item sort-option" href="#" data-sort="grade_level" data-direction="desc">Grade Level (High-Low)</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item sort-option" href="#" data-sort="student_id" data-direction="asc">Student ID (Ascending)</a></li>
+                                <li><a class="dropdown-item sort-option" href="#" data-sort="student_id" data-direction="desc">Student ID (Descending)</a></li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     @if($students->isEmpty())
@@ -109,24 +211,22 @@
                         </div>
                     @else
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table class="table table-hover" id="studentsTable">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Student ID</th>
-                                        <th>Name</th>
-                                        <th>Grade & Section</th>
-                                        <th>Enrolled Subjects</th>
-                                        <th>Latest Grade</th>
-                                        <th>Actions</th>
+                                        <th>Student ID <i class="fas fa-sort sort-icon" data-sort="student_id"></i></th>
+                                        <th>Name <i class="fas fa-sort sort-icon" data-sort="name"></i></th>
+                                        <th>Track</th>
+                                        <th>Cluster</th>
+                                        <th>Grade Level</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($students as $student)
                                         @php
                                             $enrolledSubjects = $student->subjects->where('teacher_id', $teacher->id);
-                                            $latestGrade = $student->grades->where('subject.teacher_id', $teacher->id)->sortByDesc('updated_at')->first();
                                         @endphp
-                                        <tr>
+                                        <tr style="cursor: pointer;" onclick="window.location='{{ route('teacher.students.show', $student->id) }}'">
                                             <td>
                                                 <span class="fw-bold">{{ $student->student_id }}</span>
                                             </td>
@@ -137,58 +237,17 @@
                                                     </div>
                                                     <div>
                                                         <div class="fw-bold">{{ $student->full_name }}</div>
-                                                        <small class="text-muted">{{ $student->email }}</small>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td>
-                                                <span class="badge bg-info">Grade {{ $student->grade_level }}</span>
-                                                <span class="badge bg-secondary">Section {{ $student->section }}</span>
+                                                {{ $student->track ?? 'N/A' }}
                                             </td>
                                             <td>
-                                                @if($enrolledSubjects->count() > 0)
-                                                    @foreach($enrolledSubjects as $subject)
-                                                        <span class="badge bg-light text-dark me-1">{{ $subject->code }}</span>
-                                                    @endforeach
-                                                @else
-                                                    <span class="text-muted">None</span>
-                                                @endif
+                                                {{ $student->cluster ?? 'N/A' }}
                                             </td>
                                             <td>
-                                                @if($latestGrade)
-                                                    <span class="badge {{ $latestGrade->final_grade >= 75 ? 'bg-success' : 'bg-warning' }}">
-                                                        {{ number_format($latestGrade->final_grade, 1) }}
-                                                    </span>
-                                                @else
-                                                    <span class="text-muted">No grades</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <div class="btn-group" role="group">
-                                                    <a href="{{ route('teacher.students.show', $student->id) }}"
-                                                       class="btn btn-sm btn-outline-primary"
-                                                       title="View Profile">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    @if($enrolledSubjects->count() > 0)
-                                                        <div class="btn-group" role="group">
-                                                            <button type="button" class="btn btn-sm btn-outline-success dropdown-toggle"
-                                                                    data-bs-toggle="dropdown" title="Manage Grades">
-                                                                <i class="fas fa-star"></i>
-                                                            </button>
-                                                            <ul class="dropdown-menu">
-                                                                @foreach($enrolledSubjects as $subject)
-                                                                    <li>
-                                                                        <a class="dropdown-item"
-                                                                           href="{{ route('teacher.grades.edit', [$student->id, $subject->id]) }}">
-                                                                            {{ $subject->name }}
-                                                                        </a>
-                                                                    </li>
-                                                                @endforeach
-                                                            </ul>
-                                                        </div>
-                                                    @endif
-                                                </div>
+                                                {{ $student->grade_level ?? 'N/A' }}
                                             </td>
                                         </tr>
                                     @endforeach
@@ -201,37 +260,48 @@
         </div>
     </div>
 </div>
-<style>
-.avatar-sm {
-    width: 32px;
-    height: 32px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.card {
-    border: none;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
-
-.table th {
-    border-top: none;
-    font-weight: 600;
-    color: #495057;
-}
-
-.btn-group .dropdown-toggle::after {
-    margin-left: 0.255em;
-}
-</style>
 @endsection
 
 @section('scripts')
 <script>
+$(document).ready(function() {
+    $('.sort-option').click(function(e) {
+        e.preventDefault();
+        const sortBy = $(this).data('sort');
+        const direction = $(this).data('direction');
+        
+        const $tbody = $('#studentsTable tbody');
+        const rows = $tbody.find('tr').toArray();
+        
+        rows.sort((a, b) => {
+            let aVal, bVal;
+            
+            if (sortBy === 'student_id') {
+                aVal = $(a).find('td:first').text().trim();
+                bVal = $(b).find('td:first').text().trim();
+            } else if (sortBy === 'name') {
+                aVal = $(a).find('td:nth-child(2) .fw-bold').text().trim();
+                bVal = $(b).find('td:nth-child(2) .fw-bold').text().trim();
+            } else if (sortBy === 'grade_level') {
+                aVal = $(a).find('td:nth-child(3) .badge:first').text().trim();
+                bVal = $(b).find('td:nth-child(3) .badge:first').text().trim();
+            }
+            
+            if (direction === 'asc') {
+                return aVal.localeCompare(bVal);
+            } else {
+                return bVal.localeCompare(aVal);
+            }
+        });
+        
+        $tbody.append(rows);
+    });
+});
+
 // Fetch subjects based on grade level
-$('#gradeLevel').on('change', function() {
+$('#grade_level').on('change', function() {
     const gradeLevel = $(this).val();
-    $('#subject').html('<option value="">Loading...</option>');
+    $('#subject_id').html('<option value="">Loading...</option>');
     if (gradeLevel) {
         fetch(`/teacher/get-subjects?gradeLevel=${gradeLevel}`)
             .then(res => res.json())
@@ -240,18 +310,18 @@ $('#gradeLevel').on('change', function() {
                 data.forEach(subject => {
                     options += `<option value="${subject.id}">${subject.name}</option>`;
                 });
-                $('#subject').html(options);
+                $('#subject_id').html(options);
             });
     } else {
-        $('#subject').html('<option value="">Select Subject</option>');
+        $('#subject_id').html('<option value="">Select Subject</option>');
     }
 });
 
 // Fetch students based on filters
 $('#viewStudentsBtn').on('click', function(e) {
     e.preventDefault();
-    const gradeLevel = $('#gradeLevel').val();
-    const subjectId = $('#subject').val();
+    const gradeLevel = $('#grade_level').val();
+    const subjectId = $('#subject_id').val();
     const section = $('#section').val();
     if (!gradeLevel || !subjectId || !section) {
         $('#studentList').html('<div class="alert alert-warning">Please select all filters.</div>');

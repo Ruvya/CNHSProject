@@ -5,121 +5,148 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Subject;
-use App\Models\Teacher;
-use Illuminate\Support\Facades\DB;
 
 class SubjectController extends Controller
 {
-    /**
-     * Admin has VIEW-ONLY access to subjects.
-     * Subject creation, editing, and deletion is exclusively handled by Registrar.
-     */
-    public function index(Request $request)
+    public function index()
     {
-        // Get all available grade levels for the filter dropdown
-        $availableGradeLevels = Subject::select('grade_level')
-            ->distinct()
-            ->whereNotNull('grade_level')
-            ->orderBy('grade_level')
-            ->pluck('grade_level');
+        $subjects = Subject::with(['teacherAssignments' => function($query) {
+            $query->where('status', 'active')
+                  ->with('teacher')
+                  ->latest();
+        }])->orderBy('name')->paginate(20);
 
-        // Get all available tracks for the filter dropdown
-        $availableTracks = Subject::select('track')
-            ->distinct()
-            ->whereNotNull('track')
-            ->where('track', '!=', '')
-            ->orderBy('track')
-            ->pluck('track');
-
-        // Build the subjects query
-        $subjectsQuery = Subject::with('teacher');
-
-        // Apply grade level filter if provided
-        $selectedGradeLevel = $request->get('grade_level');
-        if ($selectedGradeLevel && $selectedGradeLevel !== 'all') {
-            $subjectsQuery->where('grade_level', $selectedGradeLevel);
-        }
-
-        // Apply track filter if provided
-        $selectedTrack = $request->get('track');
-        if ($selectedTrack && $selectedTrack !== 'all') {
-            $subjectsQuery->where('track', $selectedTrack);
-        }
-
-        $subjects = $subjectsQuery->orderBy('name')->get();
-
-        // Get statistics
+        // Calculate statistics
         $totalSubjects = Subject::count();
-        $subjectsByGrade = Subject::select('grade_level', DB::raw('count(*) as count'))
-            ->groupBy('grade_level')
-            ->orderBy('grade_level')
-            ->get();
-
-        // Get teachers for dropdown (for display purposes only)
-        $teachers = Teacher::where('status', 'active')->orderBy('name')->get();
+        $assignedSubjects = Subject::whereHas('teacherAssignments', function($query) {
+            $query->where('status', 'active');
+        })->count();
+        $coreSubjects = Subject::where('is_core_subject', true)->count();
+        $masterSubjects = Subject::where('is_master_subject', true)->count();
 
         return view('admin.subjects.index', compact(
             'subjects',
-            'availableGradeLevels',
-            'availableTracks',
-            'selectedGradeLevel',
-            'selectedTrack',
             'totalSubjects',
-            'subjectsByGrade',
-            'teachers'
+            'assignedSubjects',
+            'coreSubjects',
+            'masterSubjects'
         ));
+    }
+
+    public function create()
+    {
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+        return view('admin.subjects.create', compact('tracks'));
+    }
+
+    public function store(Request $request)
+    {
+        // Check if this is a core subject
+        $isCoreSubject = $request->has('is_core_subject');
+
+        $validationRules = [
+            'name' => 'required|string|max:255',
+            'teacher_id' => 'nullable|exists:teachers,id',
+            'is_core_subject' => 'nullable|boolean',
+            'is_master_subject' => 'nullable|boolean',
+        ];
+
+        // For core subjects, these fields are auto-filled and not required to be validated
+        if (!$isCoreSubject) {
+            $validationRules['grade_level'] = 'required|string';
+            $validationRules['track'] = 'required|string|max:100';
+            $validationRules['semester'] = 'required|in:1st Semester,2nd Semester,Both Semesters';
+        } else {
+            $validationRules['grade_level'] = 'nullable|string';
+            $validationRules['track'] = 'nullable|string|max:100';
+            $validationRules['semester'] = 'nullable|in:1st Semester,2nd Semester,Both Semesters';
+        }
+
+        $validationRules['cluster'] = 'nullable|string|max:100';
+
+        $validated = $request->validate($validationRules);
+
+        // Convert checkbox values
+        $validated['is_core_subject'] = $request->has('is_core_subject');
+        $validated['is_master_subject'] = $request->has('is_master_subject');
+
+        // For core subjects, auto-fill the required fields
+        if ($validated['is_core_subject']) {
+            $validated['grade_level'] = 'Grade 11';
+            $validated['track'] = 'All';
+            $validated['cluster'] = 'All';
+            $validated['grading'] = 'All Gradings';
+        }
+        
+        
+        Subject::create($validated);
+        return redirect()->route('admin.subjects.index')->with('success', 'Subject created successfully.');
     }
 
     public function show(Subject $subject)
     {
-        $subject->load(['teacher', 'students']);
-        $enrolledStudents = $subject->students()->with('grades')->get();
-
-        return view('admin.subjects.show', compact('subject', 'enrolledStudents'));
+        return view('admin.subjects.show', compact('subject'));
     }
 
-    /**
-     * Prevent Admin from creating subjects - this is exclusively a Registrar function
-     */
-    public function create()
-    {
-        return redirect()->route('admin.subjects.index')
-            ->with('error', 'Subject creation is exclusively managed by the Registrar. Admin has view-only access to subjects.');
-    }
-
-    /**
-     * Prevent Admin from storing subjects - this is exclusively a Registrar function
-     */
-    public function store(Request $request)
-    {
-        return redirect()->route('admin.subjects.index')
-            ->with('error', 'Subject creation is exclusively managed by the Registrar. Admin has view-only access to subjects.');
-    }
-
-    /**
-     * Prevent Admin from editing subjects - this is exclusively a Registrar function
-     */
     public function edit(Subject $subject)
     {
-        return redirect()->route('admin.subjects.index')
-            ->with('error', 'Subject editing is exclusively managed by the Registrar. Admin has view-only access to subjects.');
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+        return view('admin.subjects.edit', compact('subject', 'tracks'));
     }
 
-    /**
-     * Prevent Admin from updating subjects - this is exclusively a Registrar function
-     */
     public function update(Request $request, Subject $subject)
     {
-        return redirect()->route('admin.subjects.index')
-            ->with('error', 'Subject editing is exclusively managed by the Registrar. Admin has view-only access to subjects.');
+        // Check if this is a core subject
+        $isCoreSubject = $request->has('is_core_subject');
+
+        $validationRules = [
+            'name' => 'required|string|max:255',
+            'teacher_id' => 'nullable|exists:teachers,id',
+            'is_core_subject' => 'nullable|boolean',
+            'is_master_subject' => 'nullable|boolean',
+        ];
+
+        // For core subjects, these fields are auto-filled and not required to be validated
+        if (!$isCoreSubject) {
+            $validationRules['grade_level'] = 'required|string';
+            $validationRules['track'] = 'required|string|max:100';
+            $validationRules['semester'] = 'required|in:1st Semester,2nd Semester,Both Semesters';
+        } else {
+            $validationRules['grade_level'] = 'nullable|string';
+            $validationRules['track'] = 'nullable|string|max:100';
+            $validationRules['semester'] = 'nullable|in:1st Semester,2nd Semester,Both Semesters';
+        }
+
+        $validationRules['cluster'] = 'nullable|string|max:100';
+
+        $validated = $request->validate($validationRules);
+
+        // Convert checkbox values
+        $validated['is_core_subject'] = $request->has('is_core_subject');
+        $validated['is_master_subject'] = $request->has('is_master_subject');
+
+        // For core subjects, auto-fill the required fields
+        if ($validated['is_core_subject']) {
+            $validated['grade_level'] = 'Grade 11';
+            $validated['track'] = 'All';
+            $validated['cluster'] = 'All';
+            $validated['grading'] = 'All Gradings';
+        }
+        
+        
+        $subject->update($validated);
+        return redirect()->route('admin.subjects.index')->with('success', 'Subject updated successfully.');
     }
 
-    /**
-     * Prevent Admin from deleting subjects - this is exclusively a Registrar function
-     */
     public function destroy(Subject $subject)
     {
-        return redirect()->route('admin.subjects.index')
-            ->with('error', 'Subject deletion is exclusively managed by the Registrar. Admin has view-only access to subjects.');
+        $subject->delete();
+        return redirect()->route('admin.subjects.index')->with('success', 'Subject deleted successfully.');
     }
 }

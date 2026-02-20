@@ -1,170 +1,167 @@
 @extends('Principal.layouts.admin')
 
 @section('content')
-<!-- Page Header -->
-<div class="announcements-header mb-4">
-    <div class="row align-items-center">
-        <div class="col-md-6">
-            <div class="d-flex align-items-center">
-                <div>
-                    <h1 class="page-title mb-1">
-                    <div class="">
-                   
-                </div>
-                        <i class="fas fa-bullhorn me-2"></i>
-                        School Announcements
-                    </h1>
-                    <p class="page-subtitle mb-0">
-                        Manage and publish important school communications
-                    </p>
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="announcements-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h1 class="page-title mb-1">
+                            <i class="fas fa-bullhorn me-2"></i>
+                            School Announcements
+                        </h1>
+                        <p class="page-subtitle mb-0">
+                            Manage and publish important school communications
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="header-button-group">
-                <a href="{{ route('principal.announcements.create') }}" class="header-btn btn-create btn-sm shadow">
-                    <i class="fas fa-plus-circle me-2"></i><span class="d-none d-md-inline">Create</span>
-                </a>
-                <button type="button" class="header-btn btn-refresh btn-sm shadow" onclick="forceClearCache()" title="Force refresh data">
-                    <i class="fas fa-sync-alt me-2"></i><span class="d-none d-md-inline">Refresh</span>
-                </button>
+            <div class="col-md-6">
+                <div class="header-button-group">
+                    <a href="{{ route('principal.announcements.create') }}" class="header-btn btn-create btn-sm shadow">
+                        <i class="fas fa-plus-circle me-2"></i><span class="d-none d-md-inline">Create</span>
+                    </a>
+                    <button type="button" class="header-btn btn-refresh btn-sm shadow" onclick="forceClearCache()" title="Force refresh data">
+                        <i class="fas fa-sync-alt me-2"></i><span class="d-none d-md-inline">Refresh</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Announcements Management -->
-<div class="announcements-card">
-    <div class="announcements-card-header">
-        <h5 class="mb-0">
-            <i class="fas fa-list-alt me-2"></i>
-            Announcement Management
-        </h5>
-        <div class="announcement-stats">
-            <span class="stat-badge stat-total">
-                <i class="fas fa-file-alt me-1"></i>
-                {{ count($announcements) }} Total
-            </span>
-            <span class="stat-badge stat-active">
-                <i class="fas fa-eye me-1"></i>
-                {{ collect($announcements)->where('status', 'active')->count() }} Active
-            </span>
-            <span class="stat-badge stat-draft">
-                <i class="fas fa-edit me-1"></i>
-                {{ collect($announcements)->where('status', 'draft')->count() }} Draft
-            </span>
-        </div>
+    <!-- Announcements Management -->
+    <div class="announcements-card">
+        <div class="announcements-card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-list-alt me-2"></i>
+                Announcement Management
+            </h5>
+            <div class="announcement-stats">
+                <span class="stat-badge stat-total">
+                    <i class="fas fa-file-alt me-1"></i>
+                    {{ count($announcements) }} Total
+                </span>
+                <span class="stat-badge stat-active">
+                    <i class="fas fa-eye me-1"></i>
+                    {{ collect($announcements)->where('status', 'active')->count() }} Active
+                </span>
+                <span class="stat-badge stat-draft">
+                    <i class="fas fa-edit me-1"></i>
+                    {{ collect($announcements)->where('status', 'draft')->count() }} Draft
+                </span>
+            </div>
 
-        <!-- Filter Controls -->
-        <div class="filter-controls mt-3">
-            <div class="d-flex gap-2 align-items-center">
-                <label for="statusFilter" class="form-label mb-0 text-white">
-                    <i class="fas fa-filter me-1"></i>Filter by Status:
-                </label>
-                <select id="statusFilter" class="form-select form-select-sm" style="width: auto;" onchange="filterAnnouncements()">
-                    <option value="all">All Announcements</option>
-                    <option value="active">Active Only</option>
-                    <option value="draft">Inactive Only</option>
-                </select>
-               
+            <!-- Filter Controls -->
+            <div class="filter-controls mt-3">
+                <div class="d-flex gap-2 align-items-center">
+                    <label for="statusFilter" class="form-label mb-0 text-white">
+                        <i class="fas fa-filter me-1"></i>Filter by Status:
+                    </label>
+                    <select id="statusFilter" class="form-select form-select-sm" style="width: auto;" onchange="filterAnnouncements()">
+                        <option value="all">All Announcements</option>
+                        <option value="active">Active Only</option>
+                        <option value="draft">Draft Only</option>
+                    </select>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="announcements-card-body">
-                    @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            {{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    @endif
+        <div class="announcements-card-body">
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
 
-                    @if(session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            {{ session('error') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    @endif
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
 
-        <div class="table-responsive">
-            <table class="announcements-table">
-                <thead>
-                    <tr>
-                        <th class="announcement-title">
-                            <i class="fas fa-heading me-2"></i>TITLE
-                        </th>
-                        <th class="announcement-status">
-                            <i class="fas fa-toggle-on me-2"></i>STATUS
-                        </th>
-                        <th class="announcement-date">
-                            <i class="fas fa-calendar me-2"></i>DATE
-                        </th>
-                        <th class="announcement-actions">
-                            <i class="fas fa-cogs me-2"></i>ACTIONS
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($announcements as $announcement)
-                        <tr id="announcement-row-{{ $announcement->id }}">
-                            <td class="announcement-title">
-                                <div class="title-text">{{ $announcement->title }}</div>
-                            </td>
-                            <td class="announcement-status">
-                                <span class="badge bg-{{ $announcement->status === 'active' ? 'success' : 'warning' }}" id="status-badge-{{ $announcement->id }}">
-                                    {{ ucfirst($announcement->status) }}
-                                </span>
-                            </td>
-                            <td class="announcement-date">
-                                <i class="fas fa-clock me-1 text-muted"></i>
-                                {{ $announcement->created_at->diffForHumans() }}
-                            </td>
-                            <td class="announcement-actions">
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-{{ $announcement->status === 'active' ? 'warning' : 'success' }} toggle-status-btn"
-                                            data-id="{{ $announcement->id }}"
-                                            data-current-status="{{ $announcement->status }}"
-                                            title="{{ $announcement->status === 'active' ? 'Move to Draft' : 'Publish' }}">
-                                        <i class="fas fa-{{ $announcement->status === 'active' ? 'eye-slash' : 'eye' }}"></i>
-                                        <span class="button-text">{{ $announcement->status === 'active' ? 'Draft' : 'Publish' }}</span>
-                                    </button>
-                                    <a href="{{ route('principal.announcements.edit', $announcement->id) }}" 
-                                       class="btn btn-sm btn-info"
-                                       title="Edit Announcement">
-                                        <i class="fas fa-edit"></i>
-                                        <span class="button-text">Edit</span>
-                                    </a>
-                                    <form action="{{ route('principal.announcements.destroy', $announcement->id) }}" 
-                                          method="POST" 
-                                          class="d-inline delete-announcement-form">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                                class="btn btn-sm btn-danger delete-btn" 
-                                                data-id="{{ $announcement->id }}"
-                                                title="Delete Announcement">
-                                            <i class="fas fa-trash"></i>
-                                            <span class="button-text">Delete</span>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
+            <div class="table-responsive">
+                <table class="announcements-table">
+                    <thead>
                         <tr>
-                            <td colspan="4" class="text-center py-4">
-                                <div class="empty-state">
-                                    <i class="fas fa-bullhorn fa-2x mb-3 text-muted"></i>
-                                    <p class="mb-1 text-muted">No announcements found</p>
-                                    <small class="text-muted">Create your first announcement to get started</small>
-                                </div>
-                            </td>
+                            <th class="announcement-title">
+                                <i class="fas fa-heading me-2"></i>TITLE
+                            </th>
+                            <th class="announcement-status">
+                                <i class="fas fa-toggle-on me-2"></i>STATUS
+                            </th>
+                            <th class="announcement-date">
+                                <i class="fas fa-calendar me-2"></i>DATE
+                            </th>
+                            <th class="announcement-actions">
+                                <i class="fas fa-cogs me-2"></i>ACTIONS
+                            </th>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @forelse($announcements as $announcement)
+                            <tr id="announcement-row-{{ $announcement->id }}">
+                                <td class="announcement-title">
+                                    <div class="title-text">{{ $announcement->title }}</div>
+                                </td>
+                                <td class="announcement-status">
+                                    <span class="badge bg-{{ $announcement->status === 'active' ? 'success' : 'warning' }}" id="status-badge-{{ $announcement->id }}">
+                                        {{ ucfirst($announcement->status) }}
+                                    </span>
+                                </td>
+                                <td class="announcement-date">
+                                    <i class="fas fa-clock me-1 text-muted"></i>
+                                    {{ $announcement->created_at->diffForHumans() }}
+                                </td>
+                                <td class="announcement-actions">
+                                    <div class="action-buttons">
+                                        <button class="btn btn-sm btn-{{ $announcement->status === 'active' ? 'warning' : 'success' }} toggle-status-btn"
+                                                data-id="{{ $announcement->id }}"
+                                                data-current-status="{{ $announcement->status }}"
+                                                title="{{ $announcement->status === 'active' ? 'Move to Draft' : 'Publish' }}">
+                                            <i class="fas fa-{{ $announcement->status === 'active' ? 'eye-slash' : 'eye' }}"></i>
+                                            <span class="button-text">{{ $announcement->status === 'active' ? 'Draft' : 'Publish' }}</span>
+                                        </button>
+                                        <a href="{{ route('principal.announcements.edit', $announcement->id) }}" 
+                                           class="btn btn-sm btn-info"
+                                           title="Edit Announcement">
+                                            <i class="fas fa-edit"></i>
+                                            <span class="button-text">Edit</span>
+                                        </a>
+                                        <form action="{{ route('principal.announcements.destroy', $announcement->id) }}" 
+                                              method="POST" 
+                                              class="d-inline delete-announcement-form">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                    class="btn btn-sm btn-danger delete-btn" 
+                                                    data-id="{{ $announcement->id }}"
+                                                    title="Delete Announcement">
+                                                <i class="fas fa-trash"></i>
+                                                <span class="button-text">Delete</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="text-center py-4">
+                                    <div class="empty-state">
+                                        <i class="fas fa-bullhorn fa-2x mb-3 text-muted"></i>
+                                        <p class="mb-1 text-muted">No announcements found</p>
+                                        <small class="text-muted">Create your first announcement to get started</small>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
 </div>
 @endsection
 
@@ -234,7 +231,7 @@
 
     /* Announcements Page Header */
     .announcements-header {
-        background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-yellow) 100%);
+        background: #1E3A8A;
         border-radius: 16px;
         padding: 2rem;
         border: none;
@@ -246,16 +243,7 @@
     }
 
     .announcements-header::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 50%;
-        height: 100%;
-        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
-        clip-path: polygon(100% 0, 100% 100%, 0 100%, 20% 0);
-        opacity: 0.9;
-        z-index: 1;
+        display: none;
     }
 
     .page-title {
@@ -301,7 +289,7 @@
     }
 
     .announcements-card-header {
-        background: linear-gradient(to right, var(--primary-blue), var(--primary-blue-light));
+        background: #1E3A8A;
         color: var(--white);
         padding: 1.5rem;
         display: flex;
@@ -845,10 +833,13 @@
         }
 
         // Check if an announcement was just created
-        @if(session('announcement_created'))
-            showAlert('success', 'Announcement created successfully! It will now appear in your dashboard.');
-        @endif
     });
+
+    @if(session('announcement_created'))
+    <script>
+        showAlert('success', 'Announcement created successfully! It will now appear in your dashboard.');
+    </script>
+    @endif
 
     // Clean up soft-deleted announcements function
     function cleanupSoftDeleted() {

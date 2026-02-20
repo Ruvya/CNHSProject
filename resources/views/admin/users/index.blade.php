@@ -4,27 +4,39 @@
 
 @section('content')
 <!-- Page Header -->
-<div class="page-header">
-    <h1 class="page-title">User Management</h1>
-    <p class="page-subtitle">Manage teachers and students in the CNHS system</p>
-    <div class="page-actions">
-        <div class="dropdown">
-            <button class="btn btn-primary dropdown-toggle" type="button" id="addUserDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-plus me-2"></i>Add New User
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="addUserDropdown">
-                <li><a class="dropdown-item" href="{{ route('admin.users.teachers.create') }}">
-                    <i class="fas fa-chalkboard-teacher me-2"></i>Add Teacher
-                </a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.credentials.generate') }}">
-                    <i class="fas fa-key me-2"></i>Generate Student Credentials
-                    <small class="d-block text-muted">Create login credentials for students</small>
-                </a></li>
-            </ul>
+<div class="card mb-4" style="border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: none;">
+    <div class="card-body d-flex flex-wrap align-items-center justify-content-between" style="padding: 1.2rem 1.5rem;">
+        <div class="d-flex align-items-center mb-2 mb-md-0">
+            <span style="font-size: 2rem; color: #2563eb; background: #f1f5fb; border-radius: 12px; padding: 0.7rem; margin-right: 1rem; display: flex; align-items: center;">
+                <i class="fas fa-users"></i>
+            </span>
+            <div>
+                <div style="font-size: 1.3rem; font-weight: bold; font-family: 'Poppins', sans-serif; color: #222;">User Management</div>
+                <div style="font-size: 0.95rem; font-family: 'Poppins', sans-serif; color: #555; font-weight: 500;">Manage teachers and students in the CNHS system</div>
+            </div>
         </div>
-        <a href="{{ route('admin.users.email-test') }}" class="btn btn-info">
-            <i class="fas fa-envelope-open-text me-2"></i>Test Email Configuration
-        </a>
+        <form method="GET" action="{{ route('admin.users') }}" class="mt-3 w-100">
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0"><i class="fas fa-search"></i></span>
+                        <input type="text" name="q" class="form-control" placeholder="Search teachers or students (name, email, ID)" value="{{ $query ?? '' }}">
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex">
+                    <select name="grade_level" class="form-select ms-md-2" onchange="this.form.submit()">
+                        <option value="all" {{ (!$selectedGradeLevel || $selectedGradeLevel === 'all') ? 'selected' : '' }}>All Grades</option>
+                        @foreach($availableGradeLevels as $gradeLevel)
+                            <option value="{{ $gradeLevel }}" {{ $selectedGradeLevel === $gradeLevel ? 'selected' : '' }}>{{ $gradeLevel }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex justify-content-end">
+                    <a href="{{ route('admin.users') }}" class="btn btn-outline-secondary me-2">Clear</a>
+                    <button type="submit" class="btn btn-primary">Apply</button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -60,6 +72,7 @@
     @endif
 
 <!-- Statistics Cards -->
+{{--
 <div class="row g-4 mb-4">
     <div class="col-xl-3 col-md-6">
         <div class="stat-card primary">
@@ -131,6 +144,7 @@
     </div>
     @endif
 </div>
+--}}
 
     <!-- Teachers Section -->
     <div class="card mb-4">
@@ -148,32 +162,30 @@
         <div class="card-body">
             @if($teachers->count() > 0)
                 <div class="table-responsive">
-                    <table class="table table-bordered" id="teachersTable" width="100%" cellspacing="0">
+                    <table class="table table-hover table-striped mb-0 align-middle" style="border-radius: 14px; overflow: hidden;">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Strand</th>
-                                <th>Contact</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th class="align-middle text-center">ID</th>
+                                <th class="align-middle">Name</th>
+                                <th class="align-middle text-center">Email</th>
+                                <th class="align-middle text-center">Cluster</th>
+                                <th class="align-middle text-center">Status</th>
+                                <th class="align-middle text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($teachers as $teacher)
                             <tr>
-                                <td>{{ $teacher->id }}</td>
-                                <td>{{ $teacher->name }}</td>
-                                <td>{{ $teacher->email }}</td>
-                                <td>{{ $teacher->strand ?? '-' }}</td>
-                                <td>{{ $teacher->contact_number ?? '-' }}</td>
-                                <td>
-                                    <span class="badge badge-{{ $teacher->status === 'active' ? 'success' : 'secondary' }}">
-                                        {{ ucfirst($teacher->status) }}
-                                    </span>
+                                <td class="align-middle text-center">{{ $teacher->id }}</td>
+                                <td class="align-middle">
+                                    <a href="{{ route('admin.users.teachers.edit', $teacher) }}" class="text-decoration-none" style="color: #222;">
+                                        <strong style="color: #222;">{{ $teacher->name }}</strong>
+                                    </a>
                                 </td>
-                                <td>
+                                <td class="align-middle text-center">{{ $teacher->email }}</td>
+                                <td class="align-middle text-center">{{ $teacher->cluster ?? '-' }}</td>
+                                <td class="align-middle text-center">{{ ucfirst($teacher->status) }}</td>
+                                <td class="align-middle text-center">
                                     <a href="{{ route('admin.users.teachers.edit', $teacher) }}" class="btn btn-warning btn-sm">
                                         <i class="fas fa-edit"></i> Edit
                                     </a>
@@ -236,70 +248,41 @@
                             </a>
                         @endif
                     </form>
-                    <a href="{{ route('admin.credentials.generate') }}" class="btn btn-success btn-sm" title="Generate student credentials">
-                        <i class="fas fa-key me-1"></i>Generate Credentials
-                    </a>
+
                 </div>
             </div>
         </div>
         <div class="card-body">
             @if($students->count() > 0)
                 <div class="table-responsive">
-                    <table class="table table-bordered" id="studentsTable" width="100%" cellspacing="0">
+                    <table class="table table-hover table-striped mb-0 align-middle" style="border-radius: 14px; overflow: hidden;">
                         <thead>
                             <tr>
-                                <th>Student ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Grade Level</th>
-                                <th>Track</th>
-                                <th>Section</th>
-                                <th>Actions</th>
+                                <th class="align-middle text-center">Student ID</th>
+                                <th class="align-middle">Name</th>
+                                <th class="align-middle text-center">Grade Level</th>
+                                <th class="align-middle text-center">Track</th>
+                                <th class="align-middle text-center">Section</th>
+                                <th class="align-middle text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($students as $student)
                             <tr>
-                                <td>
-                                    <span class="badge bg-primary">{{ $student->student_id }}</span>
+                                <td class="align-middle text-center">{{ $student->student_id }}</td>
+                                <td class="align-middle">
+                                    <a href="{{ route('admin.users.students.show', $student) }}" class="text-decoration-none" style="color: #222;">
+                                        <strong style="color: #222;">{{ $student->full_name }}</strong>
+                                    </a>
                                 </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-sm bg-success text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
-                                            {{ substr($student->first_name, 0, 1) }}{{ substr($student->last_name, 0, 1) }}
-                                        </div>
-                                        <div>
-                                            <a href="{{ route('admin.users.students.show', $student) }}" class="text-decoration-none">
-                                                <strong class="text-primary">{{ $student->full_name }}</strong>
-                                            </a>
-                                            <br><small class="text-muted">{{ $student->email }}</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>{{ $student->email }}</td>
-                                <td>
-                                    <span class="badge bg-info">{{ $student->grade_level }}</span>
-                                </td>
-                                <td>
-                                    @if($student->track)
-                                        <span class="badge bg-warning text-dark">{{ $student->track }}</span>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($student->section)
-                                        <span class="badge bg-secondary">{{ $student->section }}</span>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                                <td>
+                                <td class="align-middle text-center">{{ $student->grade_level }}</td>
+                                <td class="align-middle text-center">{{ $student->track ?? '-' }}</td>
+                                <td class="align-middle text-center">{{ $student->section ?? '-' }}</td>
+                                <td class="align-middle text-center">
                                     <div class="btn-group" role="group">
                                         <a href="{{ route('admin.users.students.show', $student) }}" class="btn btn-info btn-sm" title="View Profile">
                                             <i class="fas fa-eye"></i>
                                         </a>
-
                                         <form action="{{ route('admin.users.students.destroy', $student) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this student?')">
                                             @csrf
                                             @method('DELETE')
@@ -321,9 +304,6 @@
                         <h5 class="text-muted">No students found in {{ $selectedGradeLevel }}</h5>
                         <p class="text-muted mb-4">There are no students enrolled in this grade level yet.</p>
                         <div class="d-flex justify-content-center gap-2">
-                            <a href="{{ route('admin.credentials.generate') }}" class="btn btn-success">
-                                <i class="fas fa-key me-2"></i>Generate Credentials for {{ $selectedGradeLevel }}
-                            </a>
                             <a href="{{ route('admin.users') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-list me-2"></i>View All Students
                             </a>
@@ -331,9 +311,6 @@
                     @else
                         <h5 class="text-muted">No students found</h5>
                         <p class="text-muted mb-4">There are no students in the system yet.</p>
-                        <a href="{{ route('admin.credentials.generate') }}" class="btn btn-success">
-                            <i class="fas fa-key me-2"></i>Generate First Student Credentials
-                        </a>
                     @endif
                 </div>
             @endif

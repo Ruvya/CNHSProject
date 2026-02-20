@@ -9,6 +9,7 @@ use App\Models\Student;
 use App\Models\Grade;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class SubjectController extends Controller
 {
@@ -56,7 +57,21 @@ class SubjectController extends Controller
             ->orderBy('first_name')
             ->get();
 
-        return view('teacher.subjects.students', compact('subject', 'students', 'teacher'));
+        // Get all subjects for the teacher (for the dropdown)
+        $assignedSubjects = $teacher->assignedSubjects()->get();
+        $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
+        $subjects = $assignedSubjects->merge($directSubjects)->unique('id');
+
+        // Get actual sections from database for the current school year
+        $currentSchoolYear = $this->getCurrentSchoolYear();
+        $sections = \App\Models\Section::where('school_year', $currentSchoolYear)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->pluck('name')
+            ->unique()
+            ->values();
+
+        return view('teacher.subjects.students', compact('subject', 'students', 'teacher', 'subjects', 'sections'));
     }
 
     /**
@@ -181,13 +196,28 @@ class SubjectController extends Controller
             $finalGrade = round(array_sum($quarters) / count($quarters), 2);
         }
 
+        // Block if already submitted
+        $existing = Grade::where('student_id', $student->id)
+            ->where('subject_id', $subject->id)
+            ->first();
+        if ($existing && $existing->isLocked()) {
+            return redirect()
+                ->back()
+                ->with('error', 'This grade has been submitted and can no longer be edited.');
+        }
+
         // Update or create grade record
         Grade::updateOrCreate(
             [
                 'student_id' => $student->id,
                 'subject_id' => $subject->id
             ],
-            array_merge($validated, ['final_grade' => $finalGrade])
+            array_merge($validated, [
+                'final_grade' => $finalGrade,
+                'school_year' => \App\Services\SemesterService::getCurrentSchoolYear(),
+                'semester' => \App\Services\SemesterService::getCurrentSemester(),
+                'status' => \Schema::hasColumn('grades', 'status') ? ($request->input('action') === 'submit' ? 'submitted' : 'draft') : null,
+            ])
         );
 
         return redirect()
@@ -211,6 +241,7 @@ class SubjectController extends Controller
         }
 
         $grades = $request->input('grades', []);
+        $action = $request->input('action'); // 'save' for draft, otherwise submit
         $updatedCount = 0;
 
         DB::beginTransaction();
@@ -235,20 +266,35 @@ class SubjectController extends Controller
                     $finalGrade = round(array_sum($quarters) / count($quarters), 2);
                 }
 
+                // Skip if existing grade is submitted/locked
+                $existing = Grade::where('student_id', $studentId)
+                    ->where('subject_id', $subject->id)
+                    ->first();
+                if ($existing && $existing->isLocked()) {
+                    continue;
+                }
+
                 // Update or create grade record
+                $updateData = [
+                    'quarter1' => $gradeData['quarter1'] ?? null,
+                    'quarter2' => $gradeData['quarter2'] ?? null,
+                    'quarter3' => $gradeData['quarter3'] ?? null,
+                    'quarter4' => $gradeData['quarter4'] ?? null,
+                    'final_grade' => $finalGrade,
+                    'remarks' => $gradeData['remarks'] ?? null,
+                    'school_year' => \App\Services\SemesterService::getCurrentSchoolYear(),
+                    'semester' => \App\Services\SemesterService::getCurrentSemester(),
+                ];
+                if (Schema::hasColumn('grades', 'status')) {
+                    $updateData['status'] = $action === 'save' ? 'draft' : 'submitted';
+                }
+
                 Grade::updateOrCreate(
                     [
                         'student_id' => $studentId,
                         'subject_id' => $subject->id
                     ],
-                    [
-                        'quarter1' => $gradeData['quarter1'] ?? null,
-                        'quarter2' => $gradeData['quarter2'] ?? null,
-                        'quarter3' => $gradeData['quarter3'] ?? null,
-                        'quarter4' => $gradeData['quarter4'] ?? null,
-                        'final_grade' => $finalGrade,
-                        'remarks' => $gradeData['remarks'] ?? null
-                    ]
+                    $updateData
                 );
 
                 $updatedCount++;
@@ -284,6 +330,22 @@ class SubjectController extends Controller
             return redirect()
                 ->route('teacher.subjects.grades', $subject)
                 ->with('error', 'An error occurred while updating grades. Please try again.');
+        }
+    }
+
+    /**
+     * Get current school year
+     */
+    private function getCurrentSchoolYear(): string
+    {
+        $currentYear = date('Y');
+        $currentMonth = date('n');
+
+        // School year starts in June (month 6)
+        if ($currentMonth >= 6) {
+            return $currentYear . '-' . ($currentYear + 1);
+        } else {
+            return ($currentYear - 1) . '-' . $currentYear;
         }
     }
 }

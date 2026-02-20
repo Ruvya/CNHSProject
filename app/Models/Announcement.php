@@ -77,4 +77,38 @@ class Announcement extends Model
     {
         return $this->morphTo();
     }
+
+    /**
+     * Get the teacher author if this announcement is from a teacher
+     */
+    public function teacher()
+    {
+        return $this->belongsTo(\App\Models\Teacher::class, 'author_id')
+            ->where('author_type', 'App\Models\Teacher');
+    }
+
+    /**
+     * Get the principal author if this announcement is from a principal
+     */
+    public function principal()
+    {
+        return $this->belongsTo(\App\Models\Principal::class, 'author_id')
+            ->where('author_type', 'App\Models\Principal');
+    }
+
+    /**
+     * Check if this announcement is from a teacher
+     */
+    public function isFromTeacher()
+    {
+        return $this->author_type === 'App\Models\Teacher';
+    }
+
+    /**
+     * Check if this announcement is from a principal
+     */
+    public function isFromPrincipal()
+    {
+        return $this->author_type === 'App\Models\Principal';
+    }
 }

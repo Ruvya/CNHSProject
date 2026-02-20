@@ -9,6 +9,28 @@
         <div>
             <h1 class="h3 mb-0 text-gray-800">{{ $student->full_name }}</h1>
             <p class="text-muted">Student ID: {{ $student->student_id }} • {{ $student->grade_level }}</p>
+            @if(isset($schoolYear))
+                <div class="mt-2">
+                    <form method="GET" action="{{ route('registrar.students.show', $student) }}" class="row g-2 align-items-center">
+                        <div class="col-auto">
+                            <label class="form-label mb-0"><strong>School Year:</strong></label>
+                        </div>
+                        <div class="col-auto">
+                            <select name="school_year" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="">Active</option>
+                                @foreach(($availableSchoolYears ?? collect()) as $sy)
+                                    <option value="{{ $sy }}" {{ ($schoolYear ?? '') === $sy ? 'selected' : '' }}>{{ $sy }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @if($schoolYear)
+                            <div class="col-auto">
+                                <span class="badge bg-secondary">Viewing {{ $schoolYear }}</span>
+                            </div>
+                        @endif
+                    </form>
+                </div>
+            @endif
         </div>
         <div>
             <a href="{{ route('registrar.students.index') }}" class="btn btn-outline-secondary">
@@ -182,10 +204,10 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Strand:</strong></td>
+                                    <td><strong>Cluster:</strong></td>
                                     <td>
-                                        @if($student->strand)
-                                            <span class="badge bg-light text-dark">{{ $student->strand }}</span>
+                                        @if($student->cluster)
+                                            <span class="badge bg-light text-dark">{{ $student->cluster }}</span>
                                         @else
                                             <span class="text-muted">Not assigned</span>
                                         @endif
@@ -201,11 +223,89 @@
                                         @endif
                                     </td>
                                 </tr>
+                                @if(isset($yearlyRecord))
+                                <tr>
+                                    <td><strong>Yearly Record:</strong></td>
+                                    <td>
+                                        <span class="badge bg-info">{{ $yearlyRecord->school_year }}</span>
+                                        <span class="badge bg-secondary">{{ $yearlyRecord->grade_level }}</span>
+                                        @if($yearlyRecord->section)
+                                            <span class="badge bg-success">{{ $yearlyRecord->section }}</span>
+                                        @endif
+                                        @if($yearlyRecord->status)
+                                            <span class="badge bg-{{ $yearlyRecord->status === 'enrolled' ? 'success' : ($yearlyRecord->status === 'graduated' ? 'primary' : 'secondary') }}">{{ ucfirst($yearlyRecord->status) }}</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endif
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Detailed Grades for Selected School Year -->
+            @if(($student->subjects->count() > 0) || (isset($gradesBySubject) && $gradesBySubject->count() > 0))
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clipboard-list me-2 text-primary"></i>
+                        Grades @if($schoolYear) <small class="text-muted">{{ $schoolYear }}</small>@endif
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Subject Code</th>
+                                    <th>Subject Name</th>
+                                    <th>Q1</th>
+                                    <th>Q2</th>
+                                    <th>Q3</th>
+                                    <th>Q4</th>
+                                    <th>Final</th>
+                                    <th>Remarks</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($student->subjects as $subject)
+                                @php
+                                    $gradeModel = isset($gradesBySubject) ? $gradesBySubject->get($subject->id) : null;
+                                    $pivotGrade = isset($subject->pivot) ? $subject->pivot->grade : null;
+                                    $final = $gradeModel->final_grade ?? $pivotGrade ?? null;
+                                @endphp
+                                <tr>
+                                    <td><span class="badge bg-primary">{{ $subject->code ?? $subject->subject_code }}</span></td>
+                                    <td><strong>{{ $subject->name ?? $subject->subject_name }}</strong></td>
+                                    <td>{{ $gradeModel->quarter1 ?? '—' }}</td>
+                                    <td>{{ $gradeModel->quarter2 ?? '—' }}</td>
+                                    <td>{{ $gradeModel->quarter3 ?? '—' }}</td>
+                                    <td>{{ $gradeModel->quarter4 ?? '—' }}</td>
+                                    <td>
+                                        @if($final !== null)
+                                            <span class="badge bg-{{ $final >= 75 ? 'success' : 'danger' }}">{{ number_format($final, 1) }}</span>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $gradeModel->remarks ?? ($subject->pivot->remarks ?? '—') }}</td>
+                                    <td>
+                                        @if($final !== null)
+                                            <span class="badge bg-{{ $final >= 75 ? 'success' : 'danger' }}">{{ $final >= 75 ? 'Passed' : 'Failed' }}</span>
+                                        @else
+                                            <span class="badge bg-secondary">Pending</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Parent/Guardian Information -->
             <div class="card mb-4">

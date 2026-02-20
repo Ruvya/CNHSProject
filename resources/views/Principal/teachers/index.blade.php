@@ -85,15 +85,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 text-center">
-                    <div class="registration-visual">
-                        <div class="visual-icon">
-                            <i class="fas fa-user-graduate"></i>
-                        </div>
-                        <h6 class="mt-3 mb-2">Self-Service Registration</h6>
-                        <p class="text-muted small mb-0">Faculty create their own accounts</p>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -144,13 +135,16 @@
                                 <i class="fas fa-book me-2"></i>SUBJECT AREA
                             </th>
                             <th>
-                                <i class="fas fa-graduation-cap me-2"></i>STRAND
+                                <i class="fas fa-route me-2"></i>TRACK
+                            </th>
+                            <th>
+                                <i class="fas fa-graduation-cap me-2"></i>CLUSTER
                             </th>
                             <th>
                                 <i class="fas fa-toggle-on me-2"></i>STATUS
                             </th>
                             <th>
-                                <i class="fas fa-cogs me-2"></i>ACTIONS
+                                <i class="fas fa-download me-2"></i>LOAD
                             </th>
                         </tr>
                     </thead>
@@ -161,28 +155,22 @@
                                 <td>{{ $teacher->email }}</td>
                                 <td>{{ $teacher->contact_number }}</td>
                                 <td>{{ $teacher->subject ?? 'N/A' }}</td>
-                                <td>{{ $teacher->strand ?? 'N/A' }}</td>
+                                <td>{{ $teacher->track ?? 'N/A' }}</td>
+                                <td>{{ $teacher->cluster ?? 'N/A' }}</td>
                                 <td>
                                     <span class="badge bg-{{ $teacher->status === 'active' ? 'success' : 'secondary' }}">
                                         {{ ucfirst($teacher->status) }}
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="{{ route('principal.teachers.edit', $teacher) }}" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form action="{{ route('principal.teachers.destroy', $teacher) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this teacher?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn btn-sm btn-primary" onclick="loadTeacher({{ $teacher->id }})">
+                                        <i class="fas fa-download me-1"></i>Load
+                                    </button>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center">No teachers found.</td>
+                                <td colspan="8" class="text-center">No teachers found.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -194,7 +182,18 @@
 @endsection
 
 @section('styles')
+@parent
 <style>
+    body, .page-header, .page-title, .page-subtitle, .info-card, .info-card-header, .info-card-body, .registration-steps, .step-content, .registration-visual, .visual-icon, h1, h2, h3, h4, h5, h6, p, span, div, th, td, label {
+        color: #fff !important;
+    }
+    .info-card, .info-card-header, .info-card-body {
+        background: #1E3A8A !important;
+        border: none !important;
+    }
+    .registration-visual .visual-icon i {
+        color: #fff !important;
+    }
     /* CSS Variables */
     :root {
         --primary-orange: #ff6b35;
@@ -541,82 +540,35 @@
             margin-top: 1rem;
         }
     }
+
+    /* Faculty Directory Card: gray background, black text */
+    .faculty-directory-card, .faculty-directory-header, .faculty-directory-body, .faculty-table, .faculty-table th, .faculty-table td {
+        background: #e5e7eb !important;
+        color: #222 !important;
+    }
+    .faculty-directory-header h5, .faculty-directory-header .faculty-stats, .faculty-directory-header .faculty-stats .stat-item, .faculty-directory-header .faculty-stats .stat-item i {
+        color: #222 !important;
+    }
+    .faculty-table th {
+        font-weight: 700;
+    }
+    .faculty-table tbody tr {
+        background: #f8fafc;
+    }
+    .faculty-table tbody tr:nth-child(even) {
+        background: #e3edfa;
+    }
 </style>
 @endsection
 
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Add event listener to all delete buttons
-    document.querySelectorAll('form[action*="teachers"]').forEach(form => {
-        if (form.querySelector('button[type="submit"]').textContent.includes('trash')) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                if (confirm('Are you sure you want to delete this teacher?')) {
-                    const form = this;
-                    const button = form.querySelector('button[type="submit"]');
-                    const teacherId = form.action.split('/').pop();
-                    const row = document.getElementById('teacher-row-' + teacherId);
-
-                    // Immediately hide the row with animation
-                    if (row) {
-                        row.style.transition = 'all 0.3s ease';
-                        row.style.opacity = '0';
-                        row.style.transform = 'translateX(-20px)';
-
-                        // Remove the row after animation
-                        setTimeout(() => {
-                            row.remove();
-
-                            // Check if there are no more teachers
-                            const remainingRows = document.querySelectorAll('tbody tr:not(.no-teachers)');
-                            if (remainingRows.length === 0) {
-                                const tbody = document.querySelector('tbody');
-                                const noTeachersRow = document.createElement('tr');
-                                noTeachersRow.className = 'no-teachers';
-                                noTeachersRow.innerHTML = `
-                                    <td colspan="7" class="text-center">No teachers found.</td>
-                                `;
-                                tbody.appendChild(noTeachersRow);
-                            }
-                        }, 300);
-                    }
-
-                    // Submit the form to server
-                    fetch(form.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        },
-                        body: new FormData(form)
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-
-                        // Show success message
-                        showAlert('success', 'Teacher deleted successfully.');
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-
-                        // If there was an error, revert the deletion
-                        if (!document.getElementById('teacher-row-' + teacherId)) {
-                            const tbody = document.querySelector('tbody');
-                            tbody.insertBefore(row, tbody.firstChild);
-                            row.style.opacity = '1';
-                            row.style.transform = 'translateX(0)';
-                        }
-
-                        // Show error message
-                        showAlert('danger', 'Error deleting teacher. The teacher has been restored.');
-                    });
-                }
-            });
-        }
-    });
+    // Load teacher function
+    window.loadTeacher = function(teacherId) {
+        // Redirect to show page to display teacher's subjects and schedules
+        window.location.href = '{{ route("principal.teachers.show", ":id") }}'.replace(':id', teacherId);
+    };
 
     // Filter functionality
     window.filterTeachers = function(status) {
@@ -649,7 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const noResultsRow = document.createElement('tr');
             noResultsRow.className = 'no-teachers';
             noResultsRow.innerHTML = `
-                <td colspan="7" class="text-center">No teachers found for the selected filter.</td>
+                <td colspan="8" class="text-center">No teachers found for the selected filter.</td>
             `;
             tbody.appendChild(noResultsRow);
         } else if (visibleCount > 0 && noTeachersRow) {

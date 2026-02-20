@@ -34,13 +34,14 @@ class CredentialController extends Controller
 
         for ($i = 0; $i < $quantity; $i++) {
             $studentId = $this->generateUniqueStudentId();
-            $password = $this->generateSecurePassword();
+            $password = 'Temp_123'; // Use standard temporary password
 
             $credential = TemporaryStudentCredential::create([
                 'student_id' => $studentId,
                 'password' => $password, // Store as plain text for viewing
                 'created_by_admin_id' => Auth::guard('admin')->id(),
-                'notes' => $notes
+                'notes' => $notes,
+                'source' => 'manual'
             ]);
 
             $credentials[] = [
@@ -77,7 +78,7 @@ class CredentialController extends Controller
      */
     public function index(Request $request)
     {
-        $query = TemporaryStudentCredential::with(['createdByAdmin', 'usedByStudent'])
+        $query = TemporaryStudentCredential::with(['createdByAdmin', 'createdByRegistrar', 'usedByStudent'])
             ->orderBy('created_at', 'desc');
 
         // Filter by status
@@ -86,6 +87,15 @@ class CredentialController extends Controller
                 $query->used();
             } elseif ($request->status === 'unused') {
                 $query->unused();
+            }
+        }
+
+        // Filter by source
+        if ($request->has('source')) {
+            if ($request->source === 'manual') {
+                $query->manuallyGenerated();
+            } elseif ($request->source === 'csv_upload') {
+                $query->fromCsvUpload();
             }
         }
 
@@ -102,6 +112,8 @@ class CredentialController extends Controller
             'used' => TemporaryStudentCredential::where('is_used', true)->count(),
             'unused' => TemporaryStudentCredential::where('is_used', false)->count(),
             'today' => TemporaryStudentCredential::whereDate('created_at', today())->count(),
+            'manual' => TemporaryStudentCredential::where('source', 'manual')->count(),
+            'csv_upload' => TemporaryStudentCredential::where('source', 'csv_upload')->count(),
         ];
 
         return view('admin.credentials.index', compact('credentials', 'stats'));
@@ -159,7 +171,7 @@ class CredentialController extends Controller
         $existingIds = $existingIds->merge($tempIds);
 
         // Extract numbers and find the highest
-        $highestNumber = 0;
+        $highestNumber = 0; // Start from 0 so first number will be 1
         foreach ($existingIds as $id) {
             if (preg_match('/^' . $year . '-(\d+)$/', $id, $matches)) {
                 $number = (int)$matches[1];
@@ -169,37 +181,12 @@ class CredentialController extends Controller
             }
         }
 
-        // Generate next sequential number
+        // Generate next sequential number starting from 0001
         $nextNumber = $highestNumber + 1;
         $studentId = $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
         return $studentId;
     }
 
-    /**
-     * Generate a secure password
-     */
-    private function generateSecurePassword(): string
-    {
-        $uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $lowercase = 'abcdefghijklmnopqrstuvwxyz';
-        $numbers = '0123456789';
-        $symbols = '!@#$%^&*';
 
-        // Ensure at least one character from each category
-        $password = '';
-        $password .= $uppercase[random_int(0, strlen($uppercase) - 1)];
-        $password .= $lowercase[random_int(0, strlen($lowercase) - 1)];
-        $password .= $numbers[random_int(0, strlen($numbers) - 1)];
-        $password .= $symbols[random_int(0, strlen($symbols) - 1)];
-
-        // Fill the rest randomly
-        $allChars = $uppercase . $lowercase . $numbers . $symbols;
-        for ($i = 4; $i < 12; $i++) {
-            $password .= $allChars[random_int(0, strlen($allChars) - 1)];
-        }
-
-        // Shuffle the password
-        return str_shuffle($password);
-    }
 }

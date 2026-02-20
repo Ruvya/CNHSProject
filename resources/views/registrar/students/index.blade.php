@@ -3,25 +3,19 @@
 @section('title', 'Student Records Management')
 
 @section('content')
-<!-- Page Header -->
-<div class="page-header">
-    <div class="row align-items-center">
-        <div class="col-md-8">
-            <h1 class="page-title">
-                <i class="fas fa-user-graduate me-3 text-primary"></i>
-                Student Records Management
-            </h1>
-            <p class="page-subtitle">
-                Comprehensive student enrollment and academic tracking system
-            </p>
+<!-- Modern Angled Header Card -->
+<div class="angled-header-card mb-4">
+    <div class="header-left-content">
+        <span class="icon"><i class="fas fa-user-graduate"></i></span>
+        <div>
+            <span class="title">Student Records Management</span>
+            <span class="subtitle">Comprehensive student enrollment and academic tracking system</span>
         </div>
-        <div class="col-md-4">
-            <div class="page-actions">
-                <a href="{{ route('registrar.students.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>Add New Student
-                </a>
-            </div>
-        </div>
+    </div>
+    <div class="header-right-content">
+        <a href="{{ route('registrar.students.create') }}" class="angled-header-btn">
+            <i class="fas fa-plus me-2"></i> Add New Student
+        </a>
     </div>
 </div>
 
@@ -168,12 +162,12 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <label for="strand" class="form-label">Strand</label>
-                        <select class="form-select" id="strand" name="strand">
-                            <option value="">All Strands</option>
-                            @foreach($strands as $strand)
-                                <option value="{{ $strand }}" {{ request('strand') === $strand ? 'selected' : '' }}>
-                                    {{ $strand }}
+                        <label for="cluster" class="form-label">Cluster</label>
+                        <select class="form-select" id="cluster" name="cluster">
+                            <option value="">All Clusters</option>
+                            @foreach($clusters as $cluster)
+                                <option value="{{ $cluster }}" {{ request('cluster') === $cluster ? 'selected' : '' }}>
+                                    {{ $cluster }}
                                 </option>
                             @endforeach
                         </select>
@@ -221,10 +215,10 @@
                     </button>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="/excel-template-emergency">
-                            <i class="fas fa-file-csv me-2"></i>Download CSV Template
+                            <i class="fas fa-file-csv me-2"></i>Download SF1-SHS CSV Template
                         </a></li>
                         <li><a class="dropdown-item" href="/excel-template-emergency?format=excel">
-                            <i class="fas fa-file-excel me-2"></i>Download Excel Template
+                            <i class="fas fa-file-excel me-2"></i>Download SF1-SHS Excel Template
                         </a></li>
                     </ul>
                 </div>
@@ -266,84 +260,60 @@
                 <table class="table table-bordered" id="studentsTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
-                            <th width="30">
-                                <input type="checkbox" id="selectAll" onchange="toggleAllCheckboxes()">
-                            </th>
                             <th>Student ID</th>
+                            <th>LRN</th>
                             <th>Name</th>
-                            <th>Email</th>
                             <th>Grade Level</th>
                             <th>Section</th>
-                            <th>Track/Strand</th>
-                            <th>Enrollment Status</th>
+                            <th>Track</th>
+                            <th>Cluster</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($students as $student)
                         <tr>
-                            <td>
-                                <input type="checkbox" name="student_ids[]" value="{{ $student->id }}" class="student-checkbox">
+                            <td style="color: black;">
+                                {{ $student->student_id }}
                             </td>
-                            <td>
-                                <span class="badge bg-primary">{{ $student->student_id }}</span>
+                            <td style="color: black;">
+                                {{ $student->lrn }}
                             </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-sm bg-success text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
-                                        {{ substr($student->first_name, 0, 1) }}{{ substr($student->last_name, 0, 1) }}
-                                    </div>
-                                    <div>
-                                        <a href="{{ route('registrar.students.show', $student) }}" class="text-decoration-none">
-                                            <strong class="text-primary">{{ $student->full_name }}</strong>
-                                        </a>
-                                        @if($student->middle_name)
-                                            <br><small class="text-muted">{{ $student->middle_name }}</small>
-                                        @endif
-                                    </div>
+                            <td style="color: black;">
+                                <div>
+                                    <a href="{{ route('registrar.students.show', $student) }}" class="text-decoration-none" style="color: black;">
+                                        <strong>{{ $student->full_name }}</strong>
+                                    </a>
                                 </div>
                             </td>
-                            <td>{{ $student->email }}</td>
-                            <td>
-                                <span class="badge bg-info">{{ $student->grade_level }}</span>
+                            <td style="color: black;">
+                                {{ $student->grade_level }}
                             </td>
-                            <td>
+                            <td style="color: black;">
                                 @if($student->section)
-                                    <span class="badge bg-secondary">{{ $student->section }}</span>
+                                    {{ $student->section }}
                                 @else
-                                    <span class="text-muted">Not assigned</span>
+                                    Not assigned
                                 @endif
                             </td>
-                            <td>
+                            <td style="color: black;">
                                 @if($student->track)
-                                    <span class="badge bg-warning text-dark">{{ $student->track }}</span>
-                                    @if($student->strand)
-                                        <br><span class="badge bg-light text-dark">{{ $student->strand }}</span>
-                                    @endif
+                                    {{ $student->track }}
                                 @else
-                                    <span class="text-muted">Not assigned</span>
+                                    Not assigned
                                 @endif
                             </td>
-                            <td>
-                                @if($student->subjects->count() > 0)
-                                    <span class="badge bg-success">Enrolled ({{ $student->subjects->count() }} subjects)</span>
+                            <td style="color: black;">
+                                @if($student->cluster)
+                                    {{ $student->cluster }}
                                 @else
-                                    <span class="badge bg-danger">Not Enrolled</span>
+                                    Not assigned
                                 @endif
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
                                     <a href="{{ route('registrar.students.show', $student) }}" class="btn btn-info btn-sm" title="View Profile">
                                         <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ route('registrar.students.edit', $student) }}" class="btn btn-primary btn-sm" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a href="{{ route('registrar.students.yearly-records.index', $student) }}" class="btn btn-secondary btn-sm" title="Yearly Records">
-                                        <i class="fas fa-history"></i>
-                                    </a>
-                                    <a href="{{ route('registrar.students.enrollment', $student) }}" class="btn btn-success btn-sm" title="Manage Enrollment">
-                                        <i class="fas fa-book"></i>
                                     </a>
                                     <form action="{{ route('registrar.students.destroy', $student) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this student?')">
                                         @csrf
@@ -380,6 +350,88 @@
 
 @push('styles')
 <style>
+.angled-header-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(115deg, #f97316 60%, #3b82f6 60%);
+    color: white;
+    padding: 2.2rem 2.5rem 2.2rem 2.5rem;
+    border-radius: 16px;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 10px 30px rgba(249, 115, 22, 0.18);
+    position: relative;
+    overflow: hidden;
+    min-height: 120px;
+}
+.header-left-content {
+    display: flex;
+    align-items: center;
+}
+.header-left-content .icon {
+    font-size: 2.8rem;
+    margin-right: 1.5rem;
+    opacity: 0.92;
+}
+.header-left-content .title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 0.2rem;
+    line-height: 1.1;
+}
+.header-left-content .subtitle {
+    font-size: 1.1rem;
+    font-weight: 500;
+    opacity: 0.95;
+    display: block;
+}
+.header-right-content {
+    display: flex;
+    align-items: center;
+}
+.angled-header-btn {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: 2rem;
+    padding: 0.7rem 1.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    box-shadow: 0 2px 8px rgba(56,135,250,0.10);
+    border: 1px solid rgba(255,255,255,0.25);
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+}
+.angled-header-btn:hover {
+    background: rgba(255,255,255,0.28);
+    color: #fff;
+    text-decoration: none;
+}
+@media (max-width: 768px) {
+    .angled-header-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.2rem 1rem;
+        min-height: 100px;
+    }
+    .header-left-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .header-left-content .icon {
+        margin-bottom: 0.7rem;
+        margin-right: 0;
+    }
+    .header-right-content {
+        margin-top: 1rem;
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
 .avatar-sm {
     width: 32px;
     height: 32px;

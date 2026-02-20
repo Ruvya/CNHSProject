@@ -14,7 +14,10 @@ class Grade extends Model
         'quarter3',
         'quarter4',
         'final_grade',
-        'remarks'
+        'remarks',
+        'school_year',
+        'semester',
+        'status'
     ];
 
     protected $casts = [
@@ -34,6 +37,7 @@ class Grade extends Model
     {
         return $this->belongsTo(Subject::class);
     }
+
 
     /**
      * Calculate final grade from quarters
@@ -57,7 +61,7 @@ class Grade extends Model
     /**
      * Get grade status (Passed/Failed/Incomplete)
      */
-    public function getStatusAttribute()
+    public function getGradeStatusAttribute()
     {
         if ($this->final_grade === null) {
             return 'Incomplete';
@@ -71,7 +75,7 @@ class Grade extends Model
      */
     public function getStatusColorAttribute()
     {
-        switch ($this->status) {
+        switch ($this->grade_status) {
             case 'Passed':
                 return 'success';
             case 'Failed':
@@ -80,6 +84,7 @@ class Grade extends Model
                 return 'warning';
         }
     }
+
 
     /**
      * Scope to get grades for a specific teacher
@@ -98,4 +103,69 @@ class Grade extends Model
     {
         return $query->where('student_id', $studentId);
     }
+
+    /**
+     * Scope: only submitted grades (if status column exists)
+     */
+    public function scopeSubmitted($query)
+    {
+        if (\Schema::hasColumn('grades', 'status')) {
+            return $query->where('status', 'submitted');
+        }
+        return $query; // fallback: no-op if status not present
+    }
+
+    /**
+     * Check if First Semester (Q1 and Q2) has any grades
+     */
+    public function hasFirstSemesterGrades()
+    {
+        return !is_null($this->quarter1) || !is_null($this->quarter2);
+    }
+
+    /**
+     * Check if First Semester (Q1 and Q2) is complete (both quarters have grades)
+     */
+    public function isFirstSemesterComplete()
+    {
+        return !is_null($this->quarter1) && !is_null($this->quarter2);
+    }
+
+    /**
+     * Check if Second Semester inputs should be locked
+     * Locks when there are NO inputs in First Semester
+     */
+    public function shouldLockSecondSemester()
+    {
+        return !$this->hasFirstSemesterGrades();
+    }
+
+    /**
+     * Static method to check if second semester should be locked for a student/subject
+     */
+    public static function shouldLockSecondSemesterFor($studentId, $subjectId)
+    {
+        $grade = static::where('student_id', $studentId)
+                      ->where('subject_id', $subjectId)
+                      ->first();
+        
+        // If no grade record exists, lock second semester
+        if (!$grade) {
+            return true;
+        }
+        
+        return $grade->shouldLockSecondSemester();
+    }
+
+    /**
+     * Determine if this grade is locked (submitted)
+     */
+    public function isLocked(): bool
+    {
+        if (!\Schema::hasColumn('grades', 'status')) {
+            return false;
+        }
+        return $this->status === 'submitted';
+    }
+
 }

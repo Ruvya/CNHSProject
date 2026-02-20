@@ -5,97 +5,18 @@
 @section('content')
 <div class="container-fluid">
     <!-- Header Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h3 mb-2 text-gray-800">{{ $subject->name }} - Manage Grades</h1>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ route('teacher.dashboard') }}">Dashboard</a></li>
-                            <li class="breadcrumb-item"><a href="{{ route('teacher.subjects') }}">Subjects</a></li>
-                            <li class="breadcrumb-item active">{{ $subject->name }} Grades</li>
-                        </ol>
-                    </nav>
-                </div>
-                <div>
-                    <a href="{{ route('teacher.subjects') }}" class="btn btn-secondary me-2">
-                        <i class="fas fa-arrow-left"></i> Back to Subjects
-                    </a>
-                    <a href="{{ route('teacher.subjects.students', $subject) }}" class="btn btn-info">
-                        <i class="fas fa-users"></i> View Students
-                    </a>
-                </div>
+    <div class="dashboard-header mb-4">
+        <div class="header-content">
+            <i class="fas fa-clipboard-check"></i>
+            <div>
+                <h1>{{ $subject->name }}</h1>
+                <p>Manage Grades</p>
             </div>
         </div>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Students</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalStudents }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Students with Grades</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $studentsWithGrades }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Class Average</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ $averageGrade ? number_format($averageGrade, 2) : 'N/A' }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Grades</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalStudents - $studentsWithGrades }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="header-actions">
+            <a href="{{ route('teacher.subjects') }}" class="btn btn-light-blue rounded-pill">
+                <i class="fas fa-arrow-left me-2"></i> Back to Subjects
+            </a>
         </div>
     </div>
 
@@ -104,15 +25,16 @@
         <div class="col-12">
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">Grade Management</h6>
                     <div>
-                        <button type="button" class="btn btn-success btn-sm" id="saveAllBtn">
-                            <i class="fas fa-save"></i> Save All Grades
-                        </button>
+                        <h6 class="m-0 font-weight-bold text-primary">Grade Management</h6>
+                        @if($subject->semester)
+                            <small class="text-muted">Semester: {{ $subject->semester }}</small>
+                        @endif
+                    </div>
+                    <div>
                         <button type="button" class="btn btn-info btn-sm ms-2" onclick="refreshAllGrades()" id="refreshAllBtn">
                             <i class="fas fa-sync-alt"></i> Refresh All
                         </button>
-
                     </div>
                 </div>
                 <div class="card-body">
@@ -142,16 +64,18 @@
                                     <thead>
                                         <tr>
                                             <th rowspan="2" class="align-middle">Student</th>
-                                            <th colspan="4" class="text-center">Quarterly Grades</th>
+                                            <th id="quarterlyHeader" colspan="2" class="text-center">Quarterly Grades</th>
                                             <th rowspan="2" class="align-middle">Final Grade</th>
                                             <th rowspan="2" class="align-middle">Status</th>
-                                            <th rowspan="2" class="align-middle">Actions</th>
                                         </tr>
                                         <tr>
-                                            <th class="text-center">Q1</th>
-                                            <th class="text-center">Q2</th>
-                                            <th class="text-center">Q3</th>
-                                            <th class="text-center">Q4</th>
+                                            @if(($subject->semester ?? '1st Semester') === '1st Semester')
+                                                <th class="text-center quarter-col">Q1</th>
+                                                <th class="text-center quarter-col">Q2</th>
+                                            @else
+                                                <th class="text-center quarter-col">Q3</th>
+                                                <th class="text-center quarter-col">Q4</th>
+                                            @endif
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -159,86 +83,123 @@
                                             @php
                                                 $grade = $student->grades->first();
                                                 $finalGrade = $grade ? $grade->final_grade : null;
-                                                $status = $finalGrade ? ($finalGrade >= 75 ? 'Passed' : 'Failed') : 'Pending';
-                                                $statusClass = $finalGrade ? ($finalGrade >= 75 ? 'success' : 'danger') : 'warning';
+                                                $quarters = [];
+                                                if ($grade) {
+                                                    foreach (['quarter1', 'quarter2', 'quarter3', 'quarter4'] as $q) {
+                                                        if (!is_null($grade->$q)) {
+                                                            $quarters[] = $grade->$q;
+                                                        }
+                                                    }
+                                                }
+                                                if (count($quarters) > 0) {
+                                                    $average = array_sum($quarters) / count($quarters);
+                                                    $status = $average >= 75 ? 'Passed' : 'Failed';
+                                                    $statusClass = $average >= 75 ? 'success' : 'danger';
+                                                } else {
+                                                    $status = 'Pending';
+                                                    $statusClass = 'warning';
+                                                }
                                             @endphp
                                             <tr>
                                                 <td>
                                                     <div class="d-flex align-items-center">
-                                                        <img src="{{ $student->profile_picture ? asset('storage/' . $student->profile_picture) : asset('images/photo.jpg') }}"
-                                                             class="rounded-circle me-2" width="32" height="32" alt="Profile">
                                                         <div>
                                                             <strong>{{ $student->first_name }} {{ $student->last_name }}</strong>
                                                             <br><small class="text-muted">{{ $student->student_id }}</small>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td>
-                                                    <input type="number"
-                                                           class="form-control form-control-sm grade-input auto-save"
-                                                           name="grades[{{ $student->id }}][quarter1]"
-                                                           value="{{ $grade ? $grade->quarter1 : '' }}"
-                                                           min="0" max="100" step="0.01"
-                                                           data-student="{{ $student->id }}"
-                                                           data-quarter="quarter1"
-                                                           data-subject="{{ $subject->id }}"
-                                                           placeholder="0-100">
-                                                </td>
-                                                <td>
-                                                    <input type="number"
-                                                           class="form-control form-control-sm grade-input auto-save"
-                                                           name="grades[{{ $student->id }}][quarter2]"
-                                                           value="{{ $grade ? $grade->quarter2 : '' }}"
-                                                           min="0" max="100" step="0.01"
-                                                           data-student="{{ $student->id }}"
-                                                           data-quarter="quarter2"
-                                                           data-subject="{{ $subject->id }}"
-                                                           placeholder="0-100">
-                                                </td>
-                                                <td>
-                                                    <input type="number"
-                                                           class="form-control form-control-sm grade-input auto-save"
-                                                           name="grades[{{ $student->id }}][quarter3]"
-                                                           value="{{ $grade ? $grade->quarter3 : '' }}"
-                                                           min="0" max="100" step="0.01"
-                                                           data-student="{{ $student->id }}"
-                                                           data-quarter="quarter3"
-                                                           data-subject="{{ $subject->id }}"
-                                                           placeholder="0-100">
-                                                </td>
-                                                <td>
-                                                    <input type="number"
-                                                           class="form-control form-control-sm grade-input auto-save"
-                                                           name="grades[{{ $student->id }}][quarter4]"
-                                                           value="{{ $grade ? $grade->quarter4 : '' }}"
-                                                           min="0" max="100" step="0.01"
-                                                           data-student="{{ $student->id }}"
-                                                           data-quarter="quarter4"
-                                                           data-subject="{{ $subject->id }}"
-                                                           placeholder="0-100">
-                                                </td>
+                                                @if(($subject->semester ?? '1st Semester') === '1st Semester')
+                                                    <td class="quarter-col">
+                                                        <input type="text"
+                                                               inputmode="decimal"
+                                                               class="form-control form-control-sm grade-input auto-save"
+                                                               name="grades[{{ $student->id }}][quarter1]"
+                                                               value="{{ $grade ? $grade->quarter1 : '' }}"
+                                                               data-student="{{ $student->id }}"
+                                                               data-quarter="quarter1"
+                                                               data-subject="{{ $subject->id }}"
+                                                               placeholder="0-100">
+                                                    </td>
+                                                    <td class="quarter-col">
+                                                        <input type="text"
+                                                               inputmode="decimal"
+                                                               class="form-control form-control-sm grade-input auto-save"
+                                                               name="grades[{{ $student->id }}][quarter2]"
+                                                               value="{{ $grade ? $grade->quarter2 : '' }}"
+                                                               data-student="{{ $student->id }}"
+                                                               data-quarter="quarter2"
+                                                               data-subject="{{ $subject->id }}"
+                                                               placeholder="0-100">
+                                                    </td>
+                                                @else
+                                                    <td class="quarter-col">
+                                                        <input type="text"
+                                                               inputmode="decimal"
+                                                               class="form-control form-control-sm grade-input auto-save"
+                                                               name="grades[{{ $student->id }}][quarter3]"
+                                                               value="{{ $grade ? $grade->quarter3 : '' }}"
+                                                               data-student="{{ $student->id }}"
+                                                               data-quarter="quarter3"
+                                                               data-subject="{{ $subject->id }}"
+                                                               placeholder="0-100">
+                                                    </td>
+                                                    <td class="quarter-col">
+                                                        <input type="text"
+                                                               inputmode="decimal"
+                                                               class="form-control form-control-sm grade-input auto-save"
+                                                               name="grades[{{ $student->id }}][quarter4]"
+                                                               value="{{ $grade ? $grade->quarter4 : '' }}"
+                                                               data-student="{{ $student->id }}"
+                                                               data-quarter="quarter4"
+                                                               data-subject="{{ $subject->id }}"
+                                                               placeholder="0-100">
+                                                    </td>
+                                                @endif
                                                 <td class="text-center">
                                                     <span class="final-grade-display" data-student="{{ $student->id }}">
-                                                        {{ $finalGrade ? number_format($finalGrade, 2) : '-' }}
+                                                        {{ $finalGrade !== null ? number_format($finalGrade, 2) : '' }}
                                                     </span>
                                                 </td>
                                                 <td class="text-center">
-                                                    <span class="badge badge-{{ $statusClass }} status-badge" data-student="{{ $student->id }}">
+                                                    <span class="status-badge {{ $status === 'Passed' ? 'text-success' : ($status === 'Failed' ? 'text-danger' : ($status === 'Pending' ? 'text-warning' : '')) }} badge badge-{{ $statusClass }}" data-student="{{ $student->id }}">
                                                         {{ $status }}
                                                     </span>
                                                 </td>
-                                                <td class="text-center">
-                                                    <a href="{{ route('teacher.subjects.grades.edit', [$subject, $student]) }}"
-                                                       class="btn btn-sm btn-outline-primary" title="Edit Individual Grade">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                </td>
+                                                
                                             </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
                             </div>
+                            <div class="d-flex justify-content-end align-items-center gap-2 mt-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="saveDraftBtn">
+                                    <i class="fas fa-eye"></i> Save
+                                </button>
+                                <button type="button" class="btn btn-success btn-sm" id="saveAllBtn">
+                                    <i class="fas fa-save"></i> Submit
+                                </button>
+                            </div>
                         </form>
+
+                        <!-- Submit Confirmation Modal -->
+                        <div class="modal fade" id="saveAllGradesModal" tabindex="-1" aria-labelledby="saveAllGradesModalLabel" aria-hidden="true">
+                          <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                              <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title" id="saveAllGradesModalLabel"><i class="fas fa-question-circle me-2"></i>Save All Grades?</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body text-center">
+                                <p class="mb-0">Are you sure you want to save all grades? This action will update all students' grades for this subject.</p>
+                              </div>
+                              <div class="modal-footer justify-content-center">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                                <button type="button" class="btn btn-success" id="confirmSaveAllGrades">Yes</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                     @else
                         <div class="text-center py-5">
                             <i class="fas fa-users fa-3x text-gray-300 mb-3"></i>
@@ -255,6 +216,58 @@
 
 @section('styles')
 <style>
+.dashboard-header {
+    background: linear-gradient(115deg, #f97316 65%, #3b82f6 35%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+.header-content {
+    display: flex;
+    align-items: center;
+}
+.dashboard-header i {
+    font-size: 2.5rem;
+    margin-right: 1.5rem;
+    opacity: 0.9;
+}
+.dashboard-header h1 {
+    margin: 0;
+    font-size: 2.6rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+.dashboard-header p {
+    margin: 0.25rem 0 0 0;
+    opacity: 0.9;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+.btn-light-blue {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    white-space: nowrap;
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-light-blue i {
+    font-size: 0.7rem;
+}
+.btn-light-blue:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    transform: translateY(-2px);
+}
 .border-left-primary {
     border-left: 0.25rem solid #4e73df !important;
 }
@@ -426,6 +439,41 @@
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+/* Align DataTables search box to the left in a flex row */
+.dataTables_filter {
+    text-align: left !important;
+    flex: 1;
+    margin-bottom: 0;
+}
+.dataTables_filter label {
+    width: 50%;
+    display: flex;
+    align-items: left;
+    gap: 0.5rem;
+    margin-bottom: 0;
+}
+.dataTables_filter input[type="search"] {
+    margin-left: 0 !important;
+    flex: 1;
+}
+
+/* Locked input styles */
+.locked-input {
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    border-color: #dee2e6 !important;
+}
+
+.locked-input:disabled {
+    opacity: 0.7;
+}
+
+.locked-input::placeholder {
+    color: #adb5bd !important;
+    font-style: italic;
+}
 </style>
 @endsection
 
@@ -433,6 +481,8 @@
 <script>
 $(document).ready(function() {
     let saveTimeout;
+    const isFirstSemester = {{ json_encode(($subject->semester ?? '1st Semester') === '1st Semester') }};
+    const activeQuarters = isFirstSemester ? ['quarter1','quarter2'] : ['quarter3','quarter4'];
 
     // Auto-save functionality with debouncing
     $('.auto-save').on('input', function() {
@@ -442,7 +492,10 @@ $(document).ready(function() {
         const subjectId = $input.data('subject');
         const grade = $input.val();
 
-        // console.log('Input detected:', {studentId, quarter, subjectId, grade}); // Debug
+        // Update semester lock status when Q1 or Q2 changes
+        if (quarter === 'quarter1' || quarter === 'quarter2') {
+            updateSecondSemesterLock(studentId);
+        }
 
         // Clear previous timeout
         clearTimeout(saveTimeout);
@@ -456,7 +509,6 @@ $(document).ready(function() {
         // Auto-save after 1 second of no typing
         if (grade !== '' && grade !== null) {
             saveTimeout = setTimeout(function() {
-                // console.log('About to save grade:', {studentId, subjectId, quarter, grade}); // Debug
                 saveQuarterGrade(studentId, subjectId, quarter, grade, $input);
             }, 1000);
         }
@@ -471,8 +523,6 @@ $(document).ready(function() {
 
     // Save individual quarter grade via AJAX
     function saveQuarterGrade(studentId, subjectId, quarter, grade, $input) {
-        console.log('saveQuarterGrade called with:', {studentId, subjectId, quarter, grade}); // Debug
-
         // Show saving indicator
         $input.addClass('saving');
 
@@ -484,22 +534,22 @@ $(document).ready(function() {
             grade: grade
         };
 
-        console.log('Sending AJAX request:', requestData); // Debug
-
         $.ajax({
             url: '{{ route("teacher.save-quarter-grade") }}',
             method: 'POST',
             data: requestData,
             success: function(response) {
-                console.log('AJAX Success Response:', response); // Debug
-
                 if (response.success) {
                     $input.removeClass('saving').addClass('saved');
 
-                    // Update final grade and status
-                    $(`.final-grade-display[data-student="${studentId}"]`).text(
-                        response.data.final_grade ? response.data.final_grade : '-'
-                    );
+                    // Update final grade from server (includes both semesters)
+                    if (response.data && typeof response.data.final_grade !== 'undefined' && response.data.final_grade !== null) {
+                        const formatted = parseFloat(response.data.final_grade).toFixed(2);
+                        $(`.final-grade-display[data-student="${studentId}"]`).text(formatted);
+                    } else {
+                        // Fallback to local calculation
+                        calculateFinalGrade(studentId);
+                    }
 
                     $(`.status-badge[data-student="${studentId}"]`)
                         .removeClass('badge-success badge-danger badge-warning')
@@ -514,16 +564,11 @@ $(document).ready(function() {
                     // Show toast notification
                     showToast('success', 'Grade saved successfully!');
                 } else {
-                    console.log('Success response but success=false:', response); // Debug
                     $input.removeClass('saving').addClass('error');
                     showToast('error', response.message || 'Failed to save grade');
                 }
             },
             error: function(xhr) {
-                console.log('AJAX Error Response:', xhr); // Debug
-                console.log('Status:', xhr.status); // Debug
-                console.log('Response Text:', xhr.responseText); // Debug
-
                 $input.removeClass('saving').addClass('error');
                 let errorMessage = 'Failed to save grade';
 
@@ -540,7 +585,7 @@ $(document).ready(function() {
                 }
 
                 showToast('error', errorMessage);
-                console.error('Full error details:', xhr); // Debug
+                console.error('Full error details:', xhr);
 
                 // Remove error class after 3 seconds
                 setTimeout(function() {
@@ -570,14 +615,15 @@ $(document).ready(function() {
     // Calculate final grade for a student
     function calculateFinalGrade(studentId) {
         const quarters = [];
-        ['quarter1', 'quarter2', 'quarter3', 'quarter4'].forEach(quarter => {
+
+        activeQuarters.forEach(quarter => {
             const value = parseFloat($(`input[data-student="${studentId}"][data-quarter="${quarter}"]`).val());
             if (!isNaN(value)) {
                 quarters.push(value);
             }
         });
 
-        let finalGrade = '-';
+        let finalGrade = '';
         let status = 'Incomplete';
         let statusClass = 'warning';
 
@@ -597,8 +643,6 @@ $(document).ready(function() {
 
     // Toast notification function
     function showToast(type, message) {
-        console.log('showToast called:', type, message); // Debug
-
         // Remove existing toasts
         $('.toast-notification').remove();
 
@@ -614,7 +658,6 @@ $(document).ready(function() {
         `);
 
         $('body').append(toast);
-        console.log('Toast added to body'); // Debug
 
         // Auto-remove after 5 seconds (increased for debugging)
         setTimeout(function() {
@@ -628,60 +671,24 @@ $(document).ready(function() {
 
     // Simple test for Save All Grades button
     $('#saveAllBtn').on('click', function() {
-        alert('Button clicked! This is working.');
-
-        // Show loading state
-        const saveBtn = $(this);
-        const originalText = saveBtn.html();
-        saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
-
-        // Collect all grade data
-        const gradesData = {};
-
-        // Collect grades from all inputs
-        $('.grade-input').each(function() {
-            const studentId = $(this).data('student');
-            const quarter = $(this).data('quarter');
-            const value = $(this).val();
-
-            if (studentId && quarter && value) {
-                if (!gradesData[studentId]) {
-                    gradesData[studentId] = {};
-                }
-                gradesData[studentId][quarter] = value;
-            }
-        });
-
-        console.log('Grades to save:', gradesData);
-
-        // Check if we have any data to save
-        if (Object.keys(gradesData).length === 0) {
-            alert('No grades to save. Please enter some grades first.');
-            saveBtn.prop('disabled', false).html(originalText);
-            return;
+        var modal = new bootstrap.Modal(document.getElementById('saveAllGradesModal'));
+        modal.show();
+    });
+    
+    // Save as draft: submit form with action=save (no student visibility change)
+    $('#saveDraftBtn').on('click', function() {
+        // Ensure hidden input exists
+        let $action = $("#gradesForm input[name='action']");
+        if ($action.length === 0) {
+            $('<input>').attr({type: 'hidden', name: 'action', value: 'save'}).appendTo('#gradesForm');
+        } else {
+            $action.val('save');
         }
-
-        // Submit via AJAX
-        $.ajax({
-            url: '{{ route("teacher.subjects.grades.update", $subject) }}',
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                grades: gradesData
-            },
-            success: function(response) {
-                console.log('Success:', response);
-                alert('Grades saved successfully!');
-                window.location.reload();
-            },
-            error: function(xhr) {
-                console.log('Error:', xhr);
-                alert('Error saving grades: ' + (xhr.responseJSON?.message || 'Unknown error'));
-            },
-            complete: function() {
-                saveBtn.prop('disabled', false).html(originalText);
-            }
-        });
+        $('#gradesForm').trigger('submit');
+    });
+    $('#confirmSaveAllGrades').on('click', function() {
+        $('#saveAllGradesModal').modal('hide');
+        $('#gradesForm').submit();
     });
 
     // Refresh all grades
@@ -698,25 +705,35 @@ $(document).ready(function() {
     };
 
     // Initialize DataTable
-    $('#gradesTable').DataTable({
+    const dt = $('#gradesTable').DataTable({
         "pageLength": 25,
         "order": [[ 0, "asc" ]],
         "columnDefs": [
-            { "orderable": false, "targets": [1, 2, 3, 4, 5, 6, 7] }
+            { "orderable": false, "targets": [1, 2, 3, 4, 5, 6] }
         ],
         "language": {
             "search": "Search students:",
-            "lengthMenu": "Show _MENU_ students per page",
-            "info": "Showing _START_ to _END_ of _TOTAL_ students",
-            "infoEmpty": "No students found",
-            "infoFiltered": "(filtered from _MAX_ total students)"
+            "infoEmpty": "",
+            "infoFiltered": ""
+        },
+        "lengthChange": false,
+        "dom": '<"d-flex justify-content-between align-items-center mb-2"f>t',
+        "paging": false,
+        "info": false
+    });
+
+    // Recalculate all rows on load
+    $('#gradesTable tbody tr').each(function(){
+        const studentIdCell = $(this).find('.final-grade-display').data('student');
+        if (studentIdCell) {
+            calculateFinalGrade(studentIdCell);
         }
     });
 
-
-
     // Initialize tooltips for better UX
     $('[data-bs-toggle="tooltip"]').tooltip();
+
+    // No dropdown or dynamic semester switching; active quarters fixed by subject semester.
 });
 </script>
 @endsection

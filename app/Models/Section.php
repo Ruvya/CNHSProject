@@ -16,7 +16,7 @@ class Section extends Model
         'max_capacity',
         'current_enrollment',
         'school_year',
-        'grading_period',
+        'semester',
         'adviser_id',
         'room',
         'status',
@@ -34,6 +34,16 @@ class Section extends Model
     public function adviser(): BelongsTo
     {
         return $this->belongsTo(Teacher::class, 'adviser_id');
+    }
+
+
+    /**
+     * Students whose textual `section` matches this section's `name`.
+     * Uses non-standard key mapping: Student.section (text) -> Section.name (text).
+     */
+    public function students(): HasMany
+    {
+        return $this->hasMany(Student::class, 'section', 'name');
     }
 
 
@@ -69,9 +79,8 @@ class Section extends Model
      */
     public function updateEnrollmentCount(): void
     {
-        $this->current_enrollment = $this->studentAssignments()
-            ->where('status', 'active')
-            ->count();
+        // Count students whose textual section equals this section's name
+        $this->current_enrollment = $this->students()->count();
 
         // Update status based on capacity
         if ($this->current_enrollment >= $this->max_capacity) {

@@ -4,16 +4,23 @@
 
 @section('content')
 <div class="container-fluid">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0 text-gray-800">Add New Student</h1>
-            <p class="text-muted">Create a comprehensive student profile with academic information</p>
-        </div>
-        <div>
-            <a href="{{ route('registrar.students.index') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Back to Students
-            </a>
+    <!-- Header (match Admin User Management style) -->
+    <div class="card mb-4" style="border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: none;">
+        <div class="card-body d-flex flex-wrap align-items-center justify-content-between" style="padding: 1.2rem 1.5rem;">
+            <div class="d-flex align-items-center mb-2 mb-md-0">
+                <span style="font-size: 2rem; color: #2563eb; background: #f1f5fb; border-radius: 12px; padding: 0.7rem; margin-right: 1rem; display: flex; align-items: center;">
+                    <i class="fas fa-user-graduate"></i>
+                </span>
+                <div>
+                    <div style="font-size: 1.3rem; font-weight: bold; font-family: 'Poppins', sans-serif; color: #222;">Add New Student</div>
+                    <div style="font-size: 0.95rem; font-family: 'Poppins', sans-serif; color: #555; font-weight: 500;">Manage student records and profiles in the CNHS system</div>
+                </div>
+            </div>
+            <div class="mb-2 mb-md-0">
+                <a href="{{ route('registrar.students.index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Students
+                </a>
+            </div>
         </div>
     </div>
 
@@ -29,7 +36,7 @@
     @endif
 
     <div class="row justify-content-center">
-        <div class="col-lg-10">
+        <div class="col-lg-12">
             <form action="{{ route('registrar.students.store') }}" method="POST">
                 @csrf
                 
@@ -56,7 +63,8 @@
                                 <label for="lrn" class="form-label">LRN (Learner Reference Number)</label>
                                 <input type="text" class="form-control @error('lrn') is-invalid @enderror" 
                                        id="lrn" name="lrn" value="{{ old('lrn') }}" 
-                                       placeholder="12-digit LRN">
+                                       placeholder="12-digit LRN" maxlength="12" inputmode="numeric" pattern="\d{12}"
+                                       oninput="this.value=this.value.replace(/\D/g,'').slice(0,12)">
                                 @error('lrn')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -148,21 +156,22 @@
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="section" class="form-label">Section</label>
-                                <input type="text" class="form-control @error('section') is-invalid @enderror" 
-                                       id="section" name="section" value="{{ old('section') }}" 
-                                       placeholder="e.g., Einstein, Newton, Darwin">
+                                <select class="form-select @error('section') is-invalid @enderror" id="section" name="section">
+                                    <option value="">— Select Section —</option>
+                                </select>
                                 @error('section')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label for="track" class="form-label">Academic Track</label>
+                                <label for="track" class="form-label">Track</label>
                                 <select class="form-select @error('track') is-invalid @enderror" id="track" name="track">
                                     <option value="">Select Track (Optional)</option>
-                                    <option value="Academic Track" {{ old('track') === 'Academic Track' ? 'selected' : '' }}>Academic Track</option>
-                                    <option value="Technical-Vocational-Livelihood Track" {{ old('track') === 'Technical-Vocational-Livelihood Track' ? 'selected' : '' }}>Technical-Vocational-Livelihood Track</option>
-                                    <option value="Sports Track" {{ old('track') === 'Sports Track' ? 'selected' : '' }}>Sports Track</option>
-                                    <option value="Arts and Design Track" {{ old('track') === 'Arts and Design Track' ? 'selected' : '' }}>Arts and Design Track</option>
+                                    @foreach($tracks as $track)
+                                        <option value="{{ $track->name }}" {{ old('track') === $track->name ? 'selected' : '' }}>
+                                            {{ $track->name }}
+                                        </option>
+                                    @endforeach
                                 </select>
                                 @error('track')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -172,18 +181,18 @@
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="strand" class="form-label">Strand</label>
-                                <select class="form-select @error('strand') is-invalid @enderror" id="strand" name="strand">
-                                    <option value="">Select Strand (Optional)</option>
-                                    <option value="HUMSS" {{ old('strand') === 'HUMSS' ? 'selected' : '' }}>HUMSS (Humanities and Social Sciences)</option>
-                                    <option value="STEM" {{ old('strand') === 'STEM' ? 'selected' : '' }}>STEM (Science, Technology, Engineering and Mathematics)</option>
-                                    <option value="ABM" {{ old('strand') === 'ABM' ? 'selected' : '' }}>ABM (Accountancy, Business and Management)</option>
-                                    <option value="GAS" {{ old('strand') === 'GAS' ? 'selected' : '' }}>GAS (General Academic Strand)</option>
-                                    <option value="TVL-ICT" {{ old('strand') === 'TVL-ICT' ? 'selected' : '' }}>TVL-ICT (Information and Communications Technology)</option>
-                                    <option value="TVL-HE" {{ old('strand') === 'TVL-HE' ? 'selected' : '' }}>TVL-HE (Home Economics)</option>
-                                    <option value="TVL-AFA" {{ old('strand') === 'TVL-AFA' ? 'selected' : '' }}>TVL-AFA (Agri-Fishery Arts)</option>
+                                <label for="cluster" class="form-label">Cluster</label>
+                                <select class="form-select @error('cluster') is-invalid @enderror" id="cluster" name="cluster">
+                                    <option value="">Select Cluster (Optional)</option>
+                                    <option value="HUMSS" {{ old('cluster') === 'HUMSS' ? 'selected' : '' }}>HUMSS (Humanities and Social Sciences)</option>
+                                    <option value="STEM" {{ old('cluster') === 'STEM' ? 'selected' : '' }}>STEM (Science, Technology, Engineering and Mathematics)</option>
+                                    <option value="ABM" {{ old('cluster') === 'ABM' ? 'selected' : '' }}>ABM (Accountancy, Business and Management)</option>
+                                    <option value="GAS" {{ old('cluster') === 'GAS' ? 'selected' : '' }}>GAS (General Academic Strand)</option>
+                                    <option value="TVL-ICT" {{ old('cluster') === 'TVL-ICT' ? 'selected' : '' }}>TVL-ICT (Information and Communications Technology)</option>
+                                    <option value="TVL-HE" {{ old('cluster') === 'TVL-HE' ? 'selected' : '' }}>TVL-HE (Home Economics)</option>
+                                    <option value="TVL-AFA" {{ old('cluster') === 'TVL-AFA' ? 'selected' : '' }}>TVL-AFA (Agri-Fishery Arts)</option>
                                 </select>
-                                @error('strand')
+                                @error('cluster')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -276,32 +285,70 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // Update strand options based on track selection
+    // Load clusters by track name
+    async function loadClustersByTrackName(trackName) {
+        if (!trackName) {
+            $('#cluster').html('<option value="">Select Cluster (Optional)</option>');
+            return;
+        }
+
+        const tracks = @json($tracks);
+        const track = tracks.find(t => t.name === trackName);
+        
+        if (!track) {
+            $('#cluster').html('<option value="">No clusters available</option>');
+            return;
+        }
+
+        await loadClustersByTrackId(track.id);
+    }
+
+    // Load clusters by track ID using AJAX
+    async function loadClustersByTrackId(trackId) {
+        if (!trackId) {
+            $('#cluster').html('<option value="">Select Cluster (Optional)</option>');
+            return;
+        }
+
+        const clusterSelect = $('#cluster');
+        clusterSelect.html('<option value="">Loading clusters...</option>');
+        clusterSelect.prop('disabled', true);
+
+        try {
+            const response = await fetch(`/admin/api/clusters/by-track/${trackId}`);
+            const data = await response.json();
+
+            const currentCluster = '{{ old("cluster") }}';
+            clusterSelect.html('<option value="">Select Cluster (Optional)</option>');
+            
+            if (data.success && data.clusters && data.clusters.length > 0) {
+                data.clusters.forEach(cluster => {
+                    const option = $('<option>');
+                    option.val(cluster.name);
+                    option.text(cluster.name + (cluster.description ? ' - ' + cluster.description : ''));
+                    if (cluster.name === currentCluster) {
+                        option.prop('selected', true);
+                    }
+                    clusterSelect.append(option);
+                });
+            } else {
+                clusterSelect.html('<option value="">No clusters available for this track</option>');
+            }
+        } catch (error) {
+            console.error('Error loading clusters:', error);
+            clusterSelect.html('<option value="">Error loading clusters</option>');
+        } finally {
+            clusterSelect.prop('disabled', false);
+        }
+    }
+
+    // Update cluster options based on track selection
     $('#track').on('change', function() {
         const track = $(this).val();
-        const strandSelect = $('#strand');
-        const currentStrand = '{{ old("strand") }}';
-        
-        // Clear current options
-        strandSelect.html('<option value="">Select Strand (Optional)</option>');
-        
-        if (track === 'Academic Track') {
-            strandSelect.append(`
-                <option value="HUMSS" ${currentStrand === 'HUMSS' ? 'selected' : ''}>HUMSS (Humanities and Social Sciences)</option>
-                <option value="STEM" ${currentStrand === 'STEM' ? 'selected' : ''}>STEM (Science, Technology, Engineering and Mathematics)</option>
-                <option value="ABM" ${currentStrand === 'ABM' ? 'selected' : ''}>ABM (Accountancy, Business and Management)</option>
-                <option value="GAS" ${currentStrand === 'GAS' ? 'selected' : ''}>GAS (General Academic Strand)</option>
-            `);
-        } else if (track === 'Technical-Vocational-Livelihood Track') {
-            strandSelect.append(`
-                <option value="TVL-ICT" ${currentStrand === 'TVL-ICT' ? 'selected' : ''}>TVL-ICT (Information and Communications Technology)</option>
-                <option value="TVL-HE" ${currentStrand === 'TVL-HE' ? 'selected' : ''}>TVL-HE (Home Economics)</option>
-                <option value="TVL-AFA" ${currentStrand === 'TVL-AFA' ? 'selected' : ''}>TVL-AFA (Agri-Fishery Arts)</option>
-            `);
-        }
+        loadClustersByTrackName(track);
     });
     
-    // Trigger track change on page load to populate strands
+    // Trigger track change on page load to populate clusters
     $('#track').trigger('change');
     
     // Auto-generate email based on name
@@ -313,6 +360,32 @@ $(document).ready(function() {
             $('#email').val(`${firstName}.${lastName}@cnhs.edu.ph`);
         }
     });
+
+    // Load sections dropdown when grade level or track/cluster changes
+    function loadSections() {
+        const grade = $('#grade_level').val();
+        const trackOrCluster = $('#cluster').val() || $('#track').val();
+        const sectionSelect = $('#section');
+        sectionSelect.html('<option value="">— Select Section —</option>');
+        const baseUrl = '{{ route('registrar.api.sections-by-filters') }}';
+        const params = new URLSearchParams();
+        if (grade) params.append('grade_level', grade);
+        if (trackOrCluster) params.append('strand', trackOrCluster);
+        const url = `${baseUrl}?${params.toString()}`;
+        fetch(url, { headers: { 'Accept': 'application/json' }})
+          .then(r => r.json())
+          .then(json => {
+            json.data.forEach(s => {
+              const selected = (s.name === '{{ old('section') }}') ? 'selected' : '';
+              sectionSelect.append(`<option value="${s.name}" ${selected}>${s.name} (${s.grade_level})</option>`);
+            });
+          })
+          .catch(err => console.error('Failed loading sections', err));
+    }
+    $('#grade_level').on('change', loadSections);
+    $('#track').on('change', loadSections);
+    $('#cluster').on('change', loadSections);
+    loadSections();
 });
 </script>
 @endpush

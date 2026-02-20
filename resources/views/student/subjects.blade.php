@@ -337,12 +337,19 @@
             <i class="fas fa-book-open me-2"></i>
             Enrolled Subjects
         </h2>
-        <select class="form-select">
-            <option value="all">All Subjects</option>
-            <option value="core">Core Subjects</option>
-            <option value="major">Major Subjects</option>
-            <option value="elective">Electives</option>
-        </select>
+        <form method="GET" action="{{ route('student.subjects') }}">
+            <select class="form-select" name="semester" onchange="this.form.submit()">
+                @if(isset($semesterOptions))
+                    @foreach($semesterOptions as $value => $label)
+                        <option value="{{ $value }}" {{ (isset($selectedSemester) && $selectedSemester === $value) ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                @else
+                    <option value="">Select Semester</option>
+                    <option value="1st Semester" {{ (isset($selectedSemester) && $selectedSemester === '1st Semester') ? 'selected' : '' }}>1st Semester</option>
+                    <option value="2nd Semester" {{ (isset($selectedSemester) && $selectedSemester === '2nd Semester') ? 'selected' : '' }}>2nd Semester</option>
+                @endif
+            </select>
+        </form>
     </div>
     <div class="table-responsive">
         <table class="table">
@@ -353,7 +360,6 @@
                     <th>Teacher</th>
                     <th>Schedule</th>
                     <th>Status</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -361,21 +367,15 @@
                 <tr>
                     <td>{{ $subject->code }}</td>
                     <td>{{ $subject->name }}</td>
-                    <td>{{ $subject->teacher->name ?? 'TBA' }}</td>
+                    <td>{{ $subject->current_teacher->name ?? 'TBA' }}</td>
                     <td>{{ $subject->schedule ?? 'TBA' }}</td>
                     <td>
                         <span class="badge badge-active">Enrolled</span>
                     </td>
-                    <td>
-                        <button class="btn-action" data-bs-toggle="modal" data-bs-target="#subjectModal">
-                            <i class="fas fa-eye"></i>
-                            View
-                        </button>
-                    </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6">
+                    <td colspan="5">
                         <div class="empty-state">
                             <i class="fas fa-book"></i>
                             <h3>No Subjects Found</h3>

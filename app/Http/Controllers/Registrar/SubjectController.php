@@ -68,17 +68,7 @@ class SubjectController extends Controller
             return $gradeLevel === 'Grade 12' || $gradeLevel === '12';
         })->count();
 
-        // Get available strands
-        $availableStrands = $allSubjects->pluck('strand')
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
-
-        // If no strands found, use default strands
-        if ($availableStrands->isEmpty()) {
-            $availableStrands = collect(['HUMSS', 'AFA', 'CAREGIVING', 'ICT-CSS', 'ICT-TDCP']);
-        }
+        // Remove all logic and compact/view data related to 'strand' and 'availableStrands' in index and subjectsFixed methods.
 
         // Group subjects by grade and strand for organized display
         $subjectsByGradeAndStrand = [];
@@ -86,7 +76,11 @@ class SubjectController extends Controller
         foreach (['Grade 11', 'Grade 12'] as $grade) {
             $subjectsByGradeAndStrand[$grade] = [];
 
-            foreach ($availableStrands as $strand) {
+            foreach ($allSubjects->pluck('strand')
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values() as $strand) {
                 $subjectsByGradeAndStrand[$grade][$strand] = $allSubjects->filter(function($subject) use ($grade, $strand) {
                     $subjectGrade = $subject->grade_level;
                     $subjectStrand = $subject->strand;
@@ -110,7 +104,6 @@ class SubjectController extends Controller
             'totalSubjects',
             'grade11Count',
             'grade12Count',
-            'availableStrands',
             'subjectsByGradeAndStrand'
         ));
     }
@@ -122,35 +115,98 @@ class SubjectController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('registrar.subjects.create', compact('teachers'));
+        // Get tracks from database
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+
+        return view('registrar.subjects.create', compact('teachers', 'tracks'));
+    }
+
+    /**
+     * Helper to get the acting user and type (admin or registrar)
+     */
+    protected function getActingUser()
+    {
+        if (\Auth::guard('admin')->check()) {
+            return ['user' => \Auth::guard('admin')->user(), 'type' => 'admin'];
+        } elseif (\Auth::guard('registrar')->check()) {
+            return ['user' => \Auth::guard('registrar')->user(), 'type' => 'registrar'];
+        }
+        return ['user' => null, 'type' => null];
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        // Check if this is a core subject
+        $isCoreSubject = $request->has('is_core_subject');
+
+        $validationRules = [
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:subjects',
-            'grade_level' => 'required|in:Grade 11,Grade 12',
-            'track' => 'required|string|max:100',
-            'strand' => 'required|string|max:100',
-            'cluster' => 'nullable|string|max:100',
-            'specialization' => 'nullable|string|max:100',
-            'grading' => 'required|in:First Grading,Second Grading,Third Grading,Fourth Grading,All Gradings',
+            'code' => 'nullable|string|max:50|unique:subjects,code',
             'teacher_id' => 'nullable|exists:teachers,id',
             'description' => 'nullable|string|max:1000',
             'is_core_subject' => 'nullable|boolean',
             'is_master_subject' => 'nullable|boolean',
-        ]);
+        ];
+
+        // For core subjects, these fields are auto-filled and not required to be validated
+        if (!$isCoreSubject) {
+            $validationRules['grade_level'] = 'required|in:Grade 11,Grade 12';
+            $validationRules['track'] = 'required|string|max:100';
+            $validationRules['semester'] = 'required|in:1st Semester,2nd Semester,Both Semesters';
+        } else {
+            $validationRules['grade_level'] = 'nullable|in:Grade 11,Grade 12';
+            $validationRules['track'] = 'nullable|string|max:100';
+            $validationRules['grading'] = 'nullable|in:First Grading,Second Grading,Third Grading,Fourth Grading,All Gradings';
+        }
+
+        $validationRules['cluster'] = 'nullable|string|max:100';
+        $validationRules['specialization'] = 'nullable|string|max:100';
+        
+        // Schedule validation rules
+        $validationRules['schedule_days'] = 'nullable|array';
+        $validationRules['schedule_days.*'] = 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday';
+        $validationRules['start_time'] = 'nullable|date_format:H:i';
+        $validationRules['end_time'] = 'nullable|date_format:H:i|after:start_time';
+        $validationRules['room'] = 'nullable|string|max:100';
+        $validationRules['schedule_notes'] = 'nullable|string|max:500';
+
+        $validated = $request->validate($validationRules);
 
         // Convert checkbox values
         $validated['is_core_subject'] = $request->has('is_core_subject');
         $validated['is_master_subject'] = $request->has('is_master_subject');
 
-        // Automatically assign the current registrar as the creator
-        $validated['registrar_id'] = Auth::guard('registrar')->id();
+        // For core subjects, auto-fill the required fields
+        if ($validated['is_core_subject']) {
+            $validated['grade_level'] = 'Grade 11';
+            $validated['track'] = 'All';
+            $validated['cluster'] = 'All';
+            $validated['grading'] = 'All Gradings';
+        }
 
-        // Ensure code is uppercase
-        $validated['code'] = strtoupper($validated['code']);
+        // Automatically assign the current registrar or admin as the creator
+        $acting = $this->getActingUser();
+        if ($acting['type'] === 'admin') {
+            $validated['registrar_id'] = null; // or set to a special admin value if needed
+            $validated['created_by_admin_id'] = $acting['user']->id;
+        } elseif ($acting['type'] === 'registrar') {
+            $validated['registrar_id'] = $acting['user']->id;
+        }
+
+        // Ensure code is uppercase if provided
+        if (isset($validated['code']) && !empty($validated['code'])) {
+            $validated['code'] = strtoupper($validated['code']);
+        } else {
+            $validated['code'] = null;
+        }
+
+        // Process schedule days - convert array to comma-separated string
+        if (isset($validated['schedule_days']) && is_array($validated['schedule_days'])) {
+            $validated['schedule_days'] = implode(',', $validated['schedule_days']);
+        }
 
         // Units removed - not applicable for senior high school
 
@@ -174,38 +230,88 @@ class SubjectController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('registrar.subjects.edit', compact('subject', 'teachers'));
+        // Get tracks from database
+        $tracks = \App\Models\Track::active()
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+
+        return view('registrar.subjects.edit', compact('subject', 'teachers', 'tracks'));
     }
 
     public function update(Request $request, Subject $subject)
     {
-        // Allow all registrars to update any subject
-        // Note: Removed ownership restriction to allow full registrar access
+        // Check if this is a core subject
+        $isCoreSubject = $request->has('is_core_subject');
 
-        $validated = $request->validate([
+        $validationRules = [
             'name' => 'required|string|max:255',
-            'code' => "required|string|max:50|unique:subjects,code,{$subject->id}",
-            'grade_level' => 'required|in:Grade 11,Grade 12',
-            'track' => 'required|string|max:100',
-            'strand' => 'required|string|max:100',
-            'cluster' => 'nullable|string|max:100',
-            'specialization' => 'nullable|string|max:100',
-            'grading' => 'required|in:First Grading,Second Grading,Third Grading,Fourth Grading,All Gradings',
+            'code' => "nullable|string|max:50|unique:subjects,code,{$subject->id}",
             'teacher_id' => 'nullable|exists:teachers,id',
             'description' => 'nullable|string|max:1000',
             'is_core_subject' => 'nullable|boolean',
             'is_master_subject' => 'nullable|boolean',
-        ]);
+        ];
+
+        // For core subjects, these fields are auto-filled and not required to be validated
+        if (!$isCoreSubject) {
+            $validationRules['grade_level'] = 'required|in:Grade 11,Grade 12';
+            $validationRules['track'] = 'required|string|max:100';
+            $validationRules['semester'] = 'required|in:1st Semester,2nd Semester,Both Semesters';
+        } else {
+            $validationRules['grade_level'] = 'nullable|in:Grade 11,Grade 12';
+            $validationRules['track'] = 'nullable|string|max:100';
+            $validationRules['grading'] = 'nullable|in:First Grading,Second Grading,Third Grading,Fourth Grading,All Gradings';
+        }
+
+        $validationRules['cluster'] = 'nullable|string|max:100';
+        $validationRules['specialization'] = 'nullable|string|max:100';
+        
+        // Schedule validation rules
+        $validationRules['schedule_days'] = 'nullable|array';
+        $validationRules['schedule_days.*'] = 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday';
+        $validationRules['start_time'] = 'nullable|date_format:H:i';
+        $validationRules['end_time'] = 'nullable|date_format:H:i|after:start_time';
+        $validationRules['room'] = 'nullable|string|max:100';
+        $validationRules['schedule_notes'] = 'nullable|string|max:500';
+
+        $validated = $request->validate($validationRules);
 
         // Convert checkbox values
         $validated['is_core_subject'] = $request->has('is_core_subject');
         $validated['is_master_subject'] = $request->has('is_master_subject');
 
-        // Ensure code is uppercase
-        $validated['code'] = strtoupper($validated['code']);
+        // For core subjects, auto-fill the required fields
+        if ($validated['is_core_subject']) {
+            $validated['grade_level'] = 'Grade 11';
+            $validated['track'] = 'All';
+            $validated['cluster'] = 'All';
+            $validated['grading'] = 'All Gradings';
+        }
+
+        // Ensure code is uppercase if provided
+        if (isset($validated['code']) && !empty($validated['code'])) {
+            $validated['code'] = strtoupper($validated['code']);
+        } else {
+            $validated['code'] = null;
+        }
+
+        // Process schedule days - convert array to comma-separated string
+        if (isset($validated['schedule_days']) && is_array($validated['schedule_days'])) {
+            $validated['schedule_days'] = implode(',', $validated['schedule_days']);
+        }
 
         // Add default units value since we removed it from the form
         $validated['units'] = $subject->units ?? 3; // Keep existing units or default to 3
+
+        // Optionally track who updated (admin or registrar)
+        $acting = $this->getActingUser();
+        if ($acting['type'] === 'admin') {
+            $validated['registrar_id'] = null;
+            $validated['updated_by_admin_id'] = $acting['user']->id;
+        } elseif ($acting['type'] === 'registrar') {
+            $validated['registrar_id'] = $acting['user']->id;
+        }
 
         $subject->update($validated);
 
@@ -337,5 +443,16 @@ class SubjectController extends Controller
         $student->subjects()->sync($request->subjects);
 
         return redirect()->back()->with('success', 'Subjects assigned successfully');
+    }
+
+    public function getClustersByGrade(Request $request)
+    {
+        $gradeLevel = $request->get('grade_level');
+        $query = Subject::select('cluster')->distinct();
+        if ($gradeLevel && $gradeLevel !== 'all') {
+            $query->where('grade_level', $gradeLevel);
+        }
+        $clusters = $query->whereNotNull('cluster')->where('cluster', '!=', '')->orderBy('cluster')->pluck('cluster');
+        return response()->json($clusters);
     }
 }

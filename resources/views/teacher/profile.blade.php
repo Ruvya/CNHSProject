@@ -2,11 +2,111 @@
 
 @section('title', 'Profile')
 
+@section('styles')
+<style>
+    /* New Header Style */
+    .page-header-design {
+        background: linear-gradient(115deg, #f97316 60%, #3b82f6 60%);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(249, 115, 22, 0.25);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .header-left-content {
+        display: flex;
+        align-items: center;
+    }
+    .header-left-content i {
+        font-size: 3rem;
+        margin-right: 1.5rem;
+        opacity: 0.8;
+    }
+    .header-left-content h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+    .header-left-content p {
+        margin: 0.25rem 0 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+    .header-right-content .profile-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.75rem 1.25rem;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        font-size: 1rem;
+        backdrop-filter: blur(10px);
+    }
+    .header-right-content .profile-badge i {
+        margin-right: 0.5rem;
+    }
+
+    .card-header {
+        border-bottom: 1px solid #e3e6f0;
+    }
+    .fw-bold {
+        font-weight: 600;
+    }
+    .profile-image {
+        object-fit: cover;
+        transition: all 0.3s ease;
+        width: 100px !important;
+        height: 100px !important;
+        max-width: 100px;
+        max-height: 100px;
+    }
+    .profile-image:hover {
+        transform: scale(1.05);
+    }
+    .position-relative:hover .position-absolute {
+        opacity: 1;
+    }
+    .position-absolute {
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+    }
+    .bg-light {
+        background-color: #f8f9fa !important;
+    }
+    .profile-picture-card-body {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+    .profile-picture-card .card-body {
+        min-height: unset !important;
+    }
+</style>
+@endsection
+
 @section('content')
 <div class="container-fluid">
+    <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="h3 mb-4 text-gray-800">My Profile</h1>
+            <div class="page-header-design">
+                <div class="header-left-content">
+                    <i class="fas fa-user-circle"></i>
+                    <div>
+                        <h1>My Profile</h1>
+                        <p>Manage your personal information and account settings</p>
+                    </div>
+                </div>
+                <div class="header-right-content">
+                    <div class="profile-badge">
+                        <i class="fas fa-user"></i>
+                        <span>{{ ucfirst($teacher->status ?? 'Active') }} Status</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -20,17 +120,17 @@
     <div class="row">
         <!-- Profile Picture Section -->
         <div class="col-xl-4">
-            <div class="card mb-4">
+            <div class="card mb-4 profile-picture-card">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-user-circle me-2"></i>Profile Picture
                     </h5>
                 </div>
-                <div class="card-body text-center">
-                    <div class="position-relative d-inline-block mb-3">
-                        <img src="{{ $teacher->profile_picture ? asset('storage/' . $teacher->profile_picture) : 'https://ui-avatars.com/api/?name=' . urlencode($teacher->name) . '&background=4e73df&color=ffffff&size=200' }}"
+                <div class="card-body text-center profile-picture-card-body">
+                    <div class="position-relative d-inline-block mb-2">
+                        <img src="{{ $teacher->profile_picture ? asset('storage/' . $teacher->profile_picture) : 'https://ui-avatars.com/api/?name=' . urlencode($teacher->name) . '&background=4e73df&color=ffffff&size=120' }}"
                              class="rounded-circle border border-3 border-primary profile-image"
-                             width="200" height="200" alt="Profile Picture" id="profilePreview">
+                             width="120" height="120" alt="Profile Picture" id="profilePreview">
                         <div class="position-absolute bottom-0 end-0">
                             <button type="button" class="btn btn-primary btn-sm rounded-circle" onclick="document.getElementById('profilePictureInput').click()">
                                 <i class="fas fa-camera"></i>
@@ -38,7 +138,7 @@
                         </div>
                     </div>
                     <h5 class="mb-1">{{ $teacher->name }}</h5>
-                    <p class="text-muted mb-3">{{ $teacher->email }}</p>
+                    <p class="text-muted mb-2">{{ $teacher->email }}</p>
 
                     <!-- Hidden file input -->
                     <input type="file" id="profilePictureInput" name="profile_picture" accept="image/jpeg,image/png,image/jpg" style="display: none;" onchange="previewAndUploadImage(this)">
@@ -83,31 +183,9 @@
                     </div>
                 </div>
             </div>
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-graduation-cap me-2"></i>Academic Information
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Strand:</label>
-                            <div class="p-2 bg-light rounded">{{ $teacher->strand ?? 'Not specified' }}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Status:</label>
-                            <div class="p-2 bg-light rounded">
-                                <span class="badge bg-{{ $teacher->status === 'active' ? 'success' : 'secondary' }}">
-                                    {{ ucfirst($teacher->status ?? 'Unknown') }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Edit Profile Form -->
+            <!-- Remove the Academic Information card entirely -->
+        </div>
+        <div class="col-xl-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">
@@ -245,34 +323,6 @@
     </div>
 </div>
 
-@endsection
-
-@section('styles')
-<style>
-.card-header {
-    border-bottom: 1px solid #e3e6f0;
-}
-.fw-bold {
-    font-weight: 600;
-}
-.profile-image {
-    object-fit: cover;
-    transition: all 0.3s ease;
-}
-.profile-image:hover {
-    transform: scale(1.05);
-}
-.position-relative:hover .position-absolute {
-    opacity: 1;
-}
-.position-absolute {
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
-}
-.bg-light {
-    background-color: #f8f9fa !important;
-}
-</style>
 @endsection
 
 @section('scripts')

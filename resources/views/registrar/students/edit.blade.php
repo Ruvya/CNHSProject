@@ -160,10 +160,11 @@
                                 <label for="track" class="form-label">Academic Track</label>
                                 <select class="form-select @error('track') is-invalid @enderror" id="track" name="track">
                                     <option value="">Select Track (Optional)</option>
-                                    <option value="Academic Track" {{ old('track', $student->track) === 'Academic Track' ? 'selected' : '' }}>Academic Track</option>
-                                    <option value="Technical-Vocational-Livelihood Track" {{ old('track', $student->track) === 'Technical-Vocational-Livelihood Track' ? 'selected' : '' }}>Technical-Vocational-Livelihood Track</option>
-                                    <option value="Sports Track" {{ old('track', $student->track) === 'Sports Track' ? 'selected' : '' }}>Sports Track</option>
-                                    <option value="Arts and Design Track" {{ old('track', $student->track) === 'Arts and Design Track' ? 'selected' : '' }}>Arts and Design Track</option>
+                                    @foreach($tracks as $track)
+                                        <option value="{{ $track->name }}" {{ old('track', $student->track) === $track->name ? 'selected' : '' }}>
+                                            {{ $track->name }}
+                                        </option>
+                                    @endforeach
                                 </select>
                                 @error('track')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -173,18 +174,18 @@
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="strand" class="form-label">Strand</label>
-                                <select class="form-select @error('strand') is-invalid @enderror" id="strand" name="strand">
-                                    <option value="">Select Strand (Optional)</option>
-                                    <option value="HUMSS" {{ old('strand', $student->strand) === 'HUMSS' ? 'selected' : '' }}>HUMSS (Humanities and Social Sciences)</option>
-                                    <option value="STEM" {{ old('strand', $student->strand) === 'STEM' ? 'selected' : '' }}>STEM (Science, Technology, Engineering and Mathematics)</option>
-                                    <option value="ABM" {{ old('strand', $student->strand) === 'ABM' ? 'selected' : '' }}>ABM (Accountancy, Business and Management)</option>
-                                    <option value="GAS" {{ old('strand', $student->strand) === 'GAS' ? 'selected' : '' }}>GAS (General Academic Strand)</option>
-                                    <option value="TVL-ICT" {{ old('strand', $student->strand) === 'TVL-ICT' ? 'selected' : '' }}>TVL-ICT (Information and Communications Technology)</option>
-                                    <option value="TVL-HE" {{ old('strand', $student->strand) === 'TVL-HE' ? 'selected' : '' }}>TVL-HE (Home Economics)</option>
-                                    <option value="TVL-AFA" {{ old('strand', $student->strand) === 'TVL-AFA' ? 'selected' : '' }}>TVL-AFA (Agri-Fishery Arts)</option>
+                                <label for="cluster" class="form-label">Cluster</label>
+                                <select class="form-select @error('cluster') is-invalid @enderror" id="cluster" name="cluster">
+                                    <option value="">Select Cluster (Optional)</option>
+                                    <option value="HUMSS" {{ old('cluster', $student->cluster) === 'HUMSS' ? 'selected' : '' }}>HUMSS (Humanities and Social Sciences)</option>
+                                    <option value="STEM" {{ old('cluster', $student->cluster) === 'STEM' ? 'selected' : '' }}>STEM (Science, Technology, Engineering and Mathematics)</option>
+                                    <option value="ABM" {{ old('cluster', $student->cluster) === 'ABM' ? 'selected' : '' }}>ABM (Accountancy, Business and Management)</option>
+                                    <option value="GAS" {{ old('cluster', $student->cluster) === 'GAS' ? 'selected' : '' }}>GAS (General Academic Strand)</option>
+                                    <option value="TVL-ICT" {{ old('cluster', $student->cluster) === 'TVL-ICT' ? 'selected' : '' }}>TVL-ICT (Information and Communications Technology)</option>
+                                    <option value="TVL-HE" {{ old('cluster', $student->cluster) === 'TVL-HE' ? 'selected' : '' }}>TVL-HE (Home Economics)</option>
+                                    <option value="TVL-AFA" {{ old('cluster', $student->cluster) === 'TVL-AFA' ? 'selected' : '' }}>TVL-AFA (Agri-Fishery Arts)</option>
                                 </select>
-                                @error('strand')
+                                @error('cluster')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -310,32 +311,32 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // Update strand options based on track selection
+    // Update cluster options based on track selection
     $('#track').on('change', function() {
         const track = $(this).val();
-        const strandSelect = $('#strand');
-        const currentStrand = '{{ old("strand", $student->strand) }}';
+        const clusterSelect = $('#cluster');
+        const currentCluster = '{{ old("cluster", $student->cluster) }}';
         
         // Clear current options
-        strandSelect.html('<option value="">Select Strand (Optional)</option>');
+        clusterSelect.html('<option value="">Select Cluster (Optional)</option>');
         
         if (track === 'Academic Track') {
-            strandSelect.append(`
-                <option value="HUMSS" ${currentStrand === 'HUMSS' ? 'selected' : ''}>HUMSS (Humanities and Social Sciences)</option>
-                <option value="STEM" ${currentStrand === 'STEM' ? 'selected' : ''}>STEM (Science, Technology, Engineering and Mathematics)</option>
-                <option value="ABM" ${currentStrand === 'ABM' ? 'selected' : ''}>ABM (Accountancy, Business and Management)</option>
-                <option value="GAS" ${currentStrand === 'GAS' ? 'selected' : ''}>GAS (General Academic Strand)</option>
+            clusterSelect.append(`
+                <option value="HUMSS" ${currentCluster === 'HUMSS' ? 'selected' : ''}>HUMSS (Humanities and Social Sciences)</option>
+                <option value="STEM" ${currentCluster === 'STEM' ? 'selected' : ''}>STEM (Science, Technology, Engineering and Mathematics)</option>
+                <option value="ABM" ${currentCluster === 'ABM' ? 'selected' : ''}>ABM (Accountancy, Business and Management)</option>
+                <option value="GAS" ${currentCluster === 'GAS' ? 'selected' : ''}>GAS (General Academic Strand)</option>
             `);
         } else if (track === 'Technical-Vocational-Livelihood Track') {
-            strandSelect.append(`
-                <option value="TVL-ICT" ${currentStrand === 'TVL-ICT' ? 'selected' : ''}>TVL-ICT (Information and Communications Technology)</option>
-                <option value="TVL-HE" ${currentStrand === 'TVL-HE' ? 'selected' : ''}>TVL-HE (Home Economics)</option>
-                <option value="TVL-AFA" ${currentStrand === 'TVL-AFA' ? 'selected' : ''}>TVL-AFA (Agri-Fishery Arts)</option>
+            clusterSelect.append(`
+                <option value="TVL-ICT" ${currentCluster === 'TVL-ICT' ? 'selected' : ''}>TVL-ICT (Information and Communications Technology)</option>
+                <option value="TVL-HE" ${currentCluster === 'TVL-HE' ? 'selected' : ''}>TVL-HE (Home Economics)</option>
+                <option value="TVL-AFA" ${currentCluster === 'TVL-AFA' ? 'selected' : ''}>TVL-AFA (Agri-Fishery Arts)</option>
             `);
         }
     });
     
-    // Trigger track change on page load to populate strands
+    // Trigger track change on page load to populate clusters
     $('#track').trigger('change');
 });
 </script>

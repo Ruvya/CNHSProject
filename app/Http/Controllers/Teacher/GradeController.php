@@ -7,7 +7,10 @@ use Illuminate\Http\Request;
 use App\Models\Subject;
 use App\Models\Student;
 use App\Models\Grade;
+use App\Models\TeacherAssignment;
 use Illuminate\Support\Facades\Auth;
+use App\Services\SemesterService;
+use Illuminate\Support\Facades\Schema;
 
 class GradeController extends Controller
 {
@@ -19,7 +22,15 @@ class GradeController extends Controller
         $assignedSubjects = $teacher->assignedSubjects()->get();
         $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
         $subjects = $assignedSubjects->merge($directSubjects)->unique('id');
-        $sections = ['A', 'B', 'C', 'D', 'E']; // Add more sections as needed
+        
+        // Get actual sections from database for the current school year
+        $currentSchoolYear = $this->getCurrentSchoolYear();
+        $sections = \App\Models\Section::where('school_year', $currentSchoolYear)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->pluck('name')
+            ->unique()
+            ->values();
 
         $query = Student::query()
             ->with(['grades' => function($query) use ($request) {
@@ -45,6 +56,80 @@ class GradeController extends Controller
         $students = $query->get();
 
         return view('teacher.grades', compact('subjects', 'sections', 'students'));
+    }
+
+    public function gradeManagement(Request $request)
+    {
+        $teacher = Auth::guard('teacher')->user();
+
+        $selectedSemester = $request->get('semester');
+
+        // Get subjects from both assignment methods
+        $assignedSubjects = $teacher->assignedSubjects()->get();
+        $directSubjects = Subject::where('teacher_id', $teacher->id)->get();
+        $subjects = $assignedSubjects->merge($directSubjects)->unique('id');
+
+        // Optionally filter subjects by selected semester (respect subject semester and assignment pivot semester)
+        if (!empty($selectedSemester)) {
+            $subjects = $subjects->filter(function ($subject) use ($selectedSemester) {
+                // Accept if subject explicitly matches semester or is for both semesters
+                $subjectSemester = $subject->semester ?? null;
+                if ($subjectSemester === 'Both Semesters' || $subjectSemester === $selectedSemester) {
+                    return true;
+                }
+
+                // If coming via teacher_assignments pivot, check pivot semester when available
+                if (isset($subject->pivot) && !empty($subject->pivot->semester)) {
+                    return $subject->pivot->semester === 'Both Semesters' || $subject->pivot->semester === $selectedSemester;
+                }
+
+                // If no explicit semester, include by default
+                return empty($subjectSemester);
+            })->values();
+        }
+
+        // Get grade statistics
+        $gradeStats = [];
+        foreach ($subjects as $subject) {
+            $totalStudents = Student::whereHas('subjects', function($q) use ($subject) {
+                $q->where('subjects.id', $subject->id);
+            })->count();
+
+            $gradedQuery = Grade::where('subject_id', $subject->id)
+                ->whereNotNull('final_grade');
+            if (!empty($selectedSemester) && \Illuminate\Support\Facades\Schema::hasColumn('grades', 'semester')) {
+                $gradedQuery->where(function ($q) use ($selectedSemester) {
+                    $q->where('semester', $selectedSemester)
+                      ->orWhereNull('semester');
+                });
+            }
+            $gradedStudents = $gradedQuery->count();
+
+            $avgQuery = Grade::where('subject_id', $subject->id)
+                ->whereNotNull('final_grade');
+            if (!empty($selectedSemester) && \Illuminate\Support\Facades\Schema::hasColumn('grades', 'semester')) {
+                $avgQuery->where(function ($q) use ($selectedSemester) {
+                    $q->where('semester', $selectedSemester)
+                      ->orWhereNull('semester');
+                });
+            }
+            $averageGrade = $avgQuery->avg('final_grade');
+
+            $gradeStats[] = [
+                'subject' => $subject,
+                'semester' => (isset($subject->pivot) && !empty($subject->pivot->semester)) ? $subject->pivot->semester : ($subject->semester ?? null),
+                'grade_level' => $subject->grade_level ?? null,
+                'total_students' => $totalStudents,
+                'graded_students' => $gradedStudents,
+                'pending_grades' => $totalStudents - $gradedStudents,
+                'average_grade' => $averageGrade ? round($averageGrade, 2) : 0,
+                'completion_percentage' => $totalStudents > 0 ? round(($gradedStudents / $totalStudents) * 100, 1) : 0
+            ];
+        }
+
+        $semesterOptions = SemesterService::getSemesterOptions();
+
+        return view('teacher.grade-management', compact('gradeStats', 'subjects', 'semesterOptions', 'selectedSemester'));
     }
 
     public function saveGrade(Request $request)
@@ -75,6 +160,7 @@ class GradeController extends Controller
             ], 403);
         }
 
+
         // Calculate final grade (average of quarters)
         $quarters = array_filter([
             $request->quarter1,
@@ -85,20 +171,38 @@ class GradeController extends Controller
 
         $finalGrade = !empty($quarters) ? round(array_sum($quarters) / count($quarters), 2) : null;
 
+        // Prevent editing if already submitted
+        $existing = Grade::where('student_id', $request->student_id)
+            ->where('subject_id', $request->subject_id)
+            ->first();
+        if ($existing && $existing->isLocked()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This grade has been submitted and can no longer be edited.'
+            ], 422);
+        }
+
         // Update or create grade record
+        $updateData = [
+            'quarter1' => $request->quarter1,
+            'quarter2' => $request->quarter2,
+            'quarter3' => $request->quarter3,
+            'quarter4' => $request->quarter4,
+            'final_grade' => $finalGrade,
+            'remarks' => $request->remarks,
+            'school_year' => \App\Services\SemesterService::getCurrentSchoolYear(),
+            'semester' => \App\Services\SemesterService::getCurrentSemester(),
+        ];
+        if (Schema::hasColumn('grades', 'status')) {
+            $updateData['status'] = 'draft';
+        }
+
         $grade = Grade::updateOrCreate(
             [
                 'student_id' => $request->student_id,
                 'subject_id' => $request->subject_id,
             ],
-            [
-                'quarter1' => $request->quarter1,
-                'quarter2' => $request->quarter2,
-                'quarter3' => $request->quarter3,
-                'quarter4' => $request->quarter4,
-                'final_grade' => $finalGrade,
-                'remarks' => $request->remarks,
-            ]
+            $updateData
         );
 
         return response()->json([
@@ -142,21 +246,45 @@ class GradeController extends Controller
             ], 403);
         }
 
-        // Get or create grade record
+        // Check if trying to input second semester grades without first semester
+        if (in_array($request->quarter, ['quarter3', 'quarter4'])) {
+            if (Grade::shouldLockSecondSemesterFor($request->student_id, $request->subject_id)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Second semester grades are locked. Please enter First Semester grades first.'
+                ], 422);
+            }
+        }
+
+        // Get or create grade record and block if already submitted
+        $defaults = [
+            'quarter1' => null,
+            'quarter2' => null,
+            'quarter3' => null,
+            'quarter4' => null,
+            'final_grade' => null,
+            'remarks' => null,
+            'school_year' => \App\Services\SemesterService::getCurrentSchoolYear(),
+            'semester' => \App\Services\SemesterService::getCurrentSemester(),
+        ];
+        if (Schema::hasColumn('grades', 'status')) {
+            $defaults['status'] = 'draft';
+        }
+
         $grade = Grade::firstOrCreate(
             [
                 'student_id' => $request->student_id,
                 'subject_id' => $request->subject_id,
             ],
-            [
-                'quarter1' => null,
-                'quarter2' => null,
-                'quarter3' => null,
-                'quarter4' => null,
-                'final_grade' => null,
-                'remarks' => null
-            ]
+            $defaults
         );
+
+        if ($grade->isLocked()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This grade has been submitted and can no longer be edited.'
+            ], 422);
+        }
 
         // Update the specific quarter
         $grade->{$request->quarter} = $request->grade;
@@ -197,5 +325,45 @@ class GradeController extends Controller
                      ->first();
 
         return view('teacher.edit-grade', compact('teacher', 'student', 'subject', 'grade'));
+    }
+
+    public function show(Subject $subject)
+    {
+        $teacher = Auth::guard('teacher')->user();
+        $students = $subject->students()->where('teacher_id', $teacher->id)->with('grades')->get();
+
+        $totalStudents = $students->count();
+        $studentsWithGrades = $students->filter(function($student) {
+            return $student->grades->isNotEmpty();
+        })->count();
+
+        $totalGrades = Grade::where('subject_id', $subject->id)->whereIn('student_id', $students->pluck('id'))->avg('final_grade');
+        $totalSubjects = TeacherAssignment::where('teacher_id', $teacher->id)->distinct('subject_id')->count();
+
+        return view('teacher.subjects.grades', [
+            'subject' => $subject,
+            'students' => $students,
+            'totalStudents' => $totalStudents,
+            'studentsWithGrades' => $studentsWithGrades,
+            'averageGrade' => $totalGrades,
+            'totalSubjects' => $totalSubjects,
+        ]);
+    }
+
+
+    /**
+     * Get current school year
+     */
+    private function getCurrentSchoolYear(): string
+    {
+        $currentYear = date('Y');
+        $currentMonth = date('n');
+
+        // School year starts in June (month 6)
+        if ($currentMonth >= 6) {
+            return $currentYear . '-' . ($currentYear + 1);
+        } else {
+            return ($currentYear - 1) . '-' . $currentYear;
+        }
     }
 }

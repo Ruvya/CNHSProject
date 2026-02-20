@@ -2,19 +2,18 @@
 
 @section('content')
 <div class="container-fluid">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="page-title mb-1">
-                <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>
-                Subject Assignment Management
-                <span class="badge bg-info ms-2">{{ $schoolYear }} - {{ $gradingPeriod }}</span>
-            </h1>
-            <p class="text-muted mb-0">Assign subjects to teachers for the current academic period</p>
+    <!-- Modern Angled Header Card -->
+    <div class="angled-header-card mb-4">
+        <div class="header-left-content">
+            <span class="icon"><i class="fas fa-chalkboard-teacher"></i></span>
+            <div>
+                <span class="title">Subject Assignment Management</span>
+                <span class="subtitle">Assign subjects to teachers for {{ $schoolYear }} - {{ $gradingPeriod }}</span>
+            </div>
         </div>
-        <div>
-            <a href="{{ route('registrar.subject-assignments.create') }}" class="btn btn-primary btn-lg">
-                <i class="fas fa-plus me-2"></i>Assign Subject to Teacher
+        <div class="header-right-content">
+            <a href="{{ route('registrar.subject-assignments.create') }}" class="angled-header-btn">
+                <i class="fas fa-plus me-2"></i> Assign Subject to Teacher
             </a>
         </div>
     </div>
@@ -252,6 +251,87 @@
 </div>
 
 <style>
+.angled-header-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(115deg, #f97316 60%, #3b82f6 60%);
+    color: white;
+    padding: 2.2rem 2.5rem 2.2rem 2.5rem;
+    border-radius: 16px;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 10px 30px rgba(249, 115, 22, 0.18);
+    position: relative;
+    overflow: hidden;
+    min-height: 120px;
+}
+.header-left-content {
+    display: flex;
+    align-items: center;
+}
+.header-left-content .icon {
+    font-size: 2.8rem;
+    margin-right: 1.5rem;
+    opacity: 0.92;
+}
+.header-left-content .title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 0.2rem;
+    line-height: 1.1;
+}
+.header-left-content .subtitle {
+    font-size: 1.1rem;
+    font-weight: 500;
+    opacity: 0.95;
+    display: block;
+}
+.header-right-content {
+    display: flex;
+    align-items: center;
+}
+.angled-header-btn {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: 2rem;
+    padding: 0.7rem 1.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    box-shadow: 0 2px 8px rgba(56,135,250,0.10);
+    border: 1px solid rgba(255,255,255,0.25);
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+}
+.angled-header-btn:hover {
+    background: rgba(255,255,255,0.28);
+    color: #fff;
+    text-decoration: none;
+}
+@media (max-width: 768px) {
+    .angled-header-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.2rem 1rem;
+        min-height: 100px;
+    }
+    .header-left-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .header-left-content .icon {
+        margin-bottom: 0.7rem;
+        margin-right: 0;
+    }
+    .header-right-content {
+        margin-top: 1rem;
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
 .avatar-sm {
     width: 32px;
     height: 32px;

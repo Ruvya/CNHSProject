@@ -16,6 +16,12 @@ class AnnouncementController extends Controller
      */
     public function index()
     {
+        $principal = auth()->guard('principal')->user();
+        $announcements = Announcement::where('author_type', 'App\Models\Principal')
+            ->where('author_id', $principal->id)
+            ->latest()
+            ->get();
+        return view('Principal.announcements.index', compact('announcements'));
         try {
             // Clear announcement cache
             cache()->forget('announcements_list');
@@ -64,6 +70,7 @@ class AnnouncementController extends Controller
                 ->header('Pragma', 'no-cache')
                 ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
         }
+
     }
 
     /**
@@ -147,7 +154,10 @@ class AnnouncementController extends Controller
      */
     public function show(string $id)
     {
-        $announcement = Announcement::findOrFail($id);
+        $principal = auth()->guard('principal')->user();
+        $announcement = Announcement::where('author_type', 'App\Models\Principal')
+            ->where('author_id', $principal->id)
+            ->findOrFail($id);
         return view('Principal.announcements.show', compact('announcement'));
     }
 
@@ -156,7 +166,10 @@ class AnnouncementController extends Controller
      */
     public function edit(string $id)
     {
-        $announcement = Announcement::findOrFail($id);
+        $principal = auth()->guard('principal')->user();
+        $announcement = Announcement::where('author_type', 'App\Models\Principal')
+            ->where('author_id', $principal->id)
+            ->findOrFail($id);
         return view('Principal.announcements.edit', compact('announcement'));
     }
 
@@ -165,6 +178,13 @@ class AnnouncementController extends Controller
      */
     public function update(Request $request, Announcement $announcement)
     {
+        $principal = auth()->guard('principal')->user();
+        
+        // Verify the announcement belongs to this principal
+        if ($announcement->author_type !== 'App\Models\Principal' || $announcement->author_id !== $principal->id) {
+            abort(403, 'You do not have access to this announcement.');
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
@@ -224,6 +244,21 @@ class AnnouncementController extends Controller
     public function destroy(Announcement $announcement)
     {
         try {
+
+            $principal = auth()->guard('principal')->user();
+            
+            // Verify the announcement belongs to this principal
+            if ($announcement->author_type !== 'App\Models\Principal' || $announcement->author_id !== $principal->id) {
+                return redirect()->route('principal.announcements.index')
+                    ->with('error', 'You do not have access to this announcement.');
+            }
+
+            // Check if the announcement exists
+            if (!$announcement) {
+                return redirect()->route('principal.announcements.index')
+                    ->with('error', 'Announcement not found.');
+            }
+            
             // Log the deletion attempt
             \Log::info('Attempting to delete announcement', [
                 'id' => $announcement->id,
@@ -245,6 +280,7 @@ class AnnouncementController extends Controller
 
             if (!$deleted) {
                 throw new \Exception('Failed to force delete announcement - forceDelete() returned false');
+
             }
 
             // Clear specific announcement cache (with error handling)

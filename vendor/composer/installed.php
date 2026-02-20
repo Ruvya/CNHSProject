@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'laravel/laravel',
-        'pretty_version' => 'dev-cnhs_branch',
-        'version' => 'dev-cnhs_branch',
-        'reference' => 'fff85d670773584d429e955e216b55adf4fe0f49',
+        'pretty_version' => 'dev-teacher',
+        'version' => 'dev-teacher',
+        'reference' => 'd130aa28946d1f919c9aa5100048338cd4e126d0',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -413,9 +413,9 @@
             'dev_requirement' => false,
         ),
         'laravel/laravel' => array(
-            'pretty_version' => 'dev-cnhs_branch',
-            'version' => 'dev-cnhs_branch',
-            'reference' => 'fff85d670773584d429e955e216b55adf4fe0f49',
+            'pretty_version' => 'dev-teacher',
+            'version' => 'dev-teacher',
+            'reference' => 'd130aa28946d1f919c9aa5100048338cd4e126d0',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

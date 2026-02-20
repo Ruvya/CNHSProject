@@ -20,7 +20,6 @@ return new class extends Migration
             // Academic Classification
             $table->string('grade_level'); // Grade 11, Grade 12, etc.
             $table->string('track')->nullable(); // Academic, TVL, Sports, Arts & Design
-            $table->string('strand')->nullable(); // STEM, HUMSS, GAS, etc.
 
             // DepEd Curriculum Fields
             $table->string('subject_type')->nullable(); // Core, Applied, Specialized

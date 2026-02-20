@@ -29,6 +29,7 @@ class Principal extends Authenticatable
         'linkedin',
         'twitter',
         'status',
+        'email_verified_at'
     ];
 
     protected $hidden = [

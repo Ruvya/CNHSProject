@@ -64,7 +64,7 @@ class Student extends Authenticatable
         'parent_contact',
         'advisor',
         'track',
-        'strand',
+        'cluster',
         'province',
         'municipality',
         'barangay',
@@ -112,10 +112,10 @@ class Student extends Authenticatable
         static::saved(function ($student) {
             // Check if this is a new student or if track/strand/grade_level changed
             if ($student->wasRecentlyCreated ||
-                $student->wasChanged(['track', 'strand', 'grade_level'])) {
+                $student->wasChanged(['track', 'cluster', 'grade_level'])) {
 
                 // Only auto-assign if all required fields are present
-                if ($student->track && $student->strand && $student->grade_level) {
+                if ($student->track && $student->cluster && $student->grade_level) {
                     $assignmentService = app(\App\Services\AutomaticSubjectAssignmentService::class);
                     $assignmentService->assignSubjectsToStudent($student);
                 }
@@ -174,13 +174,13 @@ class Student extends Authenticatable
     }
 
     /**
-     * Get strand-specific subjects assigned to this student
+     * Get cluster-specific subjects assigned to this student
      */
-    public function strandSubjects()
+    public function clusterSubjects()
     {
         return $this->subjects()
             ->where('track', $this->track)
-            ->where('strand', $this->strand)
+            ->where('cluster', $this->cluster)
             ->where('is_core_subject', false);
     }
 
@@ -189,7 +189,7 @@ class Student extends Authenticatable
      */
     public function hasCompleteSubjectAssignment()
     {
-        if (!$this->track || !$this->strand || !$this->grade_level) {
+        if (!$this->track || !$this->cluster || !$this->grade_level) {
             return false;
         }
 
@@ -214,15 +214,15 @@ class Student extends Authenticatable
     }
 
     /**
-     * Get formatted track and strand display
+     * Get formatted track and cluster display
      */
-    public function getTrackStrandDisplayAttribute()
+    public function getTrackClusterDisplayAttribute()
     {
-        if (!$this->track || !$this->strand) {
+        if (!$this->track || !$this->cluster) {
             return 'Not Set';
         }
 
-        return $this->track . ' - ' . $this->strand;
+        return $this->track . ' - ' . $this->cluster;
     }
 
     /**
@@ -230,7 +230,7 @@ class Student extends Authenticatable
      */
     public function isReadyForSubjectAssignment()
     {
-        return !empty($this->track) && !empty($this->strand) && !empty($this->grade_level);
+        return !empty($this->track) && !empty($this->cluster) && !empty($this->grade_level);
     }
 
     public function yearlyRecords()

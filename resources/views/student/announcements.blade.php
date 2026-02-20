@@ -301,6 +301,53 @@
         background-clip: text;
     }
 
+    /* Announcement Modal - enhanced UI */
+    .announcement-modal .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 12px 40px rgba(2, 6, 23, 0.25);
+        overflow: hidden;
+    }
+    .announcement-modal .modal-header {
+        border: none;
+        padding: 1rem 1.25rem 0.5rem 1.25rem;
+    }
+    .announcement-modal .modal-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .announcement-modal .modal-body {
+        padding: 0.25rem 1.25rem 1rem 1.25rem;
+    }
+    .announcement-modal .announcement-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+    }
+    .announcement-modal .announcement-meta i {
+        color: #2563eb;
+    }
+    .announcement-modal #modalAnnouncementContent {
+        white-space: pre-wrap;
+        line-height: 1.7;
+        color: #334155;
+        font-size: 1rem;
+        max-height: 45vh;
+        overflow-y: auto;
+        padding-right: 0.25rem;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 0.75rem;
+    }
+    .announcement-modal .modal-footer {
+        border-top: none;
+        padding: 0.75rem 1.25rem 1.25rem 1.25rem;
+    }
+
     .empty-announcements h3 {
         font-size: 2rem;
         font-weight: 700;
@@ -428,81 +475,248 @@
 @endsection
 
 @section('content')
-<!-- Header Section -->
-<div class="content-header">
-    <h1>School Announcements</h1>
-    <p>Stay updated with the latest school news and events</p>
-</div>
-
-<!-- Announcements List -->
-<div class="table-container">
-    <div class="table-header">
-        <h2 class="table-title">All Announcements</h2>
-        <select class="filter-dropdown">
-            <option value="all">All Categories</option>
-            <option value="academic">Academic</option>
-            <option value="events">Events</option>
-            <option value="general">General</option>
-        </select>
+<div class="container-fluid">
+    <!-- Header (match Class Scheduling style) -->
+    <div class="card mb-4" style="border-radius: 14px; box-shadow: 0 8px 25px rgba(30,58,138,0.12); border: none;">
+        <div class="card-body d-flex flex-wrap align-items-center justify-content-between" style="padding: 1.2rem 1.5rem;">
+            <div class="d-flex align-items-center mb-2 mb-md-0">
+                <span style="font-size: 2rem; color: #2563eb; background: #f1f5fb; border-radius: 12px; padding: 0.7rem; margin-right: 1rem; display: flex; align-items: center;">
+                    <i class="fas fa-bullhorn"></i>
+                </span>
+                <div>
+                    <div style="font-size: 1.3rem; font-weight: bold; font-family: 'Poppins', sans-serif; color: #222;">School Announcements</div>
+                    <div style="font-size: 0.95rem; font-family: 'Poppins', sans-serif; color: #555; font-weight: 500;">Stay updated with the latest school news and events</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="table-responsive">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Category</th>
-                    <th>Posted</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($announcements ?? [] as $announcement)
-                <tr>
-                    <td>{{ $announcement->title }}</td>
-                    <td>{{ $announcement->category }}</td>
-                    <td>{{ $announcement->created_at->diffForHumans() }}</td>
-                    <td>
-                        <span class="badge badge-active">Active</span>
-                    </td>
-                    <td>
-                        <div class="d-flex gap-2">
-                            <button class="btn-table-action btn-draft">
-                                <i class="fas fa-eye"></i>
-                                View
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="5" class="text-center">No announcements found</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+<!-- Announcements List -->
+<div class="card shadow-sm">
+    <div class="card-body">
+        <!-- Search and Filter Section -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Search by title or content..." id="announcementSearch">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="academic">Academic</option>
+                    <option value="events">Events</option>
+                    <option value="general">General</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-primary" id="filterBtn">
+                        <i class="fas fa-filter me-1"></i>Filter
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="resetBtn">
+                        <i class="fas fa-undo me-1"></i>Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th style="font-weight: 600; color: #495057;">Announcement Details</th>
+                        <th style="font-weight: 600; color: #495057;">Author</th>
+                        <th style="font-weight: 600; color: #495057;">Posted</th>
+                        <th style="font-weight: 600; color: #495057;">Status</th>
+                        <th style="font-weight: 600; color: #495057;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($announcements ?? [] as $announcement)
+                    <tr style="border-bottom: 1px solid #dee2e6;">
+                        <td>
+                            <div>
+                                <div style="font-weight: 600; color: #212529; margin-bottom: 4px;">{{ $announcement->title }}</div>
+                                <div style="font-size: 0.875rem; color: #6c757d;">{{ Str::limit($announcement->content, 60) }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div>
+                                <div style="font-weight: 500; color: #212529;">
+                                    @if(isset($announcement->author))
+                                        {{ $announcement->author->name ?? 'Unknown' }}
+                                    @else
+                                        School Administration
+                                    @endif
+                                </div>
+                                <div style="font-size: 0.875rem; color: #6c757d;">
+                                    @if(method_exists($announcement, 'isFromTeacher') && $announcement->isFromTeacher())
+                                        Teacher
+                                    @elseif(method_exists($announcement, 'isFromPrincipal') && $announcement->isFromPrincipal())
+                                        Principal
+                                    @else
+                                        Administrator
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 500; color: #212529;">{{ $announcement->created_at->format('M d, Y') }}</div>
+                            <div style="font-size: 0.875rem; color: #6c757d;">{{ $announcement->created_at->diffForHumans() }}</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-success" style="font-size: 0.75rem; padding: 0.375rem 0.75rem;">Active</span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-primary btn-sm view-announcement-btn" id="view-btn-{{ $announcement->id }}"
+                                    data-bs-toggle="modal" data-bs-target="#announcementModal"
+                                    data-title="{{ htmlspecialchars($announcement->title, ENT_QUOTES) }}"
+                                    data-content="{{ htmlspecialchars($announcement->content, ENT_QUOTES) }}"
+                                    data-category="{{ htmlspecialchars($announcement->category ?? '', ENT_QUOTES) }}"
+                                    data-author="{{ isset($announcement->author) ? htmlspecialchars($announcement->author->name ?? '', ENT_QUOTES) : '' }}"
+                                    data-author-type="{{ method_exists($announcement, 'isFromTeacher') && $announcement->isFromTeacher() ? 'Teacher' : (method_exists($announcement, 'isFromPrincipal') && $announcement->isFromPrincipal() ? 'Principal' : 'School Administration') }}"
+                                    data-id="{{ $announcement->id }}"
+                                    style="padding: 0.375rem 0.75rem; font-size: 0.875rem;">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="text-center py-4" style="color: #6c757d;">
+                            <i class="fas fa-bullhorn fa-2x mb-2" style="opacity: 0.3;"></i>
+                            <div>No announcements found</div>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <!-- Announcement Details Modal -->
-<div class="modal fade" id="announcementModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade announcement-modal" id="announcementModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Announcement Details</h5>
+                <h5 class="modal-title" id="modalAnnouncementTitle">Announcement</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <!-- Announcement content will be loaded here -->
+                <div class="announcement-meta" id="modalAnnouncementAuthor">
+                    <!-- author is injected here -->
+                </div>
+                <div id="modalAnnouncementContent"></div>
             </div>
+            <div class="modal-footer"></div>
         </div>
     </div>
+    
+</div>
 </div>
 @endsection
 
 @section('scripts')
 <script>
-    // Add any JavaScript for handling announcements here
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('announcementModal');
+        const titleEl = document.getElementById('modalAnnouncementTitle');
+        const contentEl = document.getElementById('modalAnnouncementContent');
+        const authorEl = document.getElementById('modalAnnouncementAuthor');
+        // No Save/Share buttons
+
+        // Search and filter functionality
+        const searchInput = document.getElementById('announcementSearch');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const filterBtn = document.getElementById('filterBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const tableRows = document.querySelectorAll('tbody tr');
+
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value.toLowerCase();
+
+            tableRows.forEach(row => {
+                const title = row.querySelector('td:first-child div:first-child').textContent.toLowerCase();
+                const content = row.querySelector('td:first-child div:last-child').textContent.toLowerCase();
+                const author = row.querySelector('td:nth-child(2) div:first-child').textContent.toLowerCase();
+                
+                const matchesSearch = title.includes(searchTerm) || content.includes(searchTerm) || author.includes(searchTerm);
+                const matchesCategory = !selectedCategory || selectedCategory === 'all' || 
+                    (selectedCategory === 'academic' && (title.includes('academic') || content.includes('academic'))) ||
+                    (selectedCategory === 'events' && (title.includes('event') || content.includes('event'))) ||
+                    (selectedCategory === 'general' && (!title.includes('academic') && !title.includes('event')));
+
+                if (matchesSearch && matchesCategory) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Event listeners
+        searchInput.addEventListener('input', filterTable);
+        categoryFilter.addEventListener('change', filterTable);
+        filterBtn.addEventListener('click', filterTable);
+        resetBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            categoryFilter.value = '';
+            tableRows.forEach(row => row.style.display = '');
+        });
+
+        // Modal functionality
+        document.querySelectorAll('.view-announcement-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const title = btn.getAttribute('data-title');
+                const content = btn.getAttribute('data-content');
+                const author = btn.getAttribute('data-author');
+                const authorType = btn.getAttribute('data-author-type');
+                const id = btn.getAttribute('data-id');
+
+                titleEl.textContent = title;
+                contentEl.textContent = content;
+                let authorText = '';
+                if (authorType === 'Teacher') {
+                    authorText = `👨‍🏫 Posted by: ${author || 'Teacher'} (Teacher)`;
+                } else if (authorType === 'Principal') {
+                    authorText = `🏫 Posted by: ${author || 'Principal'} (Principal)`;
+                } else {
+                    authorText = `📝 Posted by: ${author || 'School Administration'}`;
+                }
+                authorEl.innerHTML = `<small>${authorText}</small>`;
+
+                // Only view; mark as read handled below
+
+                // Mark as read when opening modal
+                fetch(`{{ url('student/announcements') }}/${id}/read`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+                }).finally(() => {
+                    try { window.dispatchEvent(new CustomEvent('studentNotificationsUpdated', { detail: { delta: -1 } })); } catch (e) {}
+                });
+            });
+        });
+
+        // Auto-open from query param ?open={id}
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const openId = params.get('open');
+            if (openId) {
+                const target = document.getElementById('view-btn-' + openId);
+                if (target) {
+                    setTimeout(() => target.click(), 200);
+                }
+            }
+        } catch (e) {}
+    });
+
+    // No Save/Share actions
 </script>
 @endsection

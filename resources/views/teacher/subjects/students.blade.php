@@ -29,6 +29,46 @@
             </div>
         </div>
     </div>
+    <!-- Grade Management Card (from grades.blade.php) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm p-4">
+                <form id="filterForm" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="subject" class="form-label">Subject</label>
+                        <select id="subject" class="form-select">
+                            <option value="">Select Subject</option>
+                            @foreach($subjects as $subjectOption)
+                                <option value="{{ $subjectOption->id }}">{{ $subjectOption->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="gradeLevel" class="form-label">Grade Level</label>
+                        <select id="gradeLevel" class="form-select">
+                            <option value="">Select Grade Level</option>
+                            <option value="11">Grade 11</option>
+                            <option value="12">Grade 12</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="section" class="form-label">Section</label>
+                        <select id="section" class="form-select">
+                            <option value="">Select Section</option>
+                            @foreach($sections as $section)
+                                <option value="{{ $section }}">{{ $section }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-primary w-100" id="viewGradesBtn">
+                            <i class="fas fa-search"></i> View Grades
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Subject Info Card -->
     <div class="row mb-4">
@@ -43,10 +83,6 @@
                         <div class="col-md-3">
                             <h6 class="text-primary font-weight-bold">Grade Level</h6>
                             <p class="mb-0">Grade {{ $subject->grade_level }}</p>
-                        </div>
-                        <div class="col-md-3">
-                            <h6 class="text-primary font-weight-bold">Units</h6>
-                            <p class="mb-0">{{ $subject->units }}</p>
                         </div>
                         <div class="col-md-3">
                             <h6 class="text-primary font-weight-bold">Total Students</h6>
@@ -76,8 +112,6 @@
                                         <th>Name</th>
                                         <th>Grade Level</th>
                                         <th>Section</th>
-                                        <th>Current Grade</th>
-                                        <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -93,8 +127,6 @@
                                             <td>{{ $student->student_id }}</td>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <img src="{{ $student->profile_picture ? asset('storage/' . $student->profile_picture) : asset('images/photo.jpg') }}" 
-                                                         class="rounded-circle me-2" width="32" height="32" alt="Profile">
                                                     <div>
                                                         <strong>{{ $student->first_name }} {{ $student->last_name }}</strong>
                                                         @if($student->middle_name)
@@ -105,16 +137,6 @@
                                             </td>
                                             <td>Grade {{ $student->grade_level }}</td>
                                             <td>{{ $student->section ?? 'N/A' }}</td>
-                                            <td>
-                                                @if($finalGrade)
-                                                    <span class="badge badge-{{ $statusClass }}">{{ $finalGrade }}</span>
-                                                @else
-                                                    <span class="text-muted">No grade</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <span class="badge badge-{{ $statusClass }}">{{ $status }}</span>
-                                            </td>
                                             <td>
                                                 <a href="{{ route('teacher.subjects.grades.edit', [$subject, $student]) }}" 
                                                    class="btn btn-sm btn-outline-primary" title="Edit Grade">
@@ -177,6 +199,20 @@
 .rounded-circle {
     object-fit: cover;
 }
+
+.table-grades th, .table-grades td {
+    vertical-align: middle;
+}
+.table-grades th {
+    background: #f8f9fa;
+}
+.card-header {
+    border-bottom: 1px solid #e3e6f0;
+}
+.grade-input {
+    width: 80px;
+    text-align: center;
+}
 </style>
 @endsection
 
@@ -195,6 +231,70 @@ $(document).ready(function() {
             "info": "Showing _START_ to _END_ of _TOTAL_ students",
             "infoEmpty": "No students found",
             "infoFiltered": "(filtered from _MAX_ total students)"
+        }
+    });
+});
+
+$('#viewGradesBtn').on('click', function(e) {
+    e.preventDefault();
+    const subjectId = $('#subject').val();
+    const gradeLevel = $('#gradeLevel').val();
+    const section = $('#section').val();
+    if (!subjectId || !gradeLevel || !section) {
+        $('#gradesList').html('<div class="alert alert-warning">Please select all filters.</div>');
+        return;
+    }
+    $('#gradesList').html('<div class="text-center text-muted">Loading grades...</div>');
+    fetch(`/teacher/get-grades?subjectId=${subjectId}&gradeLevel=${gradeLevel}&section=${section}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.length === 0) {
+                $('#gradesList').html('<div class="alert alert-info">No grades found for the selected filters.</div>');
+                return;
+            }
+            let table = `<div class="table-responsive"><table class="table table-bordered table-grades"><thead><tr><th>#</th><th>Name</th><th>Student ID</th><th>Prelim</th><th>Midterm</th><th>Final</th><th>Average</th><th>Status</th><th>Action</th></tr></thead><tbody>`;
+            data.forEach((student, idx) => {
+                table += `<tr>
+                    <td>${idx+1}</td>
+                    <td>${student.name}</td>
+                    <td>${student.student_id}</td>
+                    <td><input type="number" class="form-control grade-input" value="${student.prelim ?? ''}" data-id="${student.id}" data-type="prelim"></td>
+                    <td><input type="number" class="form-control grade-input" value="${student.midterm ?? ''}" data-id="${student.id}" data-type="midterm"></td>
+                    <td><input type="number" class="form-control grade-input" value="${student.final ?? ''}" data-id="${student.id}" data-type="final"></td>
+                    <td>${student.average ?? '-'}</td>
+                    <td>${student.status ?? '-'}</td>
+                    <td><button class="btn btn-success btn-sm save-grade-btn" data-id="${student.id}"><i class="fas fa-save"></i> Save</button></td>
+                </tr>`;
+            });
+            table += '</tbody></table></div>';
+            $('#gradesList').html(table);
+        });
+});
+
+// Save grade (AJAX example, you may need to adjust for your backend)
+$(document).on('click', '.save-grade-btn', function() {
+    const row = $(this).closest('tr');
+    const studentId = $(this).data('id');
+    const subjectId = $('#subject').val();
+    const prelim = row.find('input[data-type="prelim"]').val();
+    const midterm = row.find('input[data-type="midterm"]').val();
+    const final = row.find('input[data-type="final"]').val();
+    $.ajax({
+        url: '{{ route('teacher.save-grade') }}',
+        method: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            student_id: studentId,
+            subject_id: subjectId,
+            prelim: prelim,
+            midterm: midterm,
+            final: final
+        },
+        success: function(response) {
+            alert('Grade saved successfully!');
+        },
+        error: function() {
+            alert('Error saving grade.');
         }
     });
 });

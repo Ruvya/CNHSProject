@@ -11,7 +11,7 @@ class TeacherAssignment extends Model
         'teacher_id',
         'subject_id',
         'school_year',
-        'grading_period',
+        'semester',
         'schedule',
         'assignment_date',
         'status',
@@ -40,6 +40,9 @@ class TeacherAssignment extends Model
         return $this->belongsTo(Subject::class);
     }
 
+    // Note: section_id column was removed from teacher_assignments table
+    // Section information is now handled through subject assignments
+
     /**
      * Get the registrar who made this assignment
      */
@@ -66,11 +69,19 @@ class TeacherAssignment extends Model
     }
 
     /**
-     * Scope for specific grading period
+     * Scope for specific semester
+     */
+    public function scopeForSemester($query, $semester)
+    {
+        return $query->where('semester', $semester);
+    }
+
+    /**
+     * Scope for specific grading period (deprecated - use scopeForSemester)
      */
     public function scopeForGradingPeriod($query, $gradingPeriod)
     {
-        return $query->where('grading_period', $gradingPeriod);
+        return $query->where('semester', $gradingPeriod);
     }
 
     /**
@@ -85,7 +96,7 @@ class TeacherAssignment extends Model
         $query = self::where('teacher_id', $teacherId)
             ->where('status', 'active')
             ->where('school_year', $this->school_year)
-            ->where('grading_period', $this->grading_period);
+            ->where('semester', $this->semester);
 
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
@@ -146,18 +157,115 @@ class TeacherAssignment extends Model
      */
     public function getFormattedScheduleAttribute(): string
     {
-        if (!$this->schedule) {
-            return 'No schedule set';
+        // 1) Prefer embedded JSON schedule on the assignment (newer flow)
+        if ($this->schedule && is_array($this->schedule) && count($this->schedule) > 0) {
+            $scheduleStrings = [];
+            foreach ($this->schedule as $slot) {
+                if (!isset($slot['day'], $slot['start_time'], $slot['end_time'])) {
+                    continue;
+                }
+                $scheduleStrings[] = $slot['day'] . ' ' .
+                    date('g:i A', strtotime($slot['start_time'])) . '-' .
+                    date('g:i A', strtotime($slot['end_time']));
+            }
+            if (!empty($scheduleStrings)) {
+                return implode(', ', $scheduleStrings);
+            }
         }
 
-        $scheduleStrings = [];
-        foreach ($this->schedule as $slot) {
-            $scheduleStrings[] = $slot['day'] . ' ' .
-                date('g:i A', strtotime($slot['start_time'])) . '-' .
-                date('g:i A', strtotime($slot['end_time']));
+        // 2) Fallback: look up active schedules table for this teacher+subject, same school year and semester
+        try {
+            $query = \App\Models\Schedule::with(['section'])
+                ->where('teacher_id', $this->teacher_id)
+                ->where('subject_id', $this->subject_id)
+                ->where('status', 'active');
+
+            if (!empty($this->school_year)) {
+                $query->where('school_year', $this->school_year);
+            }
+
+            // Respect semester/grading_period column
+            if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+                if (!empty($this->semester)) {
+                    $query->where('semester', $this->semester);
+                }
+            } else {
+                if (!empty($this->semester)) {
+                    $query->where('grading_period', $this->semester);
+                }
+            }
+
+            $schedules = $query->orderBy('day')->orderBy('start_time')->get();
+            if ($schedules->isEmpty()) {
+                // Relax filters if nothing found: ignore school_year/semester and take most recent
+                $relaxed = \App\Models\Schedule::where('teacher_id', $this->teacher_id)
+                    ->where('subject_id', $this->subject_id)
+                    ->where('status', 'active')
+                    ->orderByDesc('school_year')
+                    ->orderByDesc('id')
+                    ->get();
+                if ($relaxed->isNotEmpty()) {
+                    $schedules = $relaxed;
+                }
+            }
+
+            if ($schedules->isNotEmpty()) {
+                return $schedules->map(function ($sch) {
+                    return $sch->formatted_schedule;
+                })->implode(', ');
+            }
+        } catch (\Throwable $e) {}
+
+        return 'No schedule set';
+    }
+
+    /**
+     * Display semester with graceful fallback to schedule/subject semester
+     */
+    public function getDisplaySemesterAttribute(): ?string
+    {
+        if (!empty($this->semester)) {
+            return $this->semester;
         }
 
-        return implode(', ', $scheduleStrings);
+        // Fallback: try schedules table
+        try {
+            $query = \App\Models\Schedule::where('teacher_id', $this->teacher_id)
+                ->where('subject_id', $this->subject_id)
+                ->where('status', 'active');
+
+            if (!empty($this->school_year)) {
+                $query->where('school_year', $this->school_year);
+            }
+
+            $period = null;
+            if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+                $period = (string) $query->value('semester');
+            } else {
+                $period = (string) $query->value('grading_period');
+            }
+
+            if (!empty($period)) {
+                return $period;
+            }
+
+            // Relax: any most-recent schedule for this teacher+subject
+            $recent = \App\Models\Schedule::where('teacher_id', $this->teacher_id)
+                ->where('subject_id', $this->subject_id)
+                ->where('status', 'active')
+                ->orderByDesc('school_year')
+                ->orderByDesc('id')
+                ->first();
+            if ($recent) {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('schedules', 'semester')) {
+                    return $recent->semester;
+                }
+                return $recent->grading_period;
+            }
+        } catch (\Throwable $e) {}
+
+        // Final fallback: use subject's configured semester if any
+        return $this->subject->semester ?? null;
     }
 
     /**

@@ -17,14 +17,17 @@ return new class extends Migration
                 $table->string('student_id')->unique();
                 $table->string('password');
                 $table->boolean('is_used')->default(false);
-                $table->unsignedBigInteger('created_by_admin_id');
+                $table->unsignedBigInteger('created_by_admin_id')->nullable();
+                $table->unsignedBigInteger('created_by_registrar_id')->nullable();
                 $table->unsignedBigInteger('used_by_student_id')->nullable();
                 $table->timestamp('used_at')->nullable();
                 $table->text('notes')->nullable();
+                $table->string('source')->default('manual'); // 'manual' or 'csv_upload'
                 $table->timestamps();
 
                 // Foreign key constraints
                 $table->foreign('created_by_admin_id')->references('id')->on('admins')->onDelete('cascade');
+                $table->foreign('created_by_registrar_id')->references('id')->on('registrars')->onDelete('cascade');
                 $table->foreign('used_by_student_id')->references('id')->on('students')->onDelete('set null');
 
                 // Indexes

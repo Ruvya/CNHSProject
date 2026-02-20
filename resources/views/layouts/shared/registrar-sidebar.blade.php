@@ -34,6 +34,12 @@
             </a>
         </li>
         <li>
+            <a href="{{ route('registrar.years.index') }}" class="{{ request()->routeIs('registrar.years*') ? 'active' : '' }}">
+                <i class="fas fa-archive"></i>
+                <span>School Years</span>
+            </a>
+        </li>
+        <li>
             <a href="{{ route('registrar.students.index') }}" class="{{ request()->routeIs('registrar.students*') && !request()->routeIs('registrar.students.yearly-records*') ? 'active' : '' }}">
                 <i class="fas fa-user-graduate"></i>
                 <span>Student Records</span>
@@ -43,18 +49,6 @@
             <a href="{{ route('registrar.yearly-records.index') }}" class="{{ request()->routeIs('registrar.yearly-records*') || request()->routeIs('registrar.students.yearly-records*') || request()->routeIs('registrar.teachers.yearly-records*') ? 'active' : '' }}">
                 <i class="fas fa-calendar-alt"></i>
                 <span>Yearly Records</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('registrar.subjects.index') }}" class="{{ request()->routeIs('registrar.subjects*') ? 'active' : '' }}">
-                <i class="fas fa-book"></i>
-                <span>Subjects</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('registrar.subject-assignments.index') }}" class="{{ request()->routeIs('registrar.subject-assignments*') ? 'active' : '' }}">
-                <i class="fas fa-chalkboard-teacher"></i>
-                <span>Subject Assignment</span>
             </a>
         </li>
         <li>

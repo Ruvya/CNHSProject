@@ -10,7 +10,7 @@ class PrincipalAuthController extends Controller
     // Show the principal login form
     public function showLoginForm()
     {
-        return view('principal.auth.login');
+        return view('auth.login');
     }
 
     // Handle principal login
